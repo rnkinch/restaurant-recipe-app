@@ -1,0 +1,93 @@
+// src/PdfTemplateEditor.js
+import React, { useEffect, useRef } from 'react';
+import { Designer } from '@pdfme/ui';
+import { generate } from '@pdfme/generator';
+import blankPdf from './blank.pdf';
+
+const PdfTemplateEditor = ({ recipe, onBack }) => {
+  const designerRef = useRef(null);
+  const containerRef = useRef(null);
+
+  // ✅ v5 schema format
+  const defaultTemplate = {
+basePdf: blankPdf,
+  schemas: [[
+    {
+      type: 'text',
+      name: 'title',
+      position: { x: 50, y: 50 },
+      width: 400,
+      height: 30,
+    },
+    {
+      type: 'text',
+      name: 'description',
+      position: { x: 50, y: 100 },
+      width: 500,
+      height: 60,
+    },
+    {
+      type: 'text',
+      name: 'steps',
+      position: { x: 50, y: 180 },
+      width: 500,
+      height: 400,
+    },
+  ]],
+};
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const designer = new Designer({
+        domContainer: containerRef.current,
+        template: defaultTemplate,
+      });
+      designerRef.current = designer;
+    }
+  }, []);
+
+  const handlePreview = async () => {
+    try {
+      const tpl = designerRef.current.getTemplate();
+      console.log('Preview with template:', tpl);
+      const pdf = await generate({
+        template: tpl,
+        inputs: [
+          {
+            title: recipe?.name || 'Untitled Recipe',
+            description: recipe?.description || '',
+            steps: (recipe?.steps || []).join('\n'),
+          },
+        ],
+      });
+      const blob = new Blob([pdf.buffer], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error('Preview failed:', err);
+      alert(`Preview failed: ${err.message}`);
+    }
+  };
+
+  return (
+    <div style={{ padding: '1rem' }}>
+      <h2>Edit PDF Template</h2>
+      <div
+        ref={containerRef}
+        style={{
+          border: '1px solid #ccc',
+          height: '600px',
+          marginBottom: '1rem',
+        }}
+      />
+      <button onClick={handlePreview}>Preview PDF</button>
+      {onBack && (
+        <button onClick={onBack} style={{ marginLeft: '0.5rem' }}>
+          Back to Recipe
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default PdfTemplateEditor;

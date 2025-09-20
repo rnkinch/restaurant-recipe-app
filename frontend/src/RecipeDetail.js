@@ -132,6 +132,17 @@ const RecipeDetail = ({ refreshRecipes }) => {
         <Button variant="outline-danger" size="sm" onClick={handleDelete}>
           Delete
         </Button>
+		
+	<Button 
+  variant="secondary" 
+  size="sm" 
+  as={Link} 
+  to={`/recipes/${id}/edit-pdf`}
+>
+  Edit PDF Template
+</Button>
+
+
       </div>
     </Container>
   );

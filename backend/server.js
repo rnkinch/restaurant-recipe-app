@@ -343,6 +343,10 @@ app.delete('/recipes/:id', async (req, res) => {
   }
 });
 
+const templateRoutes = require('./routes/templates');
+app.use('/templates', templateRoutes);
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://0.0.0.0:${PORT} at ${new Date().toISOString()}`);

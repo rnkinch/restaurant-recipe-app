@@ -7,6 +7,7 @@ import RecipeForm from './RecipeForm';
 import Reports from './Reports';
 import Purveyors from './Purveyors';
 import { getRecipes } from './api';
+import PdfTemplateEditor from './PdfTemplateEditor';
 
 function App() {
   const [recipes, setRecipes] = useState([]);
@@ -124,6 +125,7 @@ function App() {
                 <Route path="/add" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
                 <Route path="/edit/:id" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
                 <Route path="/copy/:id" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
+				<Route path="/recipes/:id/edit-pdf" element={<PdfTemplateEditor />} />
                 <Route path="/recipe/:id" element={<RecipeDetail refreshRecipes={refreshRecipes} />} />
                 <Route path="/reports/:type" element={<Reports />} />
                 <Route path="/purveyors" element={<Purveyors />} />
