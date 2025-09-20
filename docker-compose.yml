@@ -1,0 +1,60 @@
+services:
+  mongo-container:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  init-backend:
+    image: node:20-alpine
+    user: "0:0"
+    command: >
+      sh -c "
+      mkdir -p /app/uploads &&
+      chown -R 1000:1000 /app/uploads &&
+      chmod 755 /app/uploads &&
+      chmod -R 644 /app/uploads/* &&
+      echo 'Volume permissions set (node:node, dir 755, files 644)' &&
+      ls -la /app/uploads
+      "
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      - mongo-container
+  backend-container:
+    build: ./backend
+    ports:
+      - "0.0.0.0:5000:5000"
+    depends_on:
+      init-backend:
+        condition: service_completed_successfully
+      mongo-container:
+        condition: service_healthy
+    environment:
+      - MONGO_URI=mongodb://mongo-container:27017/recipeDB
+    volumes:
+      - uploads:/app/uploads
+  frontend-container:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://192.168.68.129:5000
+    ports:
+      - "0.0.0.0:3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://192.168.68.129:5000
+    depends_on:
+      - backend-container
+networks:
+  default:
+    name: recipe-app-network
+    driver: bridge
+volumes:
+  mongo-data:
+  uploads:

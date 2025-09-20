@@ -1,0 +1,146 @@
+db.recipes.insertMany([
+  {
+    "name": "Classic Margarita",
+    "ingredients": [
+      { "name": "Tequila", "quantity": 2, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Lime Juice", "quantity": 1, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" },
+      { "name": "Triple Sec", "quantity": 0.5, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Salt", "quantity": 1, "measure": "tsp", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" }
+    ],
+    "steps": "1. Rim glass with salt\n2. Shake tequila, lime juice, and triple sec with ice\n3. Strain into glass\n4. Serve chilled",
+    "platingGuide": "• Serve in salt-rimmed glass\n• Garnish with lime wedge",
+    "allergens": [],
+    "serviceTypes": ["drink"],
+    "image": "/Uploads/123456789_margarita.jpg",
+    "active": true
+  },
+  {
+    "name": "Mojito",
+    "ingredients": [
+      { "name": "White Rum", "quantity": 2, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Lime Juice", "quantity": 1, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" },
+      { "name": "Mint Leaves", "quantity": 10, "measure": "leaves", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Soda Water", "quantity": 2, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" }
+    ],
+    "steps": "1. Muddle mint leaves with lime juice\n2. Add rum and ice\n3. Top with soda water\n4. Stir gently",
+    "platingGuide": "• Serve in highball glass\n• Garnish with mint sprig",
+    "allergens": [],
+    "serviceTypes": ["drink"],
+    "image": "/Uploads/123456789_mojito.jpg",
+    "active": true
+  },
+  {
+    "name": "Old Fashioned",
+    "ingredients": [
+      { "name": "Bourbon", "quantity": 2, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Angostura Bitters", "quantity": 2, "measure": "dashes", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" },
+      { "name": "Sugar Cube", "quantity": 1, "measure": "whole", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Orange Peel", "quantity": 1, "measure": "piece", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" }
+    ],
+    "steps": "1. Muddle sugar cube with bitters\n2. Add bourbon and ice\n3. Stir until chilled\n4. Add orange peel",
+    "platingGuide": "• Serve in rocks glass\n• Garnish with orange twist",
+    "allergens": [],
+    "serviceTypes": ["drink"],
+    "image": "/Uploads/123456789_oldfashioned.jpg",
+    "active": true
+  },
+  {
+    "name": "Cosmopolitan",
+    "ingredients": [
+      { "name": "Vodka", "quantity": 1.5, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Cranberry Juice", "quantity": 1, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" },
+      { "name": "Triple Sec", "quantity": 0.5, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Lime Juice", "quantity": 0.5, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" }
+    ],
+    "steps": "1. Shake all ingredients with ice\n2. Strain into chilled glass\n3. Serve immediately",
+    "platingGuide": "• Serve in martini glass\n• Garnish with lime wheel",
+    "allergens": [],
+    "serviceTypes": ["drink"],
+    "image": "/Uploads/123456789_cosmopolitan.jpg",
+    "active": true
+  },
+  {
+    "name": "Gin and Tonic",
+    "ingredients": [
+      { "name": "Gin", "quantity": 2, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Tonic Water", "quantity": 4, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" },
+      { "name": "Lime", "quantity": 1, "measure": "wedge", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" }
+    ],
+    "steps": "1. Fill glass with ice\n2. Pour gin and tonic water\n3. Squeeze lime wedge\n4. Stir gently",
+    "platingGuide": "• Serve in highball glass\n• Garnish with lime wedge",
+    "allergens": [],
+    "serviceTypes": ["drink"],
+    "image": "/Uploads/123456789_gintonic.jpg",
+    "active": true
+  },
+  {
+    "name": "Moscow Mule",
+    "ingredients": [
+      { "name": "Vodka", "quantity": 2, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Ginger Beer", "quantity": 4, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" },
+      { "name": "Lime Juice", "quantity": 0.5, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" }
+    ],
+    "steps": "1. Fill copper mug with ice\n2. Add vodka and lime juice\n3. Top with ginger beer\n4. Stir gently",
+    "platingGuide": "• Serve in copper mug\n• Garnish with lime wedge",
+    "allergens": [],
+    "serviceTypes": ["drink"],
+    "image": "/Uploads/123456789_moscowmule.jpg",
+    "active": true
+  },
+  {
+    "name": "Negroni",
+    "ingredients": [
+      { "name": "Gin", "quantity": 1, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Campari", "quantity": 1, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" },
+      { "name": "Sweet Vermouth", "quantity": 1, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" }
+    ],
+    "steps": "1. Fill glass with ice\n2. Add all ingredients\n3. Stir until chilled\n4. Strain into glass",
+    "platingGuide": "• Serve in rocks glass\n• Garnish with orange peel",
+    "allergens": [],
+    "serviceTypes": ["drink"],
+    "image": "/Uploads/123456789_negroni.jpg",
+    "active": true
+  },
+  {
+    "name": "Pina Colada",
+    "ingredients": [
+      { "name": "White Rum", "quantity": 2, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Pineapple Juice", "quantity": 3, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" },
+      { "name": "Coconut Cream", "quantity": 1, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" }
+    ],
+    "steps": "1. Blend rum, pineapple juice, and coconut cream with ice\n2. Pour into chilled glass\n3. Serve immediately",
+    "platingGuide": "• Serve in hurricane glass\n• Garnish with pineapple slice",
+    "allergens": [],
+    "serviceTypes": ["drink"],
+    "image": "/Uploads/123456789_pinacolada.jpg",
+    "active": true
+  },
+  {
+    "name": "Dark 'n' Stormy",
+    "ingredients": [
+      { "name": "Dark Rum", "quantity": 2, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Ginger Beer", "quantity": 4, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" },
+      { "name": "Lime Juice", "quantity": 0.5, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" }
+    ],
+    "steps": "1. Fill glass with ice\n2. Pour ginger beer\n3. Top with dark rum and lime juice\n4. Stir gently",
+    "platingGuide": "• Serve in highball glass\n• Garnish with lime wedge",
+    "allergens": [],
+    "serviceTypes": ["drink"],
+    "image": "/Uploads/123456789_darknstormy.jpg",
+    "active": true
+  },
+  {
+    "name": "Martini",
+    "ingredients": [
+      { "name": "Gin", "quantity": 2.5, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" },
+      { "name": "Dry Vermouth", "quantity": 0.5, "measure": "oz", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j9" },
+      { "name": "Olive", "quantity": 2, "measure": "pieces", "purveyor": "5f7d1a3b9c1e2f4g5h6i7j8" }
+    ],
+    "steps": "1. Stir gin and vermouth with ice\n2. Strain into chilled glass\n3. Add olives\n4. Serve immediately",
+    "platingGuide": "• Serve in martini glass\n• Garnish with olives on skewer",
+    "allergens": [],
+    "serviceTypes": ["drink"],
+    "image": "/Uploads/123456789_martini.jpg",
+    "active": true
+  }
+]);
