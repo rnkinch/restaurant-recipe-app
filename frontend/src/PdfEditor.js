@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { DndProvider, useDrag } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Button, Form, Row, Col } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
@@ -39,7 +39,8 @@ const styles = {
     position: 'relative',
     width: '842px',
     height: '595px',
-    border: '1px solid #ccc',
+    border: '18px solid #000', // 1/4" border (18px at 72 DPI)
+    boxSizing: 'border-box',
     background: '#fff',
     marginBottom: '1rem',
     overflow: 'hidden',
@@ -47,9 +48,6 @@ const styles = {
 };
 
 const Field = ({ field, index, setFields, selectedField, setSelectedField }) => {
-  const dragTimeoutRef = useRef(null);
-  const dragStateRef = useRef(null);
-
   const [{ isDragging }, drag] = useDrag({
     type: 'field',
     item: { id: field.id, index, x: field.x, y: field.y },
@@ -59,54 +57,27 @@ const Field = ({ field, index, setFields, selectedField, setSelectedField }) => 
     end: (item, monitor) => {
       const delta = monitor.getDifferenceFromInitialOffset();
       if (delta && item.id === field.id) {
-        if (dragTimeoutRef.current) {
-          clearTimeout(dragTimeoutRef.current);
-        }
-        dragTimeoutRef.current = setTimeout(() => {
-          setFields((prev) => {
-            const newFields = [...prev];
-            const maxWidth = field.isImage ? (field.width || 100) : field.isLine ? (field.orientation === 'horizontal' ? (field.length || 100) : 1) : (field.width || 400);
-            const maxHeight = field.isImage ? (field.height || 100) : field.isLine ? (field.orientation === 'vertical' ? (field.length || 100) : 1) : 20;
-            const newX = Math.max(0, Math.min(842 - maxWidth, newFields[index].x + delta.x));
-            const newY = Math.max(0, Math.min(595 - maxHeight, newFields[index].y + delta.y));
-            newFields[index] = {
-              ...newFields[index],
-              x: Math.round(newX / 10) * 10,
-              y: Math.round(newY / 10) * 10,
-            };
-            console.log('Field moved:', { id: field.id, x: newX, y: newY });
-            dragStateRef.current = null;
-            return newFields;
-          });
-        }, 100);
-        dragStateRef.current = { index, x: delta.x, y: delta.y };
-      }
-    },
-  });
-
-  const [, drop] = useDrop({
-    accept: 'field',
-    hover: (item, monitor) => {
-      if (item.index !== index && !monitor.isOver({ shallow: true }) && !dragStateRef.current) {
-        if (dragTimeoutRef.current) {
-          clearTimeout(dragTimeoutRef.current);
-        }
-        dragTimeoutRef.current = setTimeout(() => {
-          setFields((prev) => {
-            const newFields = [...prev];
-            [newFields[item.index], newFields[index]] = [newFields[index], newFields[item.index]];
-            console.log('Fields reordered:', { fromIndex: item.index, toIndex: index });
-            return newFields;
-          });
-          item.index = index;
-        }, 100);
+        setFields((prev) => {
+          const newFields = [...prev];
+          const maxWidth = field.isImage ? (field.width || 100) : field.isLine ? (field.orientation === 'horizontal' ? (field.length || 100) : 1) : (field.width || 400);
+          const maxHeight = field.isImage ? (field.height || 100) : field.isLine ? (field.orientation === 'vertical' ? (field.length || 100) : 1) : 20;
+          const newX = Math.max(0, Math.min(842 - maxWidth, item.x + delta.x));
+          const newY = Math.max(0, Math.min(595 - maxHeight, item.y + delta.y));
+          newFields[index] = {
+            ...newFields[index],
+            x: Math.round(newX / 10) * 10,
+            y: Math.round(newY / 10) * 10,
+          };
+          console.log('Field moved:', { id: field.id, x: newX, y: newY });
+          return newFields;
+        });
       }
     },
   });
 
   return (
     <div
-      ref={(node) => drag(drop(node))}
+      ref={drag}
       style={{
         ...styles.field,
         left: field.x,
@@ -614,10 +585,10 @@ const PdfEditor = ({ recipe }) => {
               Preview PDF
             </Button>
           </div>
-          {selectedField && !selectedField.endsWith('Label') && (
+          {selectedField && (
             <div style={{ marginTop: '50px' }}>
               <h4>Edit {fields.find((f) => f.id === selectedField)?.id || 'Field'}</h4>
-              {!fields.find((f) => f.id === selectedField)?.isImage && !fields.find((f) => f.id === selectedField)?.isLine ? (
+              {selectedField.endsWith('Label') ? (
                 <>
                   <Form.Group className="mb-2">
                     <Form.Label>Content</Form.Label>
@@ -627,6 +598,83 @@ const PdfEditor = ({ recipe }) => {
                       onChange={(e) => handleFieldChange(selectedField, 'content', e.target.value)}
                     />
                   </Form.Group>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Z-Index</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={fields.find((f) => f.id === selectedField)?.zIndex || 10}
+                      onChange={(e) => handleFieldChange(selectedField, 'zIndex', e.target.value)}
+                      min="1"
+                      max="100"
+                    />
+                  </Form.Group>
+                </>
+              ) : fields.find((f) => f.id === selectedField)?.isImage ? (
+                <>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Width (px)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={fields.find((f) => f.id === selectedField)?.width || 100}
+                      onChange={(e) => handleFieldChange(selectedField, 'width', e.target.value)}
+                      min="50"
+                      max="600"
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Height (px, auto-adjusted)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={fields.find((f) => f.id === selectedField)?.height || 100}
+                      disabled
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Z-Index</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={fields.find((f) => f.id === selectedField)?.zIndex || 10}
+                      onChange={(e) => handleFieldChange(selectedField, 'zIndex', e.target.value)}
+                      min="1"
+                      max="100"
+                    />
+                  </Form.Group>
+                </>
+              ) : fields.find((f) => f.id === selectedField)?.isLine ? (
+                <>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Length (px)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={fields.find((f) => f.id === selectedField)?.length || 100}
+                      onChange={(e) => handleFieldChange(selectedField, 'length', e.target.value)}
+                      min="10"
+                      max="600"
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Orientation</Form.Label>
+                    <Form.Select
+                      value={fields.find((f) => f.id === selectedField)?.orientation || 'horizontal'}
+                      onChange={(e) => handleFieldChange(selectedField, 'orientation', e.target.value)}
+                    >
+                      <option value="horizontal">Horizontal</option>
+                      <option value="vertical">Vertical</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Z-Index</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={fields.find((f) => f.id === selectedField)?.zIndex || 10}
+                      onChange={(e) => handleFieldChange(selectedField, 'zIndex', e.target.value)}
+                      min="1"
+                      max="100"
+                    />
+                  </Form.Group>
+                </>
+              ) : (
+                <>
                   <Form.Group className="mb-2">
                     <Form.Label>Font Size (px)</Form.Label>
                     <Form.Control
@@ -663,70 +711,6 @@ const PdfEditor = ({ recipe }) => {
                       label="Bold"
                       checked={fields.find((f) => f.id === selectedField)?.isBold || false}
                       onChange={(e) => handleFieldChange(selectedField, 'isBold', e.target.checked)}
-                    />
-                  </Form.Group>
-                </>
-              ) : fields.find((f) => f.id === selectedField)?.isImage ? (
-                <>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Width (px)</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={fields.find((f) => f.id === selectedField)?.width || 100}
-                      onChange={(e) => handleFieldChange(selectedField, 'width', e.target.value)}
-                      min="50"
-                      max="600"
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Height (px, auto-adjusted)</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={fields.find((f) => f.id === selectedField)?.height || 100}
-                      disabled
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Z-Index</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={fields.find((f) => f.id === selectedField)?.zIndex || 10}
-                      onChange={(e) => handleFieldChange(selectedField, 'zIndex', e.target.value)}
-                      min="1"
-                      max="100"
-                    />
-                  </Form.Group>
-                </>
-              ) : (
-                <>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Length (px)</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={fields.find((f) => f.id === selectedField)?.length || 100}
-                      onChange={(e) => handleFieldChange(selectedField, 'length', e.target.value)}
-                      min="10"
-                      max="600"
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Orientation</Form.Label>
-                    <Form.Select
-                      value={fields.find((f) => f.id === selectedField)?.orientation || 'horizontal'}
-                      onChange={(e) => handleFieldChange(selectedField, 'orientation', e.target.value)}
-                    >
-                      <option value="horizontal">Horizontal</option>
-                      <option value="vertical">Vertical</option>
-                    </Form.Select>
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Z-Index</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={fields.find((f) => f.id === selectedField)?.zIndex || 10}
-                      onChange={(e) => handleFieldChange(selectedField, 'zIndex', e.target.value)}
-                      min="1"
-                      max="100"
                     />
                   </Form.Group>
                 </>

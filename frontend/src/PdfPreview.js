@@ -6,7 +6,8 @@ import { getRecipeById } from './api';
 
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
+    width: '842px',
+    height: '595px',
     position: 'relative',
   },
   field: {
@@ -18,6 +19,13 @@ const styles = StyleSheet.create({
   line: {
     position: 'absolute',
     backgroundColor: '#000',
+  },
+  viewerContainer: {
+    width: '878px', // 842px + 18px left border + 18px right border
+    height: '631px', // 595px + 18px top border + 18px bottom border
+    border: '18px solid #000', // 1/4" border (18px at 72 DPI)
+    boxSizing: 'border-box',
+    marginTop: '1rem',
   },
 });
 
@@ -57,7 +65,7 @@ export const PdfPreview = () => {
         setRecipe(recipeData);
 
         const imageUrl = recipeData.image
-          ? `${apiUrl}/Uploads/${recipeData.image.split('/').pop()}`
+          ? `${apiUrl}/uploads/${recipeData.image.split('/').pop()}`
           : `${frontendUrl}/logo.png`;
         console.log('Image URL:', imageUrl);
 
@@ -171,7 +179,7 @@ export const PdfPreview = () => {
               },
               {
                 id: 'image',
-                content: recipeData?.image ? `${apiUrl}/Uploads/${recipeData.image.split('/').pop()}` : defaultImageUrl,
+                content: recipeData?.image ? `${apiUrl}/uploads/${recipeData.image.split('/').pop()}` : defaultImageUrl,
                 x: 450,
                 y: 110,
                 width: 100,
@@ -260,7 +268,7 @@ export const PdfPreview = () => {
             },
             {
               id: 'image',
-              content: recipeData?.image ? `${apiUrl}/Uploads/${recipeData.image.split('/').pop()}` : defaultImageUrl,
+              content: recipeData?.image ? `${apiUrl}/uploads/${recipeData.image.split('/').pop()}` : defaultImageUrl,
               x: 450,
               y: 110,
               width: 100,
@@ -433,59 +441,61 @@ export const PdfPreview = () => {
           {watermarkError}
         </div>
       )}
-      <PDFViewer key={recipe._id} style={{ width: '842px', height: '595px', marginTop: '1rem' }}>
-        <Document>
-          <Page size={{ width: 842, height: 595 }} style={styles.page}>
-            {fields.map((field) => (
-              <View
-                key={field.id}
-                style={{
-                  ...(
-                    field.isImage
-                      ? {
-                          ...styles.image,
-                          left: field.x,
-                          top: field.y,
-                          width: field.width || 100,
-                          height: field.height || (field.width || 100) / (field.aspectRatio || 1),
-                          opacity: field.id === 'watermark' ? 0.2 : 1,
-                        }
-                      : field.isLine
-                      ? {
-                          ...styles.line,
-                          left: field.x,
-                          top: field.y,
-                          width: field.orientation === 'horizontal' ? (field.length || 100) : 1,
-                          height: field.orientation === 'vertical' ? (field.length || 100) : 1,
-                          backgroundColor: '#000',
-                        }
-                      : { ...styles.field, left: field.x, top: field.y, width: field.width || 400 }
-                  ),
-                  zIndex: field.zIndex || (field.id === 'watermark' ? 5 : 10),
-                }}
-              >
-                {field.isImage ? (
-                  <Image
-                    src={field.content}
-                    style={{
-                      width: field.width || 100,
-                      height: field.height || (field.width || 100) / (field.aspectRatio || 1),
-                    }}
-                    onError={() => {
-                      console.error('PDF Image load error:', field.content);
-                      setImageError(`Image not found: ${field.content}`);
-                    }}
-                  />
-                ) : field.isLine ? null : (
-                  <Text style={{ fontSize: field.fontSize || 12, fontWeight: field.isBold ? 'bold' : 'normal' }}>
-                    {field.content}
-                  </Text>
-                )}
-              </View>
-            ))}
-          </Page>
-        </Document>
-      </PDFViewer>
+      <div style={styles.viewerContainer}>
+        <PDFViewer key={recipe._id} style={{ width: '842px', height: '595px' }}>
+          <Document>
+            <Page size={{ width: 842, height: 595 }} style={styles.page}>
+              {fields.map((field) => (
+                <View
+                  key={field.id}
+                  style={{
+                    ...(
+                      field.isImage
+                        ? {
+                            ...styles.image,
+                            left: field.x,
+                            top: field.y,
+                            width: field.width || 100,
+                            height: field.height || (field.width || 100) / (field.aspectRatio || 1),
+                            opacity: field.id === 'watermark' ? 0.2 : 1,
+                          }
+                        : field.isLine
+                        ? {
+                            ...styles.line,
+                            left: field.x,
+                            top: field.y,
+                            width: field.orientation === 'horizontal' ? (field.length || 100) : 1,
+                            height: field.orientation === 'vertical' ? (field.length || 100) : 1,
+                            backgroundColor: '#000',
+                          }
+                        : { ...styles.field, left: field.x, top: field.y, width: field.width || 400 }
+                    ),
+                    zIndex: field.zIndex || (field.id === 'watermark' ? 5 : 10),
+                  }}
+                >
+                  {field.isImage ? (
+                    <Image
+                      src={field.content}
+                      style={{
+                        width: field.width || 100,
+                        height: field.height || (field.width || 100) / (field.aspectRatio || 1),
+                      }}
+                      onError={() => {
+                        console.error('PDF Image load error:', field.content);
+                        setImageError(`Image not found: ${field.content}`);
+                      }}
+                    />
+                  ) : field.isLine ? null : (
+                    <Text style={{ fontSize: field.fontSize || 12, fontWeight: field.isBold ? 'bold' : 'normal' }}>
+                      {field.content}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </Page>
+          </Document>
+        </PDFViewer>
+      </div>
     </div>
   );
 };
