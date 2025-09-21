@@ -49,63 +49,6 @@ export const PdfPreview = () => {
       setFetchError(null);
       console.log('Fetching recipe and default template for ID:', id);
 
-      const defaultFields = (recipeData, imageUrl) => {
-        console.log('Default image URL:', imageUrl);
-        return [
-          { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false },
-          { id: 'title', content: recipeData?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
-          { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false },
-          {
-            id: 'ingredients',
-            content: Array.isArray(recipeData?.ingredients)
-              ? recipeData.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
-              : 'No ingredients',
-            x: 20,
-            y: 80,
-            fontSize: 12,
-            isBold: false,
-          },
-          { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false },
-          { id: 'steps', content: recipeData?.steps || 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
-          { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false },
-          {
-            id: 'platingGuide',
-            content: recipeData?.platingGuide || 'No plating guide',
-            x: 20,
-            y: 340,
-            fontSize: 12,
-            isBold: false,
-          },
-          { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false },
-          {
-            id: 'allergens',
-            content: Array.isArray(recipeData?.allergens) ? recipeData.allergens.join(', ') : 'No allergens',
-            x: 450,
-            y: 30,
-            fontSize: 12,
-            isBold: false,
-          },
-          { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false },
-          {
-            id: 'serviceTypes',
-            content: Array.isArray(recipeData?.serviceTypes) ? recipeData.serviceTypes.join(', ') : 'No service types',
-            x: 450,
-            y: 80,
-            fontSize: 12,
-            isBold: false,
-          },
-          {
-            id: 'image',
-            content: imageUrl,
-            x: 450,
-            y: 110,
-            width: 100,
-            height: 100,
-            isImage: true,
-          },
-        ];
-      };
-
       try {
         // Fetch recipe with cache-busting
         const timestamp = Date.now();
@@ -191,16 +134,135 @@ export const PdfPreview = () => {
             });
             setFields(updatedFields);
           } else {
-            setFields(defaultFields(recipeData, imageUrl));
+            console.warn('No template fields found, using default fields');
+            setFields([
+              { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false },
+              { id: 'title', content: recipeData?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
+              { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false },
+              {
+                id: 'ingredients',
+                content: Array.isArray(recipeData?.ingredients)
+                  ? recipeData.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
+                  : 'No ingredients',
+                x: 20,
+                y: 80,
+                fontSize: 12,
+                isBold: false,
+              },
+              { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false },
+              { id: 'steps', content: recipeData?.steps || 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
+              { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false },
+              {
+                id: 'platingGuide',
+                content: recipeData?.platingGuide || 'No plating guide',
+                x: 20,
+                y: 340,
+                fontSize: 12,
+                isBold: false,
+              },
+              { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false },
+              {
+                id: 'allergens',
+                content: Array.isArray(recipeData?.allergens) ? recipeData.allergens.join(', ') : 'No allergens',
+                x: 450,
+                y: 30,
+                fontSize: 12,
+                isBold: false,
+              },
+              { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false },
+              {
+                id: 'serviceTypes',
+                content: Array.isArray(recipeData?.serviceTypes) ? recipeData.serviceTypes.join(', ') : 'No service types',
+                x: 450,
+                y: 80,
+                fontSize: 12,
+                isBold: false,
+              },
+              {
+                id: 'image',
+                content: imageUrl,
+                x: 450,
+                y: 110,
+                width: 100,
+                height: 100,
+                isImage: true,
+              },
+            ]);
           }
         } else {
           console.error('Default template fetch failed:', templateRes.status, templateRes.statusText);
-          setFields(defaultFields(recipeData, imageUrl));
+          setFields([
+            { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false },
+            { id: 'title', content: recipeData?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
+            { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false },
+            {
+              id: 'ingredients',
+              content: Array.isArray(recipeData?.ingredients)
+                ? recipeData.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
+                : 'No ingredients',
+              x: 20,
+              y: 80,
+              fontSize: 12,
+              isBold: false,
+            },
+            { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false },
+            { id: 'steps', content: recipeData?.steps || 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
+            { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false },
+            {
+              id: 'platingGuide',
+              content: recipeData?.platingGuide || 'No plating guide',
+              x: 20,
+              y: 340,
+              fontSize: 12,
+              isBold: false,
+            },
+            { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false },
+            {
+              id: 'allergens',
+              content: Array.isArray(recipeData?.allergens) ? recipeData.allergens.join(', ') : 'No allergens',
+              x: 450,
+              y: 30,
+              fontSize: 12,
+              isBold: false,
+            },
+            { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false },
+            {
+              id: 'serviceTypes',
+              content: Array.isArray(recipeData?.serviceTypes) ? recipeData.serviceTypes.join(', ') : 'No service types',
+              x: 450,
+              y: 80,
+              fontSize: 12,
+              isBold: false,
+            },
+            {
+              id: 'image',
+              content: imageUrl,
+              x: 450,
+              y: 110,
+              width: 100,
+              height: 100,
+              isImage: true,
+            },
+          ]);
         }
       } catch (err) {
         console.error('Fetch failed:', err.message);
         setFetchError(`Failed to load recipe or template: ${err.message}`);
-        setFields(defaultFields({}, `${frontendUrl}/logo.png`));
+        setFields([
+          { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false },
+          { id: 'title', content: 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
+          { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false },
+          { id: 'ingredients', content: 'No ingredients', x: 20, y: 80, fontSize: 12, isBold: false },
+          { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false },
+          { id: 'steps', content: 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
+          { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false },
+          { id: 'platingGuide', content: 'No plating guide', x: 20, y: 340, fontSize: 12, isBold: false },
+          { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false },
+          { id: 'allergens', content: 'No allergens', x: 450, y: 30, fontSize: 12, isBold: false },
+          { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false },
+          { id: 'serviceTypes', content: 'No service types', x: 450, y: 80, fontSize: 12, isBold: false },
+          { id: 'image', content: `${frontendUrl}/logo.png`, x: 450, y: 110, width: 100, height: 100, isImage: true },
+        ]);
       } finally {
         if (currentIdRef.current === id) {
           setIsLoading(false);
