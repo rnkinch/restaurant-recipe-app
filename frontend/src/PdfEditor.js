@@ -11,6 +11,10 @@ const styles = {
   image: {
     position: 'absolute',
   },
+  line: {
+    position: 'absolute',
+    backgroundColor: '#000',
+  },
   grid: {
     position: 'absolute',
     top: 0,
@@ -24,6 +28,21 @@ const styles = {
     backgroundSize: '10px 10px',
     pointerEvents: 'none',
     opacity: 0.3,
+    zIndex: 5,
+  },
+  buttonContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  canvas: {
+    position: 'relative',
+    width: '842px',
+    height: '595px',
+    border: '1px solid #ccc',
+    background: '#fff',
+    marginBottom: '1rem',
+    overflow: 'hidden',
   },
 };
 
@@ -46,18 +65,20 @@ const Field = ({ field, index, setFields, selectedField, setSelectedField }) => 
         dragTimeoutRef.current = setTimeout(() => {
           setFields((prev) => {
             const newFields = [...prev];
-            const maxWidth = field.isImage ? field.width : 400;
-            const maxHeight = field.isImage ? field.height : 20;
+            const maxWidth = field.isImage ? (field.width || 100) : field.isLine ? (field.orientation === 'horizontal' ? (field.length || 100) : 1) : (field.width || 400);
+            const maxHeight = field.isImage ? (field.height || 100) : field.isLine ? (field.orientation === 'vertical' ? (field.length || 100) : 1) : 20;
+            const newX = Math.max(0, Math.min(842 - maxWidth, newFields[index].x + delta.x));
+            const newY = Math.max(0, Math.min(595 - maxHeight, newFields[index].y + delta.y));
             newFields[index] = {
               ...newFields[index],
-              x: Math.max(0, Math.min(842 - maxWidth, newFields[index].x + delta.x)),
-              y: Math.max(0, Math.min(595 - maxHeight, newFields[index].y + delta.y)),
+              x: Math.round(newX / 10) * 10,
+              y: Math.round(newY / 10) * 10,
             };
-            console.log('Field moved:', JSON.stringify(newFields[index], null, 2));
+            console.log('Field moved:', { id: field.id, x: newX, y: newY });
             dragStateRef.current = null;
             return newFields;
           });
-        }, 300);
+        }, 100);
         dragStateRef.current = { index, x: delta.x, y: delta.y };
       }
     },
@@ -74,33 +95,34 @@ const Field = ({ field, index, setFields, selectedField, setSelectedField }) => 
           setFields((prev) => {
             const newFields = [...prev];
             [newFields[item.index], newFields[index]] = [newFields[index], newFields[item.index]];
-            console.log('Fields reordered:', JSON.stringify(newFields, null, 2));
+            console.log('Fields reordered:', { fromIndex: item.index, toIndex: index });
             return newFields;
           });
           item.index = index;
-        }, 300);
+        }, 100);
       }
     },
   });
-
-  console.log('Rendering field:', JSON.stringify(field, null, 2));
 
   return (
     <div
       ref={(node) => drag(drop(node))}
       style={{
-        position: 'absolute',
+        ...styles.field,
         left: field.x,
         top: field.y,
-        opacity: isDragging ? 0.5 : 1,
-        border: selectedField === field.id ? '2px solid blue' : '1px dashed #ccc',
-        padding: 5,
-        background: '#fff',
+        opacity: field.id === 'watermark' ? 0.2 : isDragging ? 0.5 : 1,
+        border: selectedField === field.id ? '2px solid blue' : field.isLine ? 'none' : '1px dashed #ccc',
+        padding: field.isLine ? 0 : 5,
+        background: field.isLine ? '#000' : '#fff',
         cursor: 'move',
-        maxWidth: field.isImage ? field.width : '400px',
-        whiteSpace: field.isImage ? 'normal' : 'pre-wrap',
-        fontSize: field.fontSize ? `${field.fontSize}px` : '12px',
-        fontWeight: field.isBold ? 'bold' : 'normal',
+        width: field.isImage ? (field.width || 100) : field.isLine ? (field.orientation === 'horizontal' ? (field.length || 100) : 1) : (field.width || 400),
+        height: field.isLine ? (field.orientation === 'vertical' ? (field.length || 100) : 1) : field.id === 'watermark' ? (field.height || 200) : undefined,
+        minWidth: field.isLine ? (selectedField === field.id ? 10 : 1) : undefined,
+        minHeight: field.isLine ? (selectedField === field.id ? 10 : 1) : undefined,
+        zIndex: field.zIndex || (field.id === 'watermark' ? 5 : 10),
+        fontSize: field.isLine || field.isImage ? undefined : (field.fontSize || 12),
+        fontWeight: field.isLine || field.isImage ? undefined : (field.isBold ? 'bold' : 'normal'),
       }}
       onClick={(e) => {
         e.stopPropagation();
@@ -111,11 +133,11 @@ const Field = ({ field, index, setFields, selectedField, setSelectedField }) => 
       {field.isImage ? (
         <img
           src={field.content}
-          alt="Recipe"
-          style={{ width: field.width, height: field.height }}
+          alt={field.id === 'watermark' ? 'Watermark' : 'Recipe'}
+          style={{ ...styles.image, width: field.width || 100, height: field.height || 100, objectFit: 'contain' }}
           onError={(e) => console.error('Image load error:', field.content)}
         />
-      ) : (
+      ) : field.isLine ? null : (
         field.content
       )}
     </div>
@@ -124,82 +146,119 @@ const Field = ({ field, index, setFields, selectedField, setSelectedField }) => 
 
 const PdfEditor = ({ recipe }) => {
   const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:5000';
-  const frontendUrl = 'http://192.168.68.129:3000';
+  const frontendUrl = process.env.REACT_APP_FRONTEND_URL || 'http://192.168.68.129:3000';
   const [fields, setFields] = useState([]);
   const [selectedField, setSelectedField] = useState(null);
   const [newTextId, setNewTextId] = useState(1);
+  const [newLineId, setNewLineId] = useState(1);
   const [imageError, setImageError] = useState(null);
+  const [templateError, setTemplateError] = useState(null);
   const [showGrid, setShowGrid] = useState(false);
+  const [imageAspectRatios, setImageAspectRatios] = useState({});
   const navigate = useNavigate();
+  const canvasKey = useMemo(() => Date.now(), [fields]);
+
+  // Memoize recipe to prevent unnecessary re-renders
+  const memoizedRecipe = useMemo(() => recipe, [recipe?._id]);
 
   useEffect(() => {
-    console.log('useEffect triggered for recipe ID:', recipe?._id);
-    console.log('Recipe data:', JSON.stringify(recipe, null, 2));
+    if (!memoizedRecipe?._id) {
+      console.log('No recipe ID, skipping useEffect');
+      return;
+    }
+    console.log('useEffect triggered for recipe ID:', memoizedRecipe._id);
 
-    let imageUrl = recipe?.image
-      ? `${apiUrl}/Uploads/${recipe.image.split('/').pop()}`
-      : `${frontendUrl}/logo.png`; // Use /logo.png for default
-    console.log('Trying image URL:', imageUrl);
+    const imageUrl = memoizedRecipe?.image
+      ? `${apiUrl}/Uploads/${memoizedRecipe.image.split('/').pop()}`
+      : `${frontendUrl}/logo.png`;
+    const watermarkUrl = `${frontendUrl}/logo.png`;
+    console.log('Image URL:', imageUrl);
+    console.log('Watermark URL:', watermarkUrl);
 
-    // Validate image URL
-    const validateImage = async () => {
+    const validateImage = async (url, key) => {
       try {
-        const imgRes = await fetch(imageUrl, {
-          method: 'HEAD',
-          headers: { 'Content-Type': 'application/json' },
+        const img = new Image();
+        img.src = url;
+        await new Promise((resolve, reject) => {
+          img.onload = () => {
+            const aspectRatio = img.naturalWidth / img.naturalHeight;
+            setImageAspectRatios((prev) => ({ ...prev, [key]: aspectRatio }));
+            console.log('Image aspect ratio:', key, aspectRatio);
+            resolve();
+          };
+          img.onerror = () => {
+            console.error('Image load error:', url);
+            setImageError(`Image not found: ${url}`);
+            reject();
+          };
         });
-        if (!imgRes.ok) {
-          throw new Error(`Image fetch failed: ${imgRes.status}`);
-        }
       } catch (err) {
-        console.error('Image validation failed:', imageUrl, err.message);
-        setImageError(`Image not found: ${imageUrl}`);
+        console.error('Image validation failed:', url, err.message);
+        setImageError(`Image not found: ${url}`);
       }
     };
-    validateImage();
+    validateImage(imageUrl, 'recipeImage');
+    validateImage(watermarkUrl, 'watermark');
 
     const defaultFields = [
-      { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false },
-      { id: 'title', content: recipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
-      { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false },
+      { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+      { id: 'title', content: memoizedRecipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+      { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
       {
         id: 'ingredients',
-        content: Array.isArray(recipe?.ingredients) && recipe.ingredients.length > 0
-          ? recipe.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
+        content: Array.isArray(memoizedRecipe?.ingredients) && memoizedRecipe.ingredients.length > 0
+          ? memoizedRecipe.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
           : 'No ingredients',
         x: 20,
         y: 80,
         fontSize: 12,
         isBold: false,
+        width: 500,
+        zIndex: 10,
       },
-      { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false },
-      { id: 'steps', content: recipe?.steps || 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
-      { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false },
+      { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+      {
+        id: 'steps',
+        content: memoizedRecipe?.steps || 'No steps',
+        x: 20,
+        y: 210,
+        fontSize: 12,
+        isBold: false,
+        width: 500,
+        zIndex: 10,
+      },
+      { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
       {
         id: 'platingGuide',
-        content: recipe?.platingGuide || 'No plating guide',
+        content: memoizedRecipe?.platingGuide || 'No plating guide',
         x: 20,
         y: 340,
         fontSize: 12,
         isBold: false,
+        width: 500,
+        zIndex: 10,
       },
-      { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false },
+      { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
       {
         id: 'allergens',
-        content: Array.isArray(recipe?.allergens) && recipe.allergens.length > 0 ? recipe.allergens.join(', ') : 'No allergens',
+        content: Array.isArray(memoizedRecipe?.allergens) && memoizedRecipe.allergens.length > 0 ? memoizedRecipe.allergens.join(', ') : 'No allergens',
         x: 450,
         y: 30,
         fontSize: 12,
         isBold: false,
+        width: 400,
+        zIndex: 10,
       },
-      { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false },
+      { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
       {
         id: 'serviceTypes',
-        content: Array.isArray(recipe?.serviceTypes) && recipe.serviceTypes.length > 0 ? recipe.serviceTypes.join(', ') : 'No service types',
+        content: Array.isArray(memoizedRecipe?.serviceTypes) && memoizedRecipe.serviceTypes.length > 0 ? memoizedRecipe.serviceTypes.join(', ') : 'No service types',
         x: 450,
         y: 80,
         fontSize: 12,
         isBold: false,
+        width: 400,
+        zIndex: 10,
       },
       {
         id: 'image',
@@ -209,13 +268,26 @@ const PdfEditor = ({ recipe }) => {
         width: 100,
         height: 100,
         isImage: true,
+        aspectRatio: imageAspectRatios['recipeImage'] || 1,
+        zIndex: 10,
+      },
+      {
+        id: 'watermark',
+        content: watermarkUrl,
+        x: 421,
+        y: 297.5,
+        width: 200,
+        height: 200,
+        isImage: true,
+        aspectRatio: imageAspectRatios['watermark'] || 1,
+        zIndex: 5,
       },
     ];
 
     const fetchTemplate = async () => {
       try {
         const timestamp = Date.now();
-        console.log('Fetching default template from:', `${apiUrl}/templates/default?t=${timestamp}`);
+        console.log('Fetching template:', `${apiUrl}/templates/default?t=${timestamp}`);
         const res = await fetch(`${apiUrl}/templates/default?t=${timestamp}`, {
           method: 'GET',
           headers: {
@@ -226,78 +298,101 @@ const PdfEditor = ({ recipe }) => {
         });
         if (res.ok) {
           const templateData = await res.json();
-          console.log('Fetched default template:', JSON.stringify(templateData, null, 2));
+          console.log('Template fetched successfully');
           if (templateData?.template?.fields) {
-            const savedFields = templateData.template.fields;
-            const updatedFields = defaultFields.map((defaultField) => {
-              const savedField = savedFields.find((f) => f.id === defaultField.id);
-              if (savedField) {
-                return {
-                  ...defaultField,
-                  x: savedField.x,
-                  y: savedField.y,
-                  fontSize: savedField.fontSize || defaultField.fontSize,
-                  isBold: savedField.isBold || defaultField.isBold,
-                  width: savedField.width || defaultField.width,
-                  height: savedField.height || defaultField.height,
-                };
-              }
-              return defaultField;
-            });
-            const customFields = savedFields.filter((f) => !defaultFields.some((df) => df.id === f.id));
-            setFields([...updatedFields, ...customFields]);
+            setFields(templateData.template.fields);
+            console.log('Loaded saved fields:', templateData.template.fields.length);
           } else {
             console.warn('No template fields found, using default fields');
             setFields(defaultFields);
           }
         } else {
           const errorText = await res.text();
-          console.error('Default template fetch failed:', res.status, res.statusText, errorText);
+          console.error('Template fetch failed:', res.status, errorText);
+          setTemplateError(`Failed to load template: ${res.status} - ${errorText}`);
           setFields(defaultFields);
         }
       } catch (err) {
-        console.error('Failed to load default template:', err.message, err.stack);
+        console.error('Template fetch error:', err.message);
+        setTemplateError(`Failed to load template: ${err.message}`);
         setFields(defaultFields);
       }
     };
 
     fetchTemplate();
-  }, [recipe, apiUrl, frontendUrl]);
+  }, [memoizedRecipe, apiUrl, frontendUrl]);
 
   const addTextField = useCallback(() => {
     const newField = {
       id: `customText${newTextId}`,
       content: 'New Text',
-      x: 20,
-      y: 20,
+      x: 421,
+      y: 297.5,
       fontSize: 12,
       isBold: false,
+      width: 400,
+      zIndex: 10,
     };
-    setFields((prev) => [...prev, newField]);
+    setFields((prev) => {
+      const newFields = [...prev, newField];
+      console.log('Added text field:', newField.id);
+      return newFields;
+    });
     setNewTextId((prev) => prev + 1);
-    console.log('Added text field:', newField);
   }, [newTextId]);
 
-  const deleteTextField = useCallback(() => {
-    if (selectedField && selectedField.startsWith('customText')) {
-      setFields((prev) => prev.filter((field) => field.id !== selectedField));
+  const addLine = useCallback(() => {
+    const newField = {
+      id: `line${newLineId}`,
+      isLine: true,
+      orientation: 'horizontal',
+      x: 421,
+      y: 297.5,
+      length: 100,
+      zIndex: 10,
+    };
+    setFields((prev) => {
+      const newFields = [...prev, newField];
+      console.log('Added line:', newField.id, newField.orientation);
+      return newFields;
+    });
+    setNewLineId((prev) => prev + 1);
+  }, [newLineId]);
+
+  const deleteField = useCallback(() => {
+    if (selectedField && (selectedField.startsWith('customText') || selectedField.startsWith('line'))) {
+      setFields((prev) => {
+        const newFields = prev.filter((field) => field.id !== selectedField);
+        console.log('Deleted field:', selectedField);
+        return newFields;
+      });
       setSelectedField(null);
-      console.log('Deleted text field:', selectedField);
     }
   }, [selectedField]);
 
   const handleFieldChange = useCallback((id, key, value) => {
+    console.log('handleFieldChange:', { id, key, value });
     setFields((prev) => {
-      const newFields = prev.map((field) =>
-        field.id === id
-          ? {
-              ...field,
-              [key]: key === 'fontSize' ? parseInt(value) || field.fontSize :
-                     key === 'width' || key === 'height' ? Math.min(parseInt(value) || field[key], 600) : value,
-            }
-          : field
-      );
-      console.log('Fields updated:', JSON.stringify(newFields, null, 2));
+      const newFields = prev.map((field) => {
+        if (field.id !== id) return field;
+        const updatedField = {
+          ...field,
+          [key]: key === 'fontSize' ? parseInt(value, 10) || field.fontSize || 12 :
+                 key === 'length' ? parseInt(value, 10) || field.length || 100 :
+                 key === 'width' && field.isImage ? parseInt(value, 10) || field.width || 100 :
+                 key === 'width' && !field.isImage && !field.isLine ? parseInt(value, 10) || field.width || 400 :
+                 key === 'zIndex' ? parseInt(value, 10) || field.zIndex || 10 :
+                 key === 'isBold' ? Boolean(value) :
+                 key === 'orientation' ? value :
+                 key === 'content' ? value :
+                 field[key],
+          ...(key === 'width' && field.isImage ? { height: Math.round((parseInt(value, 10) || field.width || 100) / (field.aspectRatio || 1)) } : {}),
+          ...(key === 'height' && field.isImage ? { width: Math.round((parseInt(value, 10) || field.height || 100) * (field.aspectRatio || 1)) } : {}),
+        };
+        console.log('Updated field:', updatedField);
+        return updatedField;
+      });
+      console.log('Fields updated:', newFields.length);
       return newFields;
     });
   }, []);
@@ -305,7 +400,7 @@ const PdfEditor = ({ recipe }) => {
   const handleSave = useCallback(async () => {
     try {
       const templatePayload = { template: { fields } };
-      console.log('Saving default template to /templates/default/save:', JSON.stringify(templatePayload, null, 2));
+      console.log('Saving template:', `${apiUrl}/templates/default/save`);
       const response = await fetch(`${apiUrl}/templates/default/save?t=${Date.now()}`, {
         method: 'POST',
         headers: {
@@ -317,214 +412,161 @@ const PdfEditor = ({ recipe }) => {
       });
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`HTTP error: ${response.status} - ${response.statusText} - ${errorText}`);
+        throw new Error(`HTTP error: ${response.status} - ${errorText}`);
       }
       const saveData = await response.json();
-      console.log('Save default response:', JSON.stringify(saveData, null, 2));
-      alert('Default template saved successfully!');
+      console.log('Template saved:', saveData);
+      alert('Template saved successfully!');
     } catch (err) {
-      console.error('Save default failed:', err.message, err.stack);
+      console.error('Save failed:', err.message);
       alert(`Save failed: ${err.message}`);
     }
   }, [fields, apiUrl]);
 
   const handleResetToDefault = useCallback(async () => {
     try {
-      const timestamp = Date.now();
-      console.log('Fetching default template for reset:', `${apiUrl}/templates/default?t=${timestamp}`);
-      const res = await fetch(`${apiUrl}/templates/default?t=${timestamp}`, {
-        method: 'GET',
+      const watermarkUrl = `${frontendUrl}/logo.png`;
+      const imageUrl = memoizedRecipe?.image
+        ? `${apiUrl}/Uploads/${memoizedRecipe.image.split('/').pop()}`
+        : `${frontendUrl}/logo.png`;
+      const defaultFields = [
+        { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'title', content: memoizedRecipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        {
+          id: 'ingredients',
+          content: Array.isArray(memoizedRecipe?.ingredients) && memoizedRecipe.ingredients.length > 0
+            ? memoizedRecipe.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
+            : 'No ingredients',
+          x: 20,
+          y: 80,
+          fontSize: 12,
+          isBold: false,
+          width: 500,
+          zIndex: 10,
+        },
+        { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        {
+          id: 'steps',
+          content: memoizedRecipe?.steps || 'No steps',
+          x: 20,
+          y: 210,
+          fontSize: 12,
+          isBold: false,
+          width: 500,
+          zIndex: 10,
+        },
+        { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        {
+          id: 'platingGuide',
+          content: memoizedRecipe?.platingGuide || 'No plating guide',
+          x: 20,
+          y: 340,
+          fontSize: 12,
+          isBold: false,
+          width: 500,
+          zIndex: 10,
+        },
+        { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        {
+          id: 'allergens',
+          content: Array.isArray(memoizedRecipe?.allergens) && memoizedRecipe.allergens.length > 0 ? memoizedRecipe.allergens.join(', ') : 'No allergens',
+          x: 450,
+          y: 30,
+          fontSize: 12,
+          isBold: false,
+          width: 400,
+          zIndex: 10,
+        },
+        { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        {
+          id: 'serviceTypes',
+          content: Array.isArray(memoizedRecipe?.serviceTypes) && memoizedRecipe.serviceTypes.length > 0 ? memoizedRecipe.serviceTypes.join(', ') : 'No service types',
+          x: 450,
+          y: 80,
+          fontSize: 12,
+          isBold: false,
+          width: 400,
+          zIndex: 10,
+        },
+        {
+          id: 'image',
+          content: imageUrl,
+          x: 450,
+          y: 110,
+          width: 100,
+          height: 100,
+          isImage: true,
+          aspectRatio: imageAspectRatios['recipeImage'] || 1,
+          zIndex: 10,
+        },
+        {
+          id: 'watermark',
+          content: watermarkUrl,
+          x: 421,
+          y: 297.5,
+          width: 200,
+          height: 200,
+          isImage: true,
+          aspectRatio: imageAspectRatios['watermark'] || 1,
+          zIndex: 5,
+        },
+      ];
+      setFields(defaultFields);
+      console.log('Reset to default fields');
+      const response = await fetch(`${apiUrl}/templates/default/save?t=${Date.now()}`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
         },
+        body: JSON.stringify({ template: { fields: defaultFields } }),
       });
-      if (!res.ok) {
-        console.error('Default template fetch failed:', res.status, res.statusText);
-        const defaultFields = [
-          { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false },
-          { id: 'title', content: recipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
-          { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false },
-          {
-            id: 'ingredients',
-            content: Array.isArray(recipe?.ingredients) && recipe.ingredients.length > 0
-              ? recipe.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
-              : 'No ingredients',
-            x: 20,
-            y: 80,
-            fontSize: 12,
-            isBold: false,
-          },
-          { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false },
-          { id: 'steps', content: recipe?.steps || 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
-          { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false },
-          {
-            id: 'platingGuide',
-            content: recipe?.platingGuide || 'No plating guide',
-            x: 20,
-            y: 340,
-            fontSize: 12,
-            isBold: false,
-          },
-          { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false },
-          {
-            id: 'allergens',
-            content: Array.isArray(recipe?.allergens) && recipe.allergens.length > 0 ? recipe.allergens.join(', ') : 'No allergens',
-            x: 450,
-            y: 30,
-            fontSize: 12,
-            isBold: false,
-          },
-          { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false },
-          {
-            id: 'serviceTypes',
-            content: Array.isArray(recipe?.serviceTypes) && recipe.serviceTypes.length > 0 ? recipe.serviceTypes.join(', ') : 'No service types',
-            x: 450,
-            y: 80,
-            fontSize: 12,
-            isBold: false,
-          },
-          {
-            id: 'image',
-            content: recipe?.image ? `${apiUrl}/Uploads/${recipe.image.split('/').pop()}` : `${frontendUrl}/logo.png`,
-            x: 450,
-            y: 110,
-            width: 100,
-            height: 100,
-            isImage: true,
-          },
-        ];
-        setFields(defaultFields);
-        console.log('Reset to default fields:', JSON.stringify(defaultFields, null, 2));
-        const saveResponse = await fetch(`${apiUrl}/templates/default/save?t=${Date.now()}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-          },
-          body: JSON.stringify({ template: { fields: defaultFields } }),
-        });
-        if (!saveResponse.ok) {
-          const errorText = await saveResponse.text();
-          throw new Error(`HTTP error: ${saveResponse.status} - ${saveResponse.statusText} - ${errorText}`);
-        }
-        const saveData = await saveResponse.json();
-        console.log('Save default response for reset:', JSON.stringify(saveData, null, 2));
-        alert('Default template reset to default!');
-      } else {
-        const templateData = await res.json();
-        console.log('Fetched default template for reset:', JSON.stringify(templateData, null, 2));
-        const defaultFields = templateData?.template?.fields || [
-          { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false },
-          { id: 'title', content: recipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
-          { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false },
-          {
-            id: 'ingredients',
-            content: Array.isArray(recipe?.ingredients) && recipe.ingredients.length > 0
-              ? recipe.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
-              : 'No ingredients',
-            x: 20,
-            y: 80,
-            fontSize: 12,
-            isBold: false,
-          },
-          { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false },
-          { id: 'steps', content: recipe?.steps || 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
-          { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false },
-          {
-            id: 'platingGuide',
-            content: recipe?.platingGuide || 'No plating guide',
-            x: 20,
-            y: 340,
-            fontSize: 12,
-            isBold: false,
-          },
-          { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false },
-          {
-            id: 'allergens',
-            content: Array.isArray(recipe?.allergens) && recipe.allergens.length > 0 ? recipe.allergens.join(', ') : 'No allergens',
-            x: 450,
-            y: 30,
-            fontSize: 12,
-            isBold: false,
-          },
-          { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false },
-          {
-            id: 'serviceTypes',
-            content: Array.isArray(recipe?.serviceTypes) && recipe.serviceTypes.length > 0 ? recipe.serviceTypes.join(', ') : 'No service types',
-            x: 450,
-            y: 80,
-            fontSize: 12,
-            isBold: false,
-          },
-          {
-            id: 'image',
-            content: recipe?.image ? `${apiUrl}/Uploads/${recipe.image.split('/').pop()}` : `${frontendUrl}/logo.png`,
-            x: 450,
-            y: 110,
-            width: 100,
-            height: 100,
-            isImage: true,
-          },
-        ];
-        setFields(defaultFields);
-        console.log('Reset to default fields:', JSON.stringify(defaultFields, null, 2));
-        const saveResponse = await fetch(`${apiUrl}/templates/default/save?t=${Date.now()}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-          },
-          body: JSON.stringify({ template: { fields: defaultFields } }),
-        });
-        if (!saveResponse.ok) {
-          const errorText = await saveResponse.text();
-          throw new Error(`HTTP error: ${saveResponse.status} - ${saveResponse.statusText} - ${errorText}`);
-        }
-        const saveData = await saveResponse.json();
-        console.log('Save default response for reset:', JSON.stringify(saveData, null, 2));
-        alert('Default template reset to default!');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error: ${response.status} - ${errorText}`);
       }
+      const saveData = await response.json();
+      console.log('Default template reset:', saveData);
+      alert('Template reset to default!');
     } catch (err) {
-      console.error('Reset to default failed:', err.message, err.stack);
-      alert(`Reset to default failed: ${err.message}`);
+      console.error('Reset failed:', err.message);
+      alert(`Reset failed: ${err.message}`);
     }
-  }, [recipe, apiUrl, frontendUrl]);
+  }, [memoizedRecipe, apiUrl, frontendUrl, imageAspectRatios]);
 
   const toggleGrid = () => {
     setShowGrid((prev) => !prev);
     console.log('Grid toggled:', !showGrid);
   };
 
-  const memoizedFields = useMemo(() => fields, [fields]);
-
   return (
-    <div style={{ padding: '1rem' }}>
+    <div style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto' }}>
       <h2>Edit PDF Template</h2>
       {imageError && (
         <div style={{ color: 'red', marginBottom: '1rem' }}>
           {imageError}
         </div>
       )}
+      {templateError && (
+        <div style={{ color: 'red', marginBottom: '1rem' }}>
+          {templateError}
+        </div>
+      )}
       <Row>
         <Col md={9}>
           <DndProvider backend={HTML5Backend}>
             <div
-              style={{
-                position: 'relative',
-                width: '842px', // A4 landscape width
-                height: '595px', // A4 landscape height
-                border: '1px solid #ccc',
-                background: '#fff',
-                marginBottom: '1rem',
+              key={canvasKey}
+              style={styles.canvas}
+              onClick={() => {
+                setSelectedField(null);
+                console.log('Canvas clicked, deselected field');
               }}
-              onClick={() => setSelectedField(null)}
             >
               {showGrid && <div style={styles.grid} />}
-              {memoizedFields.map((field, index) => (
+              {fields.map((field, index) => (
                 <Field
                   key={field.id}
                   field={field}
@@ -538,40 +580,44 @@ const PdfEditor = ({ recipe }) => {
           </DndProvider>
         </Col>
         <Col md={3}>
-          <Button onClick={addTextField} variant="secondary" size="sm" style={{ marginBottom: '0.5rem' }}>
-            Add Text Field
-          </Button>
-          {selectedField && selectedField.startsWith('customText') && (
-            <Button onClick={deleteTextField} variant="danger" size="sm" style={{ marginBottom: '0.5rem', marginLeft: '0.5rem' }}>
-              Delete Text Field
+          <div style={styles.buttonContainer}>
+            <Button onClick={addTextField} variant="secondary" size="sm">
+              Add Text Field
             </Button>
-          )}
-          <Button onClick={toggleGrid} variant="outline-secondary" size="sm" style={{ marginBottom: '0.5rem', marginLeft: '0.5rem' }}>
-            {showGrid ? 'Hide Grid' : 'Show Grid'}
-          </Button>
-          <Button onClick={handleSave} variant="primary" size="sm" style={{ marginBottom: '0.5rem', marginLeft: '0.5rem' }}>
-            Save Template
-          </Button>
-          <Button onClick={handleResetToDefault} variant="primary" size="sm" style={{ marginBottom: '0.5rem', marginLeft: '0.5rem' }}>
-            Reset to Default
-          </Button>
-          <Button
-            as={Link}
-            to={`/recipes/${recipe._id}/preview-pdf`}
-            variant="info"
-            size="sm"
-            style={{ marginBottom: '0.5rem', marginLeft: '0.5rem' }}
-            onClick={(e) => {
-              e.preventDefault();
-              setTimeout(() => navigate(`/recipes/${recipe._id}/preview-pdf`), 500);
-            }}
-          >
-            Preview PDF
-          </Button>
-          {selectedField && (
+            <Button onClick={addLine} variant="secondary" size="sm">
+              Add Line
+            </Button>
+            {selectedField && (selectedField.startsWith('customText') || selectedField.startsWith('line')) && (
+              <Button onClick={deleteField} variant="danger" size="sm">
+                Delete Field
+              </Button>
+            )}
+            <Button onClick={toggleGrid} variant="outline-secondary" size="sm">
+              {showGrid ? 'Hide Grid' : 'Show Grid'}
+            </Button>
+            <Button onClick={handleSave} variant="primary" size="sm">
+              Save Template
+            </Button>
+            <Button onClick={handleResetToDefault} variant="primary" size="sm">
+              Reset to Default
+            </Button>
+            <Button
+              as={Link}
+              to={`/recipes/${memoizedRecipe?._id}/preview-pdf`}
+              variant="info"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                setTimeout(() => navigate(`/recipes/${memoizedRecipe?._id}/preview-pdf`), 500);
+              }}
+            >
+              Preview PDF
+            </Button>
+          </div>
+          {selectedField && !selectedField.endsWith('Label') && (
             <div style={{ marginTop: '50px' }}>
-              <h4>Edit {fields.find((f) => f.id === selectedField)?.id}</h4>
-              {!fields.find((f) => f.id === selectedField)?.isImage ? (
+              <h4>Edit {fields.find((f) => f.id === selectedField)?.id || 'Field'}</h4>
+              {!fields.find((f) => f.id === selectedField)?.isImage && !fields.find((f) => f.id === selectedField)?.isLine ? (
                 <>
                   <Form.Group className="mb-2">
                     <Form.Label>Content</Form.Label>
@@ -592,6 +638,26 @@ const PdfEditor = ({ recipe }) => {
                     />
                   </Form.Group>
                   <Form.Group className="mb-2">
+                    <Form.Label>Width (px)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={fields.find((f) => f.id === selectedField)?.width || 400}
+                      onChange={(e) => handleFieldChange(selectedField, 'width', e.target.value)}
+                      min="100"
+                      max="600"
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Z-Index</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={fields.find((f) => f.id === selectedField)?.zIndex || 10}
+                      onChange={(e) => handleFieldChange(selectedField, 'zIndex', e.target.value)}
+                      min="1"
+                      max="100"
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-2">
                     <Form.Check
                       type="checkbox"
                       label="Bold"
@@ -600,7 +666,7 @@ const PdfEditor = ({ recipe }) => {
                     />
                   </Form.Group>
                 </>
-              ) : (
+              ) : fields.find((f) => f.id === selectedField)?.isImage ? (
                 <>
                   <Form.Group className="mb-2">
                     <Form.Label>Width (px)</Form.Label>
@@ -613,13 +679,54 @@ const PdfEditor = ({ recipe }) => {
                     />
                   </Form.Group>
                   <Form.Group className="mb-2">
-                    <Form.Label>Height (px)</Form.Label>
+                    <Form.Label>Height (px, auto-adjusted)</Form.Label>
                     <Form.Control
                       type="number"
                       value={fields.find((f) => f.id === selectedField)?.height || 100}
-                      onChange={(e) => handleFieldChange(selectedField, 'height', e.target.value)}
-                      min="50"
+                      disabled
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Z-Index</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={fields.find((f) => f.id === selectedField)?.zIndex || 10}
+                      onChange={(e) => handleFieldChange(selectedField, 'zIndex', e.target.value)}
+                      min="1"
+                      max="100"
+                    />
+                  </Form.Group>
+                </>
+              ) : (
+                <>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Length (px)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={fields.find((f) => f.id === selectedField)?.length || 100}
+                      onChange={(e) => handleFieldChange(selectedField, 'length', e.target.value)}
+                      min="10"
                       max="600"
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Orientation</Form.Label>
+                    <Form.Select
+                      value={fields.find((f) => f.id === selectedField)?.orientation || 'horizontal'}
+                      onChange={(e) => handleFieldChange(selectedField, 'orientation', e.target.value)}
+                    >
+                      <option value="horizontal">Horizontal</option>
+                      <option value="vertical">Vertical</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Z-Index</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={fields.find((f) => f.id === selectedField)?.zIndex || 10}
+                      onChange={(e) => handleFieldChange(selectedField, 'zIndex', e.target.value)}
+                      min="1"
+                      max="100"
                     />
                   </Form.Group>
                 </>
