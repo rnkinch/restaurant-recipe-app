@@ -11,6 +11,20 @@ const styles = {
   image: {
     position: 'absolute',
   },
+  grid: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundImage: `
+      linear-gradient(to right, #ccc 1px, transparent 1px),
+      linear-gradient(to bottom, #ccc 1px, transparent 1px)
+    `,
+    backgroundSize: '10px 10px',
+    pointerEvents: 'none',
+    opacity: 0.3,
+  },
 };
 
 const Field = ({ field, index, setFields, selectedField, setSelectedField }) => {
@@ -115,6 +129,7 @@ const PdfEditor = ({ recipe }) => {
   const [selectedField, setSelectedField] = useState(null);
   const [newTextId, setNewTextId] = useState(1);
   const [imageError, setImageError] = useState(null);
+  const [showGrid, setShowGrid] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -145,22 +160,24 @@ const PdfEditor = ({ recipe }) => {
 
     const defaultFields = [
       { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false },
-      { id: 'title', content: 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
+      { id: 'title', content: recipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
       { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false },
       {
         id: 'ingredients',
-        content: 'No ingredients',
+        content: Array.isArray(recipe?.ingredients) && recipe.ingredients.length > 0
+          ? recipe.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
+          : 'No ingredients',
         x: 20,
         y: 80,
         fontSize: 12,
         isBold: false,
       },
       { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false },
-      { id: 'steps', content: 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
+      { id: 'steps', content: recipe?.steps || 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
       { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false },
       {
         id: 'platingGuide',
-        content: 'No plating guide',
+        content: recipe?.platingGuide || 'No plating guide',
         x: 20,
         y: 340,
         fontSize: 12,
@@ -169,7 +186,7 @@ const PdfEditor = ({ recipe }) => {
       { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false },
       {
         id: 'allergens',
-        content: 'No allergens',
+        content: Array.isArray(recipe?.allergens) && recipe.allergens.length > 0 ? recipe.allergens.join(', ') : 'No allergens',
         x: 450,
         y: 30,
         fontSize: 12,
@@ -178,7 +195,7 @@ const PdfEditor = ({ recipe }) => {
       { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false },
       {
         id: 'serviceTypes',
-        content: 'No service types',
+        content: Array.isArray(recipe?.serviceTypes) && recipe.serviceTypes.length > 0 ? recipe.serviceTypes.join(', ') : 'No service types',
         x: 450,
         y: 80,
         fontSize: 12,
@@ -223,7 +240,6 @@ const PdfEditor = ({ recipe }) => {
                   isBold: savedField.isBold || defaultField.isBold,
                   width: savedField.width || defaultField.width,
                   height: savedField.height || defaultField.height,
-                  content: savedField.content || defaultField.content,
                 };
               }
               return defaultField;
@@ -328,22 +344,24 @@ const PdfEditor = ({ recipe }) => {
         console.error('Default template fetch failed:', res.status, res.statusText);
         const defaultFields = [
           { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false },
-          { id: 'title', content: 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
+          { id: 'title', content: recipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
           { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false },
           {
             id: 'ingredients',
-            content: 'No ingredients',
+            content: Array.isArray(recipe?.ingredients) && recipe.ingredients.length > 0
+              ? recipe.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
+              : 'No ingredients',
             x: 20,
             y: 80,
             fontSize: 12,
             isBold: false,
           },
           { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false },
-          { id: 'steps', content: 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
+          { id: 'steps', content: recipe?.steps || 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
           { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false },
           {
             id: 'platingGuide',
-            content: 'No plating guide',
+            content: recipe?.platingGuide || 'No plating guide',
             x: 20,
             y: 340,
             fontSize: 12,
@@ -352,7 +370,7 @@ const PdfEditor = ({ recipe }) => {
           { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false },
           {
             id: 'allergens',
-            content: 'No allergens',
+            content: Array.isArray(recipe?.allergens) && recipe.allergens.length > 0 ? recipe.allergens.join(', ') : 'No allergens',
             x: 450,
             y: 30,
             fontSize: 12,
@@ -361,7 +379,7 @@ const PdfEditor = ({ recipe }) => {
           { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false },
           {
             id: 'serviceTypes',
-            content: 'No service types',
+            content: Array.isArray(recipe?.serviceTypes) && recipe.serviceTypes.length > 0 ? recipe.serviceTypes.join(', ') : 'No service types',
             x: 450,
             y: 80,
             fontSize: 12,
@@ -369,7 +387,7 @@ const PdfEditor = ({ recipe }) => {
           },
           {
             id: 'image',
-            content: `${frontendUrl}/logo.png`,
+            content: recipe?.image ? `${apiUrl}/Uploads/${recipe.image.split('/').pop()}` : `${frontendUrl}/logo.png`,
             x: 450,
             y: 110,
             width: 100,
@@ -400,22 +418,24 @@ const PdfEditor = ({ recipe }) => {
         console.log('Fetched default template for reset:', JSON.stringify(templateData, null, 2));
         const defaultFields = templateData?.template?.fields || [
           { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false },
-          { id: 'title', content: 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
+          { id: 'title', content: recipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false },
           { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false },
           {
             id: 'ingredients',
-            content: 'No ingredients',
+            content: Array.isArray(recipe?.ingredients) && recipe.ingredients.length > 0
+              ? recipe.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
+              : 'No ingredients',
             x: 20,
             y: 80,
             fontSize: 12,
             isBold: false,
           },
           { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false },
-          { id: 'steps', content: 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
+          { id: 'steps', content: recipe?.steps || 'No steps', x: 20, y: 210, fontSize: 12, isBold: false },
           { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false },
           {
             id: 'platingGuide',
-            content: 'No plating guide',
+            content: recipe?.platingGuide || 'No plating guide',
             x: 20,
             y: 340,
             fontSize: 12,
@@ -424,7 +444,7 @@ const PdfEditor = ({ recipe }) => {
           { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false },
           {
             id: 'allergens',
-            content: 'No allergens',
+            content: Array.isArray(recipe?.allergens) && recipe.allergens.length > 0 ? recipe.allergens.join(', ') : 'No allergens',
             x: 450,
             y: 30,
             fontSize: 12,
@@ -433,7 +453,7 @@ const PdfEditor = ({ recipe }) => {
           { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false },
           {
             id: 'serviceTypes',
-            content: 'No service types',
+            content: Array.isArray(recipe?.serviceTypes) && recipe.serviceTypes.length > 0 ? recipe.serviceTypes.join(', ') : 'No service types',
             x: 450,
             y: 80,
             fontSize: 12,
@@ -441,7 +461,7 @@ const PdfEditor = ({ recipe }) => {
           },
           {
             id: 'image',
-            content: `${frontendUrl}/logo.png`,
+            content: recipe?.image ? `${apiUrl}/Uploads/${recipe.image.split('/').pop()}` : `${frontendUrl}/logo.png`,
             x: 450,
             y: 110,
             width: 100,
@@ -474,6 +494,11 @@ const PdfEditor = ({ recipe }) => {
     }
   }, [recipe, apiUrl, frontendUrl]);
 
+  const toggleGrid = () => {
+    setShowGrid((prev) => !prev);
+    console.log('Grid toggled:', !showGrid);
+  };
+
   const memoizedFields = useMemo(() => fields, [fields]);
 
   return (
@@ -498,6 +523,7 @@ const PdfEditor = ({ recipe }) => {
               }}
               onClick={() => setSelectedField(null)}
             >
+              {showGrid && <div style={styles.grid} />}
               {memoizedFields.map((field, index) => (
                 <Field
                   key={field.id}
@@ -520,6 +546,28 @@ const PdfEditor = ({ recipe }) => {
               Delete Text Field
             </Button>
           )}
+          <Button onClick={toggleGrid} variant="outline-secondary" size="sm" style={{ marginBottom: '0.5rem', marginLeft: '0.5rem' }}>
+            {showGrid ? 'Hide Grid' : 'Show Grid'}
+          </Button>
+          <Button onClick={handleSave} variant="primary" size="sm" style={{ marginBottom: '0.5rem', marginLeft: '0.5rem' }}>
+            Save Template
+          </Button>
+          <Button onClick={handleResetToDefault} variant="primary" size="sm" style={{ marginBottom: '0.5rem', marginLeft: '0.5rem' }}>
+            Reset to Default
+          </Button>
+          <Button
+            as={Link}
+            to={`/recipes/${recipe._id}/preview-pdf`}
+            variant="info"
+            size="sm"
+            style={{ marginBottom: '0.5rem', marginLeft: '0.5rem' }}
+            onClick={(e) => {
+              e.preventDefault();
+              setTimeout(() => navigate(`/recipes/${recipe._id}/preview-pdf`), 500);
+            }}
+          >
+            Preview PDF
+          </Button>
           {selectedField && (
             <div style={{ marginTop: '50px' }}>
               <h4>Edit {fields.find((f) => f.id === selectedField)?.id}</h4>
@@ -580,27 +628,6 @@ const PdfEditor = ({ recipe }) => {
           )}
         </Col>
       </Row>
-      <div style={{ marginTop: '1rem' }}>
-        <Button onClick={handleSave} variant="primary" size="sm">
-          Save Template
-        </Button>
-        <Button onClick={handleResetToDefault} variant="primary" size="sm" style={{ marginLeft: '0.5rem' }}>
-          Reset to Default
-        </Button>
-        <Button
-          as={Link}
-          to={`/recipes/${recipe._id}/preview-pdf`}
-          variant="info"
-          size="sm"
-          style={{ marginLeft: '0.5rem' }}
-          onClick={(e) => {
-            e.preventDefault();
-            setTimeout(() => navigate(`/recipes/${recipe._id}/preview-pdf`), 500);
-          }}
-        >
-          Preview PDF
-        </Button>
-      </div>
     </div>
   );
 };
