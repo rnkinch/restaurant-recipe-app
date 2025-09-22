@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// App.js
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { Navbar, Container, Alert, NavDropdown, Row, Col, Nav } from 'react-bootstrap';
 import RecipeList from './RecipeList';
@@ -6,8 +7,9 @@ import RecipeDetail from './RecipeDetail';
 import RecipeForm from './RecipeForm';
 import Reports from './Reports';
 import Purveyors from './Purveyors';
+import PdfEditorWrapper from './PdfEditorWrapper';
+import { PdfPreview } from './PdfPreview';
 import { getRecipes } from './api';
-import PdfTemplateEditor from './PdfTemplateEditor';
 
 function App() {
   const [recipes, setRecipes] = useState([]);
@@ -88,6 +90,9 @@ function App() {
               <NavDropdown title="Reports" id="reports-dropdown">
                 <NavDropdown.Item as={Link} to="/reports/active-ingredients">Active Ingredients</NavDropdown.Item>
               </NavDropdown>
+              <NavDropdown title="Setups" id="setups-dropdown">
+                <NavDropdown.Item as={Link} to="/edit-pdf-template">Edit PDF Template</NavDropdown.Item>
+              </NavDropdown>
             </Nav>
           </Navbar.Collapse>
         </Container>
@@ -125,7 +130,8 @@ function App() {
                 <Route path="/add" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
                 <Route path="/edit/:id" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
                 <Route path="/copy/:id" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
-				<Route path="/recipes/:id/edit-pdf" element={<PdfTemplateEditor />} />
+                <Route path="/edit-pdf-template" element={<PdfEditorWrapper />} />
+                <Route path="/recipes/:id/preview-pdf" element={<PdfPreview />} />
                 <Route path="/recipe/:id" element={<RecipeDetail refreshRecipes={refreshRecipes} />} />
                 <Route path="/reports/:type" element={<Reports />} />
                 <Route path="/purveyors" element={<Purveyors />} />

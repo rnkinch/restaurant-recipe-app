@@ -1,4 +1,3 @@
-// RecipeDetail.js (Unmodified)
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button, Row, Col, Alert, Card, Container, Spinner } from 'react-bootstrap';
@@ -50,15 +49,19 @@ const RecipeDetail = ({ refreshRecipes }) => {
   };
 
   if (loading) return <Container className="py-3"><Spinner animation="border" /></Container>;
+
   if (error) return (
     <Container className="py-3">
       <Alert variant="danger" dismissible onClose={() => setError(null)}>{error}</Alert>
     </Container>
   );
+
   if (!recipe) return null;
 
   const imageStyle = { width: '300px', height: '200px', objectFit: 'cover' };
-  const imageSrc = recipe.image?.startsWith('/uploads/') ? `${apiUrl}${recipe.image}` : `http://localhost:3000${defaultImage}`;
+  const imageSrc = recipe.image
+    ? `${apiUrl}/Uploads/${recipe.image.split('/').pop()}`
+    : `http://192.168.68.129:3000${defaultImage}`;
   const allServiceTypes = Array.isArray(recipe.serviceTypes) && recipe.serviceTypes.length > 0 ? recipe.serviceTypes : ['None'];
   const ingredientsList = recipe.ingredients && recipe.ingredients.length > 0 ? (
     recipe.ingredients.map((item, index) => (
@@ -106,12 +109,12 @@ const RecipeDetail = ({ refreshRecipes }) => {
         </Col>
         <Col md={6}>
           <Card className="mb-3" style={{ maxWidth: '300px' }}>
-            <Card.Img 
-              variant="top" 
-              src={imageSrc} 
+            <Card.Img
+              variant="top"
+              src={imageSrc}
               alt={recipe.name || 'No Image'}
               style={imageStyle}
-              onError={(e) => { e.target.src = `http://localhost:3000${defaultImage}`; }}
+              onError={(e) => { e.target.src = `http://192.168.68.129:3000${defaultImage}`; }}
             />
           </Card>
           <p><strong>Allergens:</strong></p>
@@ -129,20 +132,21 @@ const RecipeDetail = ({ refreshRecipes }) => {
         <Button variant="outline-primary" size="sm" as={Link} to={`/copy/${id}`} className="me-2">
           Copy
         </Button>
-        <Button variant="outline-danger" size="sm" onClick={handleDelete}>
+        <Button variant="outline-danger" size="sm" onClick={handleDelete} className="me-2">
           Delete
         </Button>
-		
-	<Button 
-  variant="secondary" 
-  size="sm" 
-  as={Link} 
-  to={`/recipes/${id}/edit-pdf`}
->
-  Edit PDF Template
-</Button>
-
-
+        <Button
+          variant="outline-primary"
+          size="sm"
+          as={Link}
+          to={`/recipes/${id}/preview-pdf`}
+          onClick={(e) => {
+            e.preventDefault();
+            setTimeout(() => navigate(`/recipes/${id}/preview-pdf`), 500);
+          }}
+        >
+          Preview PDF
+        </Button>
       </div>
     </Container>
   );

@@ -1,33 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const Recipe = require('../models/Recipe');
 const DefaultTemplate = require('../models/DefaultTemplate');
 
-// Get template for a recipe (custom if exists, else default)
-router.get('/:id', async (req, res) => {
+// Get default template
+router.get('/default', async (req, res) => {
   try {
-    const recipe = await Recipe.findById(req.params.id);
-    if (recipe && recipe.pdfTemplate) {
-      return res.json({ template: recipe.pdfTemplate });
-    }
-
     const defaultTpl = await DefaultTemplate.findOne({ name: 'recipe-default' });
-    return res.json({ template: defaultTpl?.template || null });
+    if (!defaultTpl) {
+      console.log('No default template found in database');
+      return res.json({ template: { fields: [] } });
+    }
+    console.log('Serving default template:', JSON.stringify(defaultTpl, null, 2));
+    return res.json({ template: defaultTpl.template });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch template' });
-  }
-});
-
-// Save template for a specific recipe
-router.post('/:id', async (req, res) => {
-  try {
-    const { template } = req.body;
-    await Recipe.findByIdAndUpdate(req.params.id, { pdfTemplate: template });
-    res.json({ message: 'Template saved for recipe' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to save template' });
+    console.error('Fetch default template error:', err.message, err.stack);
+    res.status(500).json({ error: `Failed to fetch default template: ${err.message}` });
   }
 });
 
@@ -35,15 +22,20 @@ router.post('/:id', async (req, res) => {
 router.post('/default/save', async (req, res) => {
   try {
     const { template } = req.body;
-    await DefaultTemplate.findOneAndUpdate(
+    if (!template || !Array.isArray(template.fields)) {
+      console.error('Invalid template data:', JSON.stringify(req.body, null, 2));
+      return res.status(400).json({ error: 'Template data with fields array is required' });
+    }
+    console.log('Saving default template:', JSON.stringify(template, null, 2));
+    const updatedTemplate = await DefaultTemplate.findOneAndUpdate(
       { name: 'recipe-default' },
       { template },
-      { upsert: true }
+      { upsert: true, new: true }
     );
-    res.json({ message: 'Default template saved' });
+    res.json({ message: 'Default template saved', template: updatedTemplate.template });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to save default template' });
+    console.error('Save default template error:', err.message, err.stack);
+    res.status(500).json({ error: `Failed to save default template: ${err.message}` });
   }
 });
 
