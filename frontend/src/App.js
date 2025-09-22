@@ -1,3 +1,4 @@
+// App.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { Navbar, Container, Alert, NavDropdown, Row, Col, Nav } from 'react-bootstrap';
@@ -89,7 +90,9 @@ function App() {
               <NavDropdown title="Reports" id="reports-dropdown">
                 <NavDropdown.Item as={Link} to="/reports/active-ingredients">Active Ingredients</NavDropdown.Item>
               </NavDropdown>
-              <Nav.Link as={Link} to="/edit-pdf-template">Edit PDF Template</Nav.Link>
+              <NavDropdown title="Setups" id="setups-dropdown">
+                <NavDropdown.Item as={Link} to="/edit-pdf-template">Edit PDF Template</NavDropdown.Item>
+              </NavDropdown>
             </Nav>
           </Navbar.Collapse>
         </Container>
