@@ -588,28 +588,7 @@ const PdfEditor = ({ recipe }) => {
           {selectedField && (
             <div style={{ marginTop: '50px' }}>
               <h4>Edit {fields.find((f) => f.id === selectedField)?.id || 'Field'}</h4>
-              {selectedField.endsWith('Label') ? (
-                <>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Content</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={fields.find((f) => f.id === selectedField)?.content || ''}
-                      onChange={(e) => handleFieldChange(selectedField, 'content', e.target.value)}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Z-Index</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={fields.find((f) => f.id === selectedField)?.zIndex || 10}
-                      onChange={(e) => handleFieldChange(selectedField, 'zIndex', e.target.value)}
-                      min="1"
-                      max="100"
-                    />
-                  </Form.Group>
-                </>
-              ) : fields.find((f) => f.id === selectedField)?.isImage ? (
+              {fields.find((f) => f.id === selectedField)?.isImage ? (
                 <>
                   <Form.Group className="mb-2">
                     <Form.Label>Width (px)</Form.Label>
@@ -675,6 +654,14 @@ const PdfEditor = ({ recipe }) => {
                 </>
               ) : (
                 <>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Content</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={fields.find((f) => f.id === selectedField)?.content || ''}
+                      onChange={(e) => handleFieldChange(selectedField, 'content', e.target.value)}
+                    />
+                  </Form.Group>
                   <Form.Group className="mb-2">
                     <Form.Label>Font Size (px)</Form.Label>
                     <Form.Control

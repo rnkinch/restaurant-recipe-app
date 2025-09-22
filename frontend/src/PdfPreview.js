@@ -6,8 +6,8 @@ import { getRecipeById } from './api';
 
 const styles = StyleSheet.create({
   page: {
-    width: '842px',
-    height: '595px',
+    width: 792, // 11 inches at 72 DPI (landscape)
+    height: 612, // 8.5 inches at 72 DPI
     position: 'relative',
   },
   field: {
@@ -65,7 +65,7 @@ export const PdfPreview = () => {
         setRecipe(recipeData);
 
         const imageUrl = recipeData.image
-          ? `${apiUrl}/uploads/${recipeData.image.split('/').pop()}`
+          ? `${apiUrl}/Uploads/${recipeData.image.split('/').pop()}`
           : `${frontendUrl}/logo.png`;
         console.log('Image URL:', imageUrl);
 
@@ -179,7 +179,7 @@ export const PdfPreview = () => {
               },
               {
                 id: 'image',
-                content: recipeData?.image ? `${apiUrl}/uploads/${recipeData.image.split('/').pop()}` : defaultImageUrl,
+                content: recipeData?.image ? `${apiUrl}/Uploads/${recipeData.image.split('/').pop()}` : defaultImageUrl,
                 x: 450,
                 y: 110,
                 width: 100,
@@ -268,7 +268,7 @@ export const PdfPreview = () => {
             },
             {
               id: 'image',
-              content: recipeData?.image ? `${apiUrl}/uploads/${recipeData.image.split('/').pop()}` : defaultImageUrl,
+              content: recipeData?.image ? `${apiUrl}/Uploads/${recipeData.image.split('/').pop()}` : defaultImageUrl,
               x: 450,
               y: 110,
               width: 100,
@@ -442,9 +442,9 @@ export const PdfPreview = () => {
         </div>
       )}
       <div style={styles.viewerContainer}>
-        <PDFViewer key={recipe._id} style={{ width: '842px', height: '595px' }}>
+        <PDFViewer key={recipe._id} style={{ width: '842px', height: '595px' }} className="pdf-viewer">
           <Document>
-            <Page size={{ width: 842, height: 595 }} style={styles.page}>
+            <Page size={[792, 612]} style={styles.page}>
               {fields.map((field) => (
                 <View
                   key={field.id}
