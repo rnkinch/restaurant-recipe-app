@@ -38,8 +38,9 @@ export const PdfPreview = () => {
   const [recipe, setRecipe] = useState(null);
   const [imageError, setImageError] = useState(null);
   const [fetchError, setFetchError] = useState(null);
-  const [watermarkError, setWatermarkError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [imageAspectRatios, setImageAspectRatios] = useState({});
+  const [imageDataUrls, setImageDataUrls] = useState({});
   const currentIdRef = useRef(null);
 
   useEffect(() => {
@@ -52,8 +53,53 @@ export const PdfPreview = () => {
       setRecipe(null);
       setImageError(null);
       setFetchError(null);
-      setWatermarkError(null);
-      console.log('Fetching recipe and template');
+      setImageAspectRatios({});
+      setImageDataUrls({});
+
+      const validateImage = async (url, key) => {
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
+          const blob = await response.blob();
+          const dataUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+          const img = document.createElement('img');
+          img.src = dataUrl;
+          await new Promise((resolve, reject) => {
+            img.onload = () => {
+              const aspectRatio = img.naturalWidth / img.naturalHeight;
+              setImageAspectRatios((prev) => ({ ...prev, [key]: aspectRatio }));
+              setImageDataUrls((prev) => ({ ...prev, [key]: dataUrl }));
+              console.log('Image validated:', key, aspectRatio);
+              resolve();
+            };
+            img.onerror = () => {
+              console.error('Image load error:', url);
+              // Only set error for actual fetch failures, not rendering issues
+              if (response.ok) {
+                console.log('Image fetched but failed to load in DOM, using data URL');
+              } else {
+                setImageError(`Image not found: ${url}`);
+              }
+              resolve(); // Continue to allow rendering
+            };
+          });
+        } catch (err) {
+          console.error('Image validation failed:', url, err.message);
+          setImageError(`Image not found: ${url}`);
+        }
+      };
 
       try {
         const recipeData = await getRecipeById(id);
@@ -65,9 +111,99 @@ export const PdfPreview = () => {
         setRecipe(recipeData);
 
         const imageUrl = recipeData.image
-          ? `${apiUrl}/Uploads/${recipeData.image.split('/').pop()}`
+          ? `${apiUrl}/uploads/${recipeData.image.split('/').pop()}`
           : `${frontendUrl}/logo.png`;
+        const watermarkUrl = `${frontendUrl}/logo.png`;
         console.log('Image URL:', imageUrl);
+        console.log('Watermark URL:', watermarkUrl);
+
+        // Validate recipe image only
+        await validateImage(imageUrl, 'recipeImage');
+
+        const defaultFields = [
+          { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'title', content: recipeData?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          {
+            id: 'ingredients',
+            content: Array.isArray(recipeData?.ingredients)
+              ? recipeData.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
+              : 'No ingredients',
+            x: 20,
+            y: 80,
+            fontSize: 12,
+            isBold: false,
+            width: 500,
+            zIndex: 10,
+          },
+          { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          {
+            id: 'steps',
+            content: recipeData?.steps || 'No steps',
+            x: 20,
+            y: 210,
+            fontSize: 12,
+            isBold: false,
+            width: 500,
+            zIndex: 10,
+          },
+          { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          {
+            id: 'platingGuide',
+            content: recipeData?.platingGuide || 'No plating guide',
+            x: 20,
+            y: 340,
+            fontSize: 12,
+            isBold: false,
+            width: 500,
+            zIndex: 10,
+          },
+          { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          {
+            id: 'allergens',
+            content: Array.isArray(recipeData?.allergens) ? recipeData.allergens.join(', ') : 'No allergens',
+            x: 450,
+            y: 30,
+            fontSize: 12,
+            isBold: false,
+            width: 400,
+            zIndex: 10,
+          },
+          { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          {
+            id: 'serviceTypes',
+            content: Array.isArray(recipeData?.serviceTypes) ? recipeData.serviceTypes.join(', ') : 'No service types',
+            x: 450,
+            y: 80,
+            fontSize: 12,
+            isBold: false,
+            width: 400,
+            zIndex: 10,
+          },
+          {
+            id: 'image',
+            content: imageDataUrls['recipeImage'] || imageUrl,
+            x: 450,
+            y: 110,
+            width: 100,
+            height: 100,
+            isImage: true,
+            aspectRatio: imageAspectRatios['recipeImage'] || 1,
+            zIndex: 10,
+          },
+          {
+            id: 'watermark',
+            content: watermarkUrl,
+            x: 421,
+            y: 297.5,
+            width: 200,
+            height: 200,
+            isImage: true,
+            aspectRatio: 1,
+            zIndex: 5,
+            opacity: 0.2,
+          },
+        ];
 
         const timestamp = Date.now();
         console.log('Fetching template');
@@ -86,7 +222,10 @@ export const PdfPreview = () => {
           if (templateData?.template?.fields) {
             const updatedFields = templateData.template.fields.map((field) => {
               if (field.isImage && field.id === 'image') {
-                return { ...field, content: imageUrl };
+                return { ...field, content: imageDataUrls['recipeImage'] || imageUrl, aspectRatio: imageAspectRatios['recipeImage'] || 1 };
+              }
+              if (field.isImage && field.id === 'watermark') {
+                return { ...field, content: watermarkUrl, aspectRatio: field.aspectRatio || 1, opacity: 0.2 };
               }
               if (field.id === 'title') {
                 return { ...field, content: recipeData?.name || 'Recipe Title' };
@@ -116,185 +255,16 @@ export const PdfPreview = () => {
             setFields(updatedFields);
           } else {
             console.warn('No template fields found');
-            const defaultImageUrl = `${frontendUrl}/logo.png`;
-            setFields([
-              { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-              { id: 'title', content: recipeData?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-              { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-              {
-                id: 'ingredients',
-                content: Array.isArray(recipeData?.ingredients)
-                  ? recipeData.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
-                  : 'No ingredients',
-                x: 20,
-                y: 80,
-                fontSize: 12,
-                isBold: false,
-                width: 500,
-                zIndex: 10,
-              },
-              { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-              {
-                id: 'steps',
-                content: recipeData?.steps || 'No steps',
-                x: 20,
-                y: 210,
-                fontSize: 12,
-                isBold: false,
-                width: 500,
-                zIndex: 10,
-              },
-              { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-              {
-                id: 'platingGuide',
-                content: recipeData?.platingGuide || 'No plating guide',
-                x: 20,
-                y: 340,
-                fontSize: 12,
-                isBold: false,
-                width: 500,
-                zIndex: 10,
-              },
-              { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-              {
-                id: 'allergens',
-                content: Array.isArray(recipeData?.allergens) ? recipeData.allergens.join(', ') : 'No allergens',
-                x: 450,
-                y: 30,
-                fontSize: 12,
-                isBold: false,
-                width: 400,
-                zIndex: 10,
-              },
-              { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-              {
-                id: 'serviceTypes',
-                content: Array.isArray(recipeData?.serviceTypes) ? recipeData.serviceTypes.join(', ') : 'No service types',
-                x: 450,
-                y: 80,
-                fontSize: 12,
-                isBold: false,
-                width: 400,
-                zIndex: 10,
-              },
-              {
-                id: 'image',
-                content: recipeData?.image ? `${apiUrl}/Uploads/${recipeData.image.split('/').pop()}` : defaultImageUrl,
-                x: 450,
-                y: 110,
-                width: 100,
-                height: 100,
-                isImage: true,
-                aspectRatio: 1,
-                zIndex: 10,
-              },
-              {
-                id: 'watermark',
-                content: `${frontendUrl}/logo.png`,
-                x: 421,
-                y: 297.5,
-                width: 200,
-                height: 200,
-                isImage: true,
-                aspectRatio: 1,
-                zIndex: 5,
-              },
-            ]);
+            setFields(defaultFields);
           }
         } else {
-          const errorText = await templateRes.text();
-          console.error('Template fetch failed:', templateRes.status, errorText);
-          setFetchError(`Failed to load template: ${templateRes.status} - ${errorText}`);
-          const defaultImageUrl = `${frontendUrl}/logo.png`;
-          setFields([
-            { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-            { id: 'title', content: recipeData?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-            { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-            {
-              id: 'ingredients',
-              content: Array.isArray(recipeData?.ingredients)
-                ? recipeData.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
-                : 'No ingredients',
-              x: 20,
-              y: 80,
-              fontSize: 12,
-              isBold: false,
-              width: 500,
-              zIndex: 10,
-            },
-            { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-            {
-              id: 'steps',
-              content: recipeData?.steps || 'No steps',
-              x: 20,
-              y: 210,
-              fontSize: 12,
-              isBold: false,
-              width: 500,
-              zIndex: 10,
-            },
-            { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-            {
-              id: 'platingGuide',
-              content: recipeData?.platingGuide || 'No plating guide',
-              x: 20,
-              y: 340,
-              fontSize: 12,
-              isBold: false,
-              width: 500,
-              zIndex: 10,
-            },
-            { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-            {
-              id: 'allergens',
-              content: Array.isArray(recipeData?.allergens) ? recipeData.allergens.join(', ') : 'No allergens',
-              x: 450,
-              y: 30,
-              fontSize: 12,
-              isBold: false,
-              width: 400,
-              zIndex: 10,
-            },
-            { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-            {
-              id: 'serviceTypes',
-              content: Array.isArray(recipeData?.serviceTypes) ? recipeData.serviceTypes.join(', ') : 'No service types',
-              x: 450,
-              y: 80,
-              fontSize: 12,
-              isBold: false,
-              width: 400,
-              zIndex: 10,
-            },
-            {
-              id: 'image',
-              content: recipeData?.image ? `${apiUrl}/Uploads/${recipeData.image.split('/').pop()}` : defaultImageUrl,
-              x: 450,
-              y: 110,
-              width: 100,
-              height: 100,
-              isImage: true,
-              aspectRatio: 1,
-              zIndex: 10,
-            },
-            {
-              id: 'watermark',
-              content: `${frontendUrl}/logo.png`,
-              x: 421,
-              y: 297.5,
-              width: 200,
-              height: 200,
-              isImage: true,
-              aspectRatio: 1,
-              zIndex: 5,
-            },
-          ]);
+          console.warn('Template fetch failed, using default fields');
+          setFields(defaultFields);
         }
       } catch (err) {
         console.error('Fetch failed:', err.message);
         setFetchError(`Failed to load recipe or template: ${err.message}`);
-        const defaultImageUrl = `${frontendUrl}/logo.png`;
-        setFields([
+        const fallbackFields = [
           { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           { id: 'title', content: 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
@@ -354,7 +324,7 @@ export const PdfPreview = () => {
           },
           {
             id: 'image',
-            content: defaultImageUrl,
+            content: `${frontendUrl}/logo.png`,
             x: 450,
             y: 110,
             width: 100,
@@ -373,8 +343,10 @@ export const PdfPreview = () => {
             isImage: true,
             aspectRatio: 1,
             zIndex: 5,
+            opacity: 0.2,
           },
-        ]);
+        ];
+        setFields(fallbackFields);
       } finally {
         if (currentIdRef.current === id) {
           setIsLoading(false);
@@ -392,7 +364,8 @@ export const PdfPreview = () => {
       setRecipe(null);
       setImageError(null);
       setFetchError(null);
-      setWatermarkError(null);
+      setImageAspectRatios({});
+      setImageDataUrls({});
       console.log('Cleaned up state');
     };
   }, [id, apiUrl, frontendUrl]);
@@ -436,11 +409,6 @@ export const PdfPreview = () => {
           {fetchError}
         </div>
       )}
-      {watermarkError && (
-        <div style={{ color: 'red', marginBottom: '1rem' }}>
-          {watermarkError}
-        </div>
-      )}
       <div style={styles.viewerContainer}>
         <PDFViewer key={recipe._id} style={{ width: '842px', height: '595px' }} className="pdf-viewer">
           <Document>
@@ -457,7 +425,7 @@ export const PdfPreview = () => {
                             top: field.y,
                             width: field.width || 100,
                             height: field.height || (field.width || 100) / (field.aspectRatio || 1),
-                            opacity: field.id === 'watermark' ? 0.2 : 1,
+                            opacity: field.id === 'watermark' ? field.opacity || 0.2 : 1,
                           }
                         : field.isLine
                         ? {
@@ -479,10 +447,6 @@ export const PdfPreview = () => {
                       style={{
                         width: field.width || 100,
                         height: field.height || (field.width || 100) / (field.aspectRatio || 1),
-                      }}
-                      onError={() => {
-                        console.error('PDF Image load error:', field.content);
-                        setImageError(`Image not found: ${field.content}`);
                       }}
                     />
                   ) : field.isLine ? null : (
