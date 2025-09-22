@@ -1,4 +1,3 @@
-// server.js (With fix for issue c: parse ingredients from JSON string)
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -61,9 +60,13 @@ const storage = multer.diskStorage({
     }
   },
   filename: (req, file, cb) => {
-    const filename = Date.now() + path.extname(file.originalname || '');
-    console.log('Saving file:', filename);
-    cb(null, filename);
+    if (file.fieldname === 'logo') {
+      cb(null, 'logo.png'); // Force filename to logo.png for logo uploads
+    } else {
+      const filename = Date.now() + path.extname(file.originalname || '');
+      console.log('Saving file:', filename);
+      cb(null, filename);
+    }
   }
 });
 
@@ -122,7 +125,7 @@ const recipeSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   ingredients: [{
     ingredient: { type: mongoose.Schema.Types.ObjectId, ref: 'Ingredient', required: true },
-    quantity: { type: String, required: true },  // Changed to String for flexibility
+    quantity: { type: String, required: true },
     measure: { type: String, required: true }
   }],
   steps: { type: String, required: true, trim: true },
@@ -133,6 +136,51 @@ const recipeSchema = new mongoose.Schema({
   active: { type: Boolean, default: true }
 });
 const Recipe = mongoose.model('Recipe', recipeSchema);
+
+const Config = require('./Config');
+
+// Configuration routes
+app.get('/config', async (req, res) => {
+  try {
+    const config = await Config.findOrCreate();
+    res.json(config);
+  } catch (err) {
+    console.error('Get config error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/config', async (req, res) => {
+  try {
+    const { appName, showLeftNav } = req.body;
+    const config = await Config.findOne();
+    if (!config) {
+      const newConfig = new Config({ appName, showLeftNav });
+      await newConfig.save();
+      res.json(newConfig);
+    } else {
+      config.appName = appName;
+      config.showLeftNav = showLeftNav;
+      await config.save();
+      res.json(config);
+    }
+  } catch (err) {
+    console.error('Update config error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/config/logo', upload.single('logo'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No logo file provided' });
+    }
+    res.status(201).json({ message: 'Logo uploaded successfully', filename: req.file.filename });
+  } catch (err) {
+    console.error('Upload logo error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Backend is running', timestamp: new Date().toISOString() });
@@ -345,7 +393,6 @@ app.delete('/recipes/:id', async (req, res) => {
 
 const templateRoutes = require('./routes/templates');
 app.use('/templates', templateRoutes);
-
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

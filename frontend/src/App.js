@@ -1,4 +1,3 @@
-// App.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { Navbar, Container, Alert, NavDropdown, Row, Col, Nav } from 'react-bootstrap';
@@ -9,13 +8,15 @@ import Reports from './Reports';
 import Purveyors from './Purveyors';
 import PdfEditorWrapper from './PdfEditorWrapper';
 import { PdfPreview } from './PdfPreview';
-import { getRecipes } from './api';
+import SetupConfig from './SetupConfig';
+import { getRecipes, getConfig } from './api';
 
 function App() {
   const [recipes, setRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [config, setConfig] = useState({ appName: "Darby's Recipe and Plating Guide", showLeftNav: true });
 
   const refreshRecipes = useCallback(async (all = true) => {
     setLoading(true);
@@ -41,14 +42,25 @@ function App() {
     }
   }, []);
 
+  const refreshConfig = useCallback(async () => {
+    try {
+      const data = await getConfig();
+      setConfig({ appName: data.appName, showLeftNav: data.showLeftNav });
+    } catch (err) {
+      console.error('Fetch Config Error:', err.message);
+      setError(`Failed to fetch config: ${err.message}`);
+    }
+  }, []);
+
   useEffect(() => {
     if (!process.env.REACT_APP_API_URL) {
       setError('REACT_APP_API_URL environment variable is not set.');
       setLoading(false);
     } else {
       refreshRecipes(true);
+      refreshConfig();
     }
-  }, [refreshRecipes]);
+  }, [refreshRecipes, refreshConfig]);
 
   const handleSearch = useCallback((query) => {
     console.log('Search triggered with query:', query);
@@ -79,7 +91,19 @@ function App() {
     <Router>
       <Navbar bg="light" expand="lg" className="mb-3 shadow-sm">
         <Container fluid>
-          <Navbar.Brand as={Link} to="/">Darby's Recipe and Plating Guide</Navbar.Brand>
+          <Navbar.Brand as={Link} to="/">
+            <img
+              src={`${process.env.REACT_APP_API_URL}/uploads/logo.png?t=${Date.now()}`}
+              alt="Logo"
+              style={{ height: '24px', marginRight: '8px', verticalAlign: 'middle' }}
+              onError={(e) => {
+                console.error('Navbar logo failed to load:', e.target.src);
+                e.target.style.display = 'none';
+              }}
+              onLoad={() => console.log('Navbar logo loaded successfully')}
+            />
+            {config.appName}
+          </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto">
@@ -92,6 +116,7 @@ function App() {
               </NavDropdown>
               <NavDropdown title="Setups" id="setups-dropdown">
                 <NavDropdown.Item as={Link} to="/edit-pdf-template">Edit PDF Template</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/config">Configuration</NavDropdown.Item>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>
@@ -99,25 +124,27 @@ function App() {
       </Navbar>
       <Container fluid>
         <Row>
-          <Col md={2} className="bg-light p-0" style={{ minHeight: 'calc(100vh - 56px)', overflowY: 'auto' }}>
-            <h4>Recipe List</h4>
-            <Nav className="flex-column recipe-nav" style={{ fontSize: '0.84375rem' }}>
-              {recipes.map(recipe => (
-                <Nav.Link
-                  key={recipe._id}
-                  as={Link}
-                  to={`/recipe/${recipe._id}`}
-                  className="d-flex align-items-center py-0 mb-1"
-                >
-                  <span className={recipe.active ? 'text-success' : 'text-danger'} style={{ marginRight: '5px' }}>
-                    ●
-                  </span>
-                  {recipe.name}
-                </Nav.Link>
-              ))}
-            </Nav>
-          </Col>
-          <Col md={10}>
+          {config.showLeftNav && (
+            <Col md={2} className="bg-light p-0" style={{ minHeight: 'calc(100vh - 56px)', overflowY: 'auto' }}>
+              <h4>Recipe List</h4>
+              <Nav className="flex-column recipe-nav" style={{ fontSize: '0.84375rem' }}>
+                {recipes.map(recipe => (
+                  <Nav.Link
+                    key={recipe._id}
+                    as={Link}
+                    to={`/recipe/${recipe._id}`}
+                    className="d-flex align-items-center py-0 mb-1"
+                  >
+                    <span className={recipe.active ? 'text-success' : 'text-danger'} style={{ marginRight: '5px' }}>
+                      ●
+                    </span>
+                    {recipe.name}
+                  </Nav.Link>
+                ))}
+              </Nav>
+            </Col>
+          )}
+          <Col md={config.showLeftNav ? 10 : 12}>
             <Container className="py-3">
               {loading && <p>Loading...</p>}
               {error && (
@@ -135,6 +162,7 @@ function App() {
                 <Route path="/recipe/:id" element={<RecipeDetail refreshRecipes={refreshRecipes} />} />
                 <Route path="/reports/:type" element={<Reports />} />
                 <Route path="/purveyors" element={<Purveyors />} />
+                <Route path="/config" element={<SetupConfig refreshConfig={refreshConfig} />} />
               </Routes>
             </Container>
           </Col>

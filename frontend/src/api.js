@@ -76,3 +76,22 @@ export const deleteRecipe = async (id) => {
   const response = await axios.delete(`${apiUrl}/recipes/${id}`);
   return response.data;
 };
+
+export const getConfig = async () => {
+  const response = await axios.get(`${apiUrl}/config`);
+  return response.data;
+};
+
+export const updateConfig = async (config) => {
+  const response = await axios.put(`${apiUrl}/config`, config);
+  return response.data;
+};
+
+export const uploadLogo = async (file) => {
+  const formData = new FormData();
+  formData.append('logo', file);
+  const response = await axios.post(`${apiUrl}/config/logo`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return response.data;
+};

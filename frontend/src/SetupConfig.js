@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Container, Alert, Spinner } from 'react-bootstrap';
+import { Form, Button, Container, Alert, Spinner, Image } from 'react-bootstrap';
 import { getConfig, updateConfig, uploadLogo } from './api';
 
 const SetupConfig = ({ refreshConfig }) => {
@@ -8,6 +8,7 @@ const SetupConfig = ({ refreshConfig }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [logoKey, setLogoKey] = useState(Date.now()); // For cache busting
 
   useEffect(() => {
     getConfig()
@@ -29,21 +30,37 @@ const SetupConfig = ({ refreshConfig }) => {
       if (file) {
         await uploadLogo(file);
         setSuccess('Logo uploaded successfully. ');
+        setLogoKey(Date.now()); // Update logoKey to force image refresh
       }
       const updated = await updateConfig({ appName: config.appName, showLeftNav: config.showLeftNav });
       setConfig(updated);
       setSuccess((success || '') + 'Configuration updated successfully.');
       if (refreshConfig) refreshConfig();
     } catch (err) {
+      console.error('Config save error:', err.message);
       setError(`Failed to save: ${err.message}`);
     }
   };
 
   if (loading) return <Container className="py-3"><Spinner animation="border" /></Container>;
 
+  const logoUrl = `${process.env.REACT_APP_API_URL}/uploads/logo.png?t=${logoKey}`;
+
   return (
     <Container className="py-3">
       <h2>Configure Setups</h2>
+      <div>
+        <Image
+          src={logoUrl}
+          alt="Current Logo"
+          style={{ width: '150px', marginBottom: '20px' }}
+          onError={(e) => {
+            console.error('Config page logo failed to load:', e.target.src);
+            e.target.style.display = 'none';
+          }}
+          onLoad={() => console.log('Config page logo loaded successfully:', logoUrl)}
+        />
+      </div>
       {error && <Alert variant="danger" dismissible onClose={() => setError(null)}>{error}</Alert>}
       {success && <Alert variant="success" dismissible onClose={() => setSuccess(null)}>{success}</Alert>}
       <Form onSubmit={handleSubmit}>
