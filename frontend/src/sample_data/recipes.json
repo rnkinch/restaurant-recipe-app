@@ -1,0 +1,605 @@
+[
+  {
+    "name": "Classic Cheeseburger",
+    "ingredients": [
+      {"ingredient": "Beef", "quantity": "1", "measure": "lb"},
+      {"ingredient": "Cheddar cheese", "quantity": "4", "measure": "slices"},
+      {"ingredient": "Lettuce", "quantity": "1", "measure": "head"},
+      {"ingredient": "Tomatoes", "quantity": "1", "measure": "medium"},
+      {"ingredient": "Burger buns", "quantity": "4", "measure": "pieces"},
+      {"ingredient": "Mayonnaise", "quantity": "2", "measure": "tbsp"}
+    ],
+    "steps": "1. Form beef into patties.\n2. Grill patties for 4 minutes per side.\n3. Toast buns lightly.\n4. Assemble with lettuce, tomato, cheese, and mayo.",
+    "platingGuide": "Place burger on a plate with fries on the side.\nGarnish with a pickle spear.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Lunch", "Dinner"],
+    "active": true,
+    "image": "/Uploads/cheeseburger.jpg"
+  },
+  {
+    "name": "Spaghetti Carbonara",
+    "ingredients": [
+      {"ingredient": "Spaghetti", "quantity": "400", "measure": "g"},
+      {"ingredient": "Pancetta", "quantity": "150", "measure": "g"},
+      {"ingredient": "Eggs", "quantity": "2", "measure": "large"},
+      {"ingredient": "Parmesan cheese", "quantity": "50", "measure": "g"},
+      {"ingredient": "Black pepper", "quantity": "1", "measure": "tsp"}
+    ],
+    "steps": "1. Boil spaghetti until al dente.\n2. Fry pancetta until crispy.\n3. Whisk eggs with Parmesan.\n4. Toss pasta with pancetta and egg mixture.\n5. Season with black pepper.",
+    "platingGuide": "Twirl pasta into a nest.\nSprinkle with extra Parmesan.",
+    "allergens": ["Dairy", "Eggs", "Gluten"],
+    "serviceTypes": ["Dinner"],
+    "active": true
+  },
+  {
+    "name": "Apple Pie",
+    "ingredients": [
+      {"ingredient": "Apples", "quantity": "6", "measure": "medium"},
+      {"ingredient": "Flour", "quantity": "2", "measure": "cups"},
+      {"ingredient": "Sugar", "quantity": "3/4", "measure": "cup"},
+      {"ingredient": "Butter", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Cinnamon", "quantity": "1", "measure": "tsp"}
+    ],
+    "steps": "1. Preheat oven to 375°F.\n2. Slice apples thinly.\n3. Mix flour, sugar, and cinnamon.\n4. Layer apples and dough in a pie dish.\n5. Bake for 45 minutes.",
+    "platingGuide": "Serve warm with a scoop of ice cream.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Dessert"],
+    "active": false,
+    "image": "/Uploads/apple_pie.jpg"
+  },
+  {
+    "name": "Margherita Pizza",
+    "ingredients": [
+      {"ingredient": "Pizza dough", "quantity": "1", "measure": "lb"},
+      {"ingredient": "Tomato sauce", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Mozzarella", "quantity": "200", "measure": "g"},
+      {"ingredient": "Basil", "quantity": "10", "measure": "leaves"},
+      {"ingredient": "Olive oil", "quantity": "2", "measure": "tbsp"}
+    ],
+    "steps": "1. Preheat oven to 500°F.\n2. Roll out dough.\n3. Spread tomato sauce.\n4. Add mozzarella and basil.\n5. Bake for 12 minutes.",
+    "platingGuide": "Slice evenly and drizzle with olive oil.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Lunch", "Dinner"],
+    "active": true
+  },
+  {
+    "name": "Mac and Cheese",
+    "ingredients": [
+      {"ingredient": "Elbow macaroni", "quantity": "1", "measure": "lb"},
+      {"ingredient": "Cheddar cheese", "quantity": "2", "measure": "cups"},
+      {"ingredient": "Milk", "quantity": "2", "measure": "cups"},
+      {"ingredient": "Butter", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Flour", "quantity": "1/4", "measure": "cup"}
+    ],
+    "steps": "1. Cook macaroni until al dente.\n2. Melt butter and stir in flour.\n3. Add milk to make a sauce.\n4. Stir in cheese until melted.\n5. Mix with macaroni.",
+    "platingGuide": "Serve in a bowl with breadcrumb topping.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Lunch", "Dinner"],
+    "active": true
+  },
+  {
+    "name": "Lasagna Bolognese",
+    "ingredients": [
+      {"ingredient": "Lasagna noodles", "quantity": "12", "measure": "sheets"},
+      {"ingredient": "Ground beef", "quantity": "1", "measure": "lb"},
+      {"ingredient": "Ricotta cheese", "quantity": "2", "measure": "cups"},
+      {"ingredient": "Mozzarella", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Tomato sauce", "quantity": "3", "measure": "cups"}
+    ],
+    "steps": "1. Cook noodles.\n2. Brown beef with sauce.\n3. Layer noodles, ricotta, beef, and mozzarella.\n4. Bake at 375°F for 30 minutes.",
+    "platingGuide": "Cut into squares and garnish with parsley.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Dinner"],
+    "active": true
+  },
+  {
+    "name": "Fried Chicken",
+    "ingredients": [
+      {"ingredient": "Chicken", "quantity": "1", "measure": "whole"},
+      {"ingredient": "Flour", "quantity": "2", "measure": "cups"},
+      {"ingredient": "Paprika", "quantity": "1", "measure": "tsp"},
+      {"ingredient": "Buttermilk", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Vegetable oil", "quantity": "2", "measure": "cups"}
+    ],
+    "steps": "1. Marinate chicken in buttermilk.\n2. Mix flour with paprika.\n3. Coat chicken in flour mixture.\n4. Fry until golden.",
+    "platingGuide": "Serve with coleslaw and mashed potatoes.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Lunch", "Dinner"],
+    "active": false
+  },
+  {
+    "name": "Pesto Pasta",
+    "ingredients": [
+      {"ingredient": "Penne", "quantity": "400", "measure": "g"},
+      {"ingredient": "Basil", "quantity": "2", "measure": "cups"},
+      {"ingredient": "Pine nuts", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Parmesan cheese", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Olive oil", "quantity": "1/2", "measure": "cup"}
+    ],
+    "steps": "1. Cook penne until al dente.\n2. Blend basil, pine nuts, Parmesan, and oil.\n3. Toss pasta with pesto sauce.",
+    "platingGuide": "Garnish with extra Parmesan and a basil leaf.",
+    "allergens": ["Dairy", "Nuts", "Gluten"],
+    "serviceTypes": ["Lunch", "Dinner"],
+    "active": true
+  },
+  {
+    "name": "BBQ Ribs",
+    "ingredients": [
+      {"ingredient": "Pork ribs", "quantity": "2", "measure": "lbs"},
+      {"ingredient": "Barbecue sauce", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Brown sugar", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Paprika", "quantity": "1", "measure": "tbsp"},
+      {"ingredient": "Garlic powder", "quantity": "1", "measure": "tsp"}
+    ],
+    "steps": "1. Rub ribs with spices and sugar.\n2. Bake at 275°F for 3 hours.\n3. Brush with barbecue sauce.\n4. Grill for 10 minutes.",
+    "platingGuide": "Serve with corn on the cob.",
+    "allergens": [],
+    "serviceTypes": ["Dinner"],
+    "active": true
+  },
+  {
+    "name": "Tiramisu",
+    "ingredients": [
+      {"ingredient": "Mascarpone cheese", "quantity": "500", "measure": "g"},
+      {"ingredient": "Espresso", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Ladyfingers", "quantity": "200", "measure": "g"},
+      {"ingredient": "Sugar", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Cocoa powder", "quantity": "2", "measure": "tbsp"}
+    ],
+    "steps": "1. Whip mascarpone with sugar.\n2. Dip ladyfingers in espresso.\n3. Layer ladyfingers and mascarpone.\n4. Dust with cocoa powder.\n5. Chill for 4 hours.",
+    "platingGuide": "Serve in a glass dish, dusted with cocoa.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Dessert"],
+    "active": false
+  },
+  {
+    "name": "Clam Chowder",
+    "ingredients": [
+      {"ingredient": "Clams", "quantity": "2", "measure": "lbs"},
+      {"ingredient": "Potatoes", "quantity": "2", "measure": "medium"},
+      {"ingredient": "Heavy cream", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Onion", "quantity": "1", "measure": "medium"},
+      {"ingredient": "Butter", "quantity": "2", "measure": "tbsp"}
+    ],
+    "steps": "1. Sauté onion in butter.\n2. Add potatoes and clam juice.\n3. Simmer until potatoes are tender.\n4. Stir in clams and cream.",
+    "platingGuide": "Serve in a bread bowl.",
+    "allergens": ["Dairy", "Shellfish"],
+    "serviceTypes": ["Lunch", "Dinner"],
+    "active": true
+  },
+  {
+    "name": "Fettuccine Alfredo",
+    "ingredients": [
+      {"ingredient": "Fettuccine", "quantity": "400", "measure": "g"},
+      {"ingredient": "Heavy cream", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Parmesan cheese", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Butter", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Garlic", "quantity": "2", "measure": "cloves"}
+    ],
+    "steps": "1. Cook fettuccine until al dente.\n2. Sauté garlic in butter.\n3. Add cream and simmer.\n4. Stir in Parmesan.\n5. Toss with pasta.",
+    "platingGuide": "Garnish with parsley.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Dinner"],
+    "active": true
+  },
+  {
+    "name": "Pulled Pork Sandwich",
+    "ingredients": [
+      {"ingredient": "Pork shoulder", "quantity": "2", "measure": "lbs"},
+      {"ingredient": "Barbecue sauce", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Coleslaw", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Buns", "quantity": "4", "measure": "pieces"},
+      {"ingredient": "Brown sugar", "quantity": "1/4", "measure": "cup"}
+    ],
+    "steps": "1. Rub pork with sugar and spices.\n2. Slow cook for 8 hours.\n3. Shred pork and mix with sauce.\n4. Serve on buns with coleslaw.",
+    "platingGuide": "Top with extra sauce and a pickle.",
+    "allergens": ["Gluten"],
+    "serviceTypes": ["Lunch", "Dinner"],
+    "active": false
+  },
+  {
+    "name": "Risotto alla Milanese",
+    "ingredients": [
+      {"ingredient": "Arborio rice", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Saffron", "quantity": "1", "measure": "pinch"},
+      {"ingredient": "Chicken broth", "quantity": "4", "measure": "cups"},
+      {"ingredient": "Parmesan cheese", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Butter", "quantity": "2", "measure": "tbsp"}
+    ],
+    "steps": "1. Heat broth with saffron.\n2. Sauté rice in butter.\n3. Gradually add broth, stirring.\n4. Stir in Parmesan.\n5. Serve hot.",
+    "platingGuide": "Mound risotto in the center of the plate.",
+    "allergens": ["Dairy"],
+    "serviceTypes": ["Dinner"],
+    "active": true
+  },
+  {
+    "name": "Cobb Salad",
+    "ingredients": [
+      {"ingredient": "Lettuce", "quantity": "1", "measure": "head"},
+      {"ingredient": "Chicken", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Bacon", "quantity": "4", "measure": "slices"},
+      {"ingredient": "Avocado", "quantity": "1", "measure": "medium"},
+      {"ingredient": "Blue cheese", "quantity": "1/2", "measure": "cup"}
+    ],
+    "steps": "1. Chop lettuce.\n2. Grill chicken and crumble bacon.\n3. Dice avocado.\n4. Toss all with dressing.\n5. Top with blue cheese.",
+    "platingGuide": "Arrange ingredients in rows on a platter.",
+    "allergens": ["Dairy"],
+    "serviceTypes": ["Lunch"],
+    "active": true
+  },
+  {
+    "name": "Osso Buco",
+    "ingredients": [
+      {"ingredient": "Veal shanks", "quantity": "4", "measure": "pieces"},
+      {"ingredient": "Tomatoes", "quantity": "1", "measure": "cup"},
+      {"ingredient": "White wine", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Carrots", "quantity": "1", "measure": "medium"},
+      {"ingredient": "Onion", "quantity": "1", "measure": "medium"}
+    ],
+    "steps": "1. Brown veal shanks.\n2. Sauté vegetables.\n3. Add wine and tomatoes.\n4. Braise for 2 hours.",
+    "platingGuide": "Serve with risotto and gremolata.",
+    "allergens": [],
+    "serviceTypes": ["Dinner"],
+    "active": false
+  },
+  {
+    "name": "Pancakes",
+    "ingredients": [
+      {"ingredient": "Flour", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Milk", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Eggs", "quantity": "1", "measure": "large"},
+      {"ingredient": "Sugar", "quantity": "2", "measure": "tbsp"},
+      {"ingredient": "Butter", "quantity": "2", "measure": "tbsp"}
+    ],
+    "steps": "1. Mix flour, milk, egg, and sugar.\n2. Melt butter in a pan.\n3. Pour batter to form pancakes.\n4. Cook until golden.",
+    "platingGuide": "Stack pancakes and drizzle with maple syrup.",
+    "allergens": ["Dairy", "Eggs", "Gluten"],
+    "serviceTypes": ["Breakfast"],
+    "active": true
+  },
+  {
+    "name": "Bruschetta",
+    "ingredients": [
+      {"ingredient": "Baguette", "quantity": "1", "measure": "loaf"},
+      {"ingredient": "Tomatoes", "quantity": "2", "measure": "medium"},
+      {"ingredient": "Basil", "quantity": "10", "measure": "leaves"},
+      {"ingredient": "Olive oil", "quantity": "2", "measure": "tbsp"},
+      {"ingredient": "Garlic", "quantity": "1", "measure": "clove"}
+    ],
+    "steps": "1. Slice and toast baguette.\n2. Dice tomatoes and mix with basil.\n3. Rub garlic on bread.\n4. Top with tomato mixture and oil.",
+    "platingGuide": "Arrange slices on a platter.",
+    "allergens": ["Gluten"],
+    "serviceTypes": ["Appetizer"],
+    "active": true
+  },
+  {
+    "name": "Meatloaf",
+    "ingredients": [
+      {"ingredient": "Ground beef", "quantity": "1", "measure": "lb"},
+      {"ingredient": "Breadcrumbs", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Eggs", "quantity": "1", "measure": "large"},
+      {"ingredient": "Ketchup", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Onion", "quantity": "1", "measure": "medium"}
+    ],
+    "steps": "1. Mix beef, breadcrumbs, egg, and onion.\n2. Shape into a loaf.\n3. Top with ketchup.\n4. Bake at 350°F for 1 hour.",
+    "platingGuide": "Slice and serve with mashed potatoes.",
+    "allergens": ["Eggs", "Gluten"],
+    "serviceTypes": ["Dinner"],
+    "active": false
+  },
+  {
+    "name": "Caprese Salad",
+    "ingredients": [
+      {"ingredient": "Tomatoes", "quantity": "2", "measure": "medium"},
+      {"ingredient": "Mozzarella", "quantity": "200", "measure": "g"},
+      {"ingredient": "Basil", "quantity": "10", "measure": "leaves"},
+      {"ingredient": "Olive oil", "quantity": "2", "measure": "tbsp"},
+      {"ingredient": "Balsamic vinegar", "quantity": "1", "measure": "tbsp"}
+    ],
+    "steps": "1. Slice tomatoes and mozzarella.\n2. Layer with basil leaves.\n3. Drizzle with oil and vinegar.",
+    "platingGuide": "Arrange in a circular pattern.",
+    "allergens": ["Dairy"],
+    "serviceTypes": ["Appetizer"],
+    "active": true
+  },
+  {
+    "name": "Buffalo Wings",
+    "ingredients": [
+      {"ingredient": "Chicken wings", "quantity": "2", "measure": "lbs"},
+      {"ingredient": "Hot sauce", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Butter", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Garlic powder", "quantity": "1", "measure": "tsp"},
+      {"ingredient": "Celery", "quantity": "4", "measure": "stalks"}
+    ],
+    "steps": "1. Bake wings at 400°F for 40 minutes.\n2. Melt butter with hot sauce and garlic powder.\n3. Toss wings in sauce.\n4. Serve with celery.",
+    "platingGuide": "Serve with ranch dressing and celery sticks.",
+    "allergens": ["Dairy"],
+    "serviceTypes": ["Appetizer", "Dinner"],
+    "active": true
+  },
+  {
+    "name": "Minestrone Soup",
+    "ingredients": [
+      {"ingredient": "Cannellini beans", "quantity": "1", "measure": "can"},
+      {"ingredient": "Carrots", "quantity": "2", "measure": "medium"},
+      {"ingredient": "Zucchini", "quantity": "1", "measure": "medium"},
+      {"ingredient": "Tomato paste", "quantity": "2", "measure": "tbsp"},
+      {"ingredient": "Pasta", "quantity": "1/2", "measure": "cup"}
+    ],
+    "steps": "1. Sauté vegetables.\n2. Add tomato paste and beans.\n3. Simmer with broth.\n4. Add pasta and cook until tender.",
+    "platingGuide": "Serve in a deep bowl with Parmesan.",
+    "allergens": ["Gluten"],
+    "serviceTypes": ["Lunch", "Dinner"],
+    "active": true
+  },
+  {
+    "name": "Sloppy Joes",
+    "ingredients": [
+      {"ingredient": "Ground beef", "quantity": "1", "measure": "lb"},
+      {"ingredient": "Tomato sauce", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Buns", "quantity": "4", "measure": "pieces"},
+      {"ingredient": "Onion", "quantity": "1", "measure": "medium"},
+      {"ingredient": "Brown sugar", "quantity": "2", "measure": "tbsp"}
+    ],
+    "steps": "1. Brown beef with onion.\n2. Add tomato sauce and sugar.\n3. Simmer for 10 minutes.\n4. Serve on buns.",
+    "platingGuide": "Serve with chips and a pickle.",
+    "allergens": ["Gluten"],
+    "serviceTypes": ["Lunch"],
+    "active": false
+  },
+  {
+    "name": "Panzanella Salad",
+    "ingredients": [
+      {"ingredient": "Bread", "quantity": "4", "measure": "slices"},
+      {"ingredient": "Tomatoes", "quantity": "2", "measure": "medium"},
+      {"ingredient": "Cucumbers", "quantity": "1", "measure": "medium"},
+      {"ingredient": "Red onion", "quantity": "1/2", "measure": "medium"},
+      {"ingredient": "Olive oil", "quantity": "1/4", "measure": "cup"}
+    ],
+    "steps": "1. Toast bread and cube.\n2. Chop vegetables.\n3. Toss with olive oil and vinegar.\n4. Let sit for 10 minutes.",
+    "platingGuide": "Serve in a rustic bowl.",
+    "allergens": ["Gluten"],
+    "serviceTypes": ["Lunch"],
+    "active": true
+  },
+  {
+    "name": "Chicken Pot Pie",
+    "ingredients": [
+      {"ingredient": "Chicken", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Flour", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Peas", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Carrots", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Pie crust", "quantity": "1", "measure": "piece"}
+    ],
+    "steps": "1. Cook chicken and vegetables.\n2. Make a roux with flour.\n3. Add broth to make filling.\n4. Top with crust and bake at 375°F.",
+    "platingGuide": "Serve in a deep dish.",
+    "allergens": ["Gluten"],
+    "serviceTypes": ["Dinner"],
+    "active": true
+  },
+  {
+    "name": "Polenta with Mushrooms",
+    "ingredients": [
+      {"ingredient": "Polenta", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Mushrooms", "quantity": "200", "measure": "g"},
+      {"ingredient": "Butter", "quantity": "2", "measure": "tbsp"},
+      {"ingredient": "Parmesan cheese", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Thyme", "quantity": "1", "measure": "tsp"}
+    ],
+    "steps": "1. Cook polenta in water.\n2. Sauté mushrooms with thyme.\n3. Stir butter into polenta.\n4. Top with mushrooms and Parmesan.",
+    "platingGuide": "Serve polenta with mushrooms on top.",
+    "allergens": ["Dairy"],
+    "serviceTypes": ["Dinner"],
+    "active": false
+  },
+  {
+    "name": "Chili Con Carne",
+    "ingredients": [
+      {"ingredient": "Ground beef", "quantity": "1", "measure": "lb"},
+      {"ingredient": "Kidney beans", "quantity": "1", "measure": "can"},
+      {"ingredient": "Tomatoes", "quantity": "1", "measure": "can"},
+      {"ingredient": "Chili powder", "quantity": "2", "measure": "tbsp"},
+      {"ingredient": "Onion", "quantity": "1", "measure": "medium"}
+    ],
+    "steps": "1. Brown beef with onion.\n2. Add tomatoes and beans.\n3. Season with chili powder.\n4. Simmer for 30 minutes.",
+    "platingGuide": "Serve in a bowl with sour cream.",
+    "allergens": [],
+    "serviceTypes": ["Dinner"],
+    "active": true
+  },
+  {
+    "name": "Gnocchi with Tomato Sauce",
+    "ingredients": [
+      {"ingredient": "Gnocchi", "quantity": "500", "measure": "g"},
+      {"ingredient": "Tomato sauce", "quantity": "2", "measure": "cups"},
+      {"ingredient": "Parmesan cheese", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Basil", "quantity": "5", "measure": "leaves"},
+      {"ingredient": "Olive oil", "quantity": "1", "measure": "tbsp"}
+    ],
+    "steps": "1. Boil gnocchi until they float.\n2. Heat tomato sauce.\n3. Toss gnocchi with sauce.\n4. Top with Parmesan and basil.",
+    "platingGuide": "Serve in a shallow bowl.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Dinner"],
+    "active": true
+  },
+  {
+    "name": "Cornbread",
+    "ingredients": [
+      {"ingredient": "Cornmeal", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Flour", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Sugar", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Milk", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Butter", "quantity": "1/4", "measure": "cup"}
+    ],
+    "steps": "1. Mix dry ingredients.\n2. Add milk and melted butter.\n3. Pour into a pan.\n4. Bake at 400°F for 20 minutes.",
+    "platingGuide": "Cut into squares and serve warm.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Side"],
+    "active": true
+  },
+  {
+    "name": "Eggplant Parmesan",
+    "ingredients": [
+      {"ingredient": "Eggplant", "quantity": "1", "measure": "large"},
+      {"ingredient": "Mozzarella", "quantity": "200", "measure": "g"},
+      {"ingredient": "Tomato sauce", "quantity": "2", "measure": "cups"},
+      {"ingredient": "Breadcrumbs", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Parmesan cheese", "quantity": "1/2", "measure": "cup"}
+    ],
+    "steps": "1. Slice and bread eggplant.\n2. Fry until golden.\n3. Layer with sauce and cheeses.\n4. Bake at 375°F for 25 minutes.",
+    "platingGuide": "Serve with a side of pasta.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Dinner"],
+    "active": false
+  },
+  {
+    "name": "Shrimp Po' Boy",
+    "ingredients": [
+      {"ingredient": "Shrimp", "quantity": "1", "measure": "lb"},
+      {"ingredient": "Baguette", "quantity": "1", "measure": "loaf"},
+      {"ingredient": "Lettuce", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Mayonnaise", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Cajun seasoning", "quantity": "1", "measure": "tbsp"}
+    ],
+    "steps": "1. Season and fry shrimp.\n2. Spread mayo on baguette.\n3. Add lettuce and shrimp.\n4. Serve immediately.",
+    "platingGuide": "Serve with fries and hot sauce.",
+    "allergens": ["Shellfish", "Gluten"],
+    "serviceTypes": ["Lunch"],
+    "active": true
+  },
+  {
+    "name": "Ravioli with Sage Butter",
+    "ingredients": [
+      {"ingredient": "Ravioli", "quantity": "400", "measure": "g"},
+      {"ingredient": "Butter", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Sage", "quantity": "10", "measure": "leaves"},
+      {"ingredient": "Parmesan cheese", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Garlic", "quantity": "1", "measure": "clove"}
+    ],
+    "steps": "1. Boil ravioli until tender.\n2. Melt butter with sage and garlic.\n3. Toss ravioli in sauce.\n4. Sprinkle with Parmesan.",
+    "platingGuide": "Garnish with a sage leaf.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Dinner"],
+    "active": true
+  },
+  {
+    "name": "Pot Roast",
+    "ingredients": [
+      {"ingredient": "Beef chuck", "quantity": "3", "measure": "lbs"},
+      {"ingredient": "Potatoes", "quantity": "4", "measure": "medium"},
+      {"ingredient": "Carrots", "quantity": "3", "measure": "medium"},
+      {"ingredient": "Onion", "quantity": "1", "measure": "large"},
+      {"ingredient": "Beef broth", "quantity": "2", "measure": "cups"}
+    ],
+    "steps": "1. Brown beef in a pot.\n2. Add vegetables and broth.\n3. Simmer for 3 hours.\n4. Serve hot.",
+    "platingGuide": "Serve in a deep dish with broth.",
+    "allergens": [],
+    "serviceTypes": ["Dinner"],
+    "active": false
+  },
+  {
+    "name": "Arancini",
+    "ingredients": [
+      {"ingredient": "Arborio rice", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Mozzarella", "quantity": "100", "measure": "g"},
+      {"ingredient": "Breadcrumbs", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Tomato sauce", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Eggs", "quantity": "1", "measure": "large"}
+    ],
+    "steps": "1. Cook rice and cool.\n2. Form balls with mozzarella center.\n3. Coat in egg and breadcrumbs.\n4. Fry until golden.",
+    "platingGuide": "Serve with tomato sauce dip.",
+    "allergens": ["Dairy", "Eggs", "Gluten"],
+    "serviceTypes": ["Appetizer"],
+    "active": true
+  },
+  {
+    "name": "Blueberry Muffins",
+    "ingredients": [
+      {"ingredient": "Blueberries", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Flour", "quantity": "2", "measure": "cups"},
+      {"ingredient": "Sugar", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Milk", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Butter", "quantity": "1/4", "measure": "cup"}
+    ],
+    "steps": "1. Mix dry ingredients.\n2. Add wet ingredients and blueberries.\n3. Fill muffin tins.\n4. Bake at 375°F for 20 minutes.",
+    "platingGuide": "Serve on a tray with coffee.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Breakfast"],
+    "active": true
+  },
+  {
+    "name": "Cioppino",
+    "ingredients": [
+      {"ingredient": "Shrimp", "quantity": "1", "measure": "lb"},
+      {"ingredient": "Mussels", "quantity": "1", "measure": "lb"},
+      {"ingredient": "Tomatoes", "quantity": "1", "measure": "can"},
+      {"ingredient": "White wine", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Garlic", "quantity": "2", "measure": "cloves"}
+    ],
+    "steps": "1. Sauté garlic.\n2. Add tomatoes and wine.\n3. Simmer with seafood.\n4. Serve hot.",
+    "platingGuide": "Serve in a bowl with crusty bread.",
+    "allergens": ["Shellfish"],
+    "serviceTypes": ["Dinner"],
+    "active": true
+  },
+  {
+    "name": "Key Lime Pie",
+    "ingredients": [
+      {"ingredient": "Limes", "quantity": "4", "measure": "medium"},
+      {"ingredient": "Condensed milk", "quantity": "1", "measure": "can"},
+      {"ingredient": "Graham crackers", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Butter", "quantity": "1/4", "measure": "cup"},
+      {"ingredient": "Sugar", "quantity": "1/4", "measure": "cup"}
+    ],
+    "steps": "1. Mix graham crumbs with butter for crust.\n2. Blend lime juice with condensed milk.\n3. Pour into crust.\n4. Chill for 4 hours.",
+    "platingGuide": "Serve with whipped cream.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Dessert"],
+    "active": false
+  },
+  {
+    "name": "Pasta Primavera",
+    "ingredients": [
+      {"ingredient": "Penne", "quantity": "400", "measure": "g"},
+      {"ingredient": "Broccoli", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Carrots", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Parmesan cheese", "quantity": "1/2", "measure": "cup"},
+      {"ingredient": "Olive oil", "quantity": "2", "measure": "tbsp"}
+    ],
+    "steps": "1. Cook penne.\n2. Sauté vegetables in oil.\n3. Toss with pasta.\n4. Top with Parmesan.",
+    "platingGuide": "Serve in a colorful bowl.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Lunch", "Dinner"],
+    "active": true
+  },
+  {
+    "name": "Jambalaya",
+    "ingredients": [
+      {"ingredient": "Andouille sausage", "quantity": "1", "measure": "lb"},
+      {"ingredient": "Rice", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Shrimp", "quantity": "1/2", "measure": "lb"},
+      {"ingredient": "Bell peppers", "quantity": "1", "measure": "cup"},
+      {"ingredient": "Cajun seasoning", "quantity": "1", "measure": "tbsp"}
+    ],
+    "steps": "1. Sauté sausage and peppers.\n2. Add rice and broth.\n3. Simmer with shrimp.\n4. Season and serve.",
+    "platingGuide": "Serve in a deep bowl.",
+    "allergens": ["Shellfish"],
+    "serviceTypes": ["Dinner"],
+    "active": true
+  },
+  {
+    "name": "Tortellini Soup",
+    "ingredients": [
+      {"ingredient": "Tortellini", "quantity": "400", "measure": "g"},
+      {"ingredient": "Chicken broth", "quantity": "4", "measure": "cups"},
+      {"ingredient": "Spinach", "quantity": "2", "measure": "cups"},
+      {"ingredient": "Tomatoes", "quantity": "1", "measure": "can"},
+      {"ingredient": "Garlic", "quantity": "2", "measure": "cloves"}
+    ],
+    "steps": "1. Sauté garlic.\n2. Add broth and tomatoes.\n3. Simmer with tortellini.\n4. Stir in spinach.",
+    "platingGuide": "Serve with Parmesan sprinkle.",
+    "allergens": ["Dairy", "Gluten"],
+    "serviceTypes": ["Lunch", "Dinner"],
+    "active": true
+  }
+]

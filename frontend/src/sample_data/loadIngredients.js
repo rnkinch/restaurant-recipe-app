@@ -2,7 +2,7 @@ require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/recipes';
-const DB_NAME = 'recipes';
+const DB_NAME = 'recipeDB';
 const PURVEYORS_COLLECTION = 'purveyors';
 const INGREDIENTS_COLLECTION = 'ingredients';
 const DEFAULT_PURVEYOR_NAME = 'Default';
@@ -27,7 +27,7 @@ async function loadIngredients() {
     }
 
     // Load ingredients from JSON (in production, read from file)
-    const ingredientData = require('../../sample-data/ingredients.json'); // Adjust path if needed
+    const ingredientData = require('./ingredients.json'); // Adjust path if needed
 
     let inserted = 0;
     let skipped = 0;
