@@ -13,7 +13,7 @@ const SetupConfig = ({ refreshConfig }) => {
   useEffect(() => {
     getConfig()
       .then(data => {
-        setConfig({ appName: data.appName || "Darby's Recipe and Plating Guide", showLeftNav: data.showLeftNav });
+        setConfig({ appName: data.appName || "XYZCompany Recipe and Plating Guide", showLeftNav: data.showLeftNav });
         setLoading(false);
       })
       .catch(err => {

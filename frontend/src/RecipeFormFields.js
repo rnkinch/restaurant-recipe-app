@@ -10,7 +10,7 @@ const RecipeFormFields = ({
   handleRemoveImage,
   previewImage,
   imageStyle,
-  defaultImage = '/logo.png',
+  defaultImage = '/default_image.png',
   apiUrl,
   excludeName = false,
   headerStyle,

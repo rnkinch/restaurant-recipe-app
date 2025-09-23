@@ -16,7 +16,7 @@ function App() {
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [config, setConfig] = useState({ appName: "Darby's Recipe and Plating Guide", showLeftNav: true });
+  const [config, setConfig] = useState({ appName: "XYZCompany Recipe and Plating Guide", showLeftNav: true });
 
   const refreshRecipes = useCallback(async (all = true) => {
     setLoading(true);

@@ -31,7 +31,7 @@ const RecipeForm = ({ refreshRecipes }) => {
   const [ingredientSearch, setIngredientSearch] = useState('');
   const [newIngredient, setNewIngredient] = useState({ name: '', purveyor: '' });
   const isMounted = useRef(false);
-  const defaultImage = '/logo.png';
+  const defaultImage = '/default_image.png';
   const fallbackImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
   let validDefaultImage = defaultImage;
 

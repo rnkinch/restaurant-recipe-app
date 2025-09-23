@@ -112,7 +112,7 @@ export const PdfPreview = () => {
 
         const imageUrl = recipeData.image
           ? `${apiUrl}/uploads/${recipeData.image.split('/').pop()}`
-          : `${frontendUrl}/logo.png`;
+          : `${frontendUrl}/default_image.png`;
         const watermarkUrl = `${frontendUrl}/logo.png`;
         console.log('Image URL:', imageUrl);
         console.log('Watermark URL:', watermarkUrl);
@@ -324,7 +324,7 @@ export const PdfPreview = () => {
           },
           {
             id: 'image',
-            content: `${frontendUrl}/logo.png`,
+            content: `${frontendUrl}/default_image.png`,
             x: 450,
             y: 110,
             width: 100,
@@ -335,7 +335,7 @@ export const PdfPreview = () => {
           },
           {
             id: 'watermark',
-            content: `${frontendUrl}/logo.png`,
+            content: `${frontendUrl}/default_image.png`,
             x: 421,
             y: 297.5,
             width: 200,

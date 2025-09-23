@@ -7,7 +7,7 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showActiveOnly, setShowActiveOnly] = useState(false);
   const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:5000';
-  const defaultImage = '/logo.png';
+  const defaultImage = '/default_image.png';
   const fallbackImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
   let validDefaultImage = defaultImage;
 

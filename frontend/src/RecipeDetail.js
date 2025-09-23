@@ -10,7 +10,7 @@ const RecipeDetail = ({ refreshRecipes }) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:5000';
-  const defaultImage = '/logo.png';
+  const defaultImage = '/default_image.png';
 
   useEffect(() => {
     if (!id) {
