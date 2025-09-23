@@ -113,7 +113,7 @@ export const PdfPreview = () => {
         const imageUrl = recipeData.image
           ? `${apiUrl}/uploads/${recipeData.image.split('/').pop()}`
           : `${frontendUrl}/default_image.png`;
-        const watermarkUrl = `${frontendUrl}/logo.png`;
+        const watermarkUrl = `${apiUrl}/Uploads/logo.png`;
         console.log('Image URL:', imageUrl);
         console.log('Watermark URL:', watermarkUrl);
 
@@ -193,7 +193,7 @@ export const PdfPreview = () => {
           },
           {
             id: 'watermark',
-            content: watermarkUrl,
+            content: `${apiUrl}/Uploads/logo.png`,
             x: 421,
             y: 297.5,
             width: 200,
@@ -225,7 +225,7 @@ export const PdfPreview = () => {
                 return { ...field, content: imageDataUrls['recipeImage'] || imageUrl, aspectRatio: imageAspectRatios['recipeImage'] || 1 };
               }
               if (field.isImage && field.id === 'watermark') {
-                return { ...field, content: watermarkUrl, aspectRatio: field.aspectRatio || 1, opacity: 0.2 };
+                return { ...field, content: `${apiUrl}/Uploads/logo.png`, aspectRatio: field.aspectRatio || 1, opacity: 0.2 };
               }
               if (field.id === 'title') {
                 return { ...field, content: recipeData?.name || 'Recipe Title' };
@@ -335,7 +335,7 @@ export const PdfPreview = () => {
           },
           {
             id: 'watermark',
-            content: `${frontendUrl}/default_image.png`,
+            content: `${apiUrl}/Uploads/logo.png`,
             x: 421,
             y: 297.5,
             width: 200,

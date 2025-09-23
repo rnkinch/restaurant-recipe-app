@@ -142,7 +142,7 @@ const PdfEditor = ({ recipe }) => {
     const imageUrl = memoizedRecipe?.image
       ? `${apiUrl}/Uploads/${memoizedRecipe.image.split('/').pop()}`
       : `${frontendUrl}/logo.png`;
-    const watermarkUrl = `${frontendUrl}/logo.png`;
+    const watermarkUrl = `${apiUrl}/Uploads/logo.png`;
     console.log('Image URL:', imageUrl);
     console.log('Watermark URL:', watermarkUrl);
 
@@ -244,7 +244,7 @@ const PdfEditor = ({ recipe }) => {
       },
       {
         id: 'watermark',
-        content: watermarkUrl,
+        content: `${apiUrl}/Uploads/logo.png`,
         x: 421,
         y: 297.5,
         width: 200,
@@ -341,37 +341,26 @@ const PdfEditor = ({ recipe }) => {
     }
   }, [selectedField]);
 
-  const handleFieldChange = useCallback((id, key, value) => {
-    console.log('handleFieldChange:', { id, key, value });
+  const handleFieldChange = useCallback((fieldId, key, value) => {
     setFields((prev) => {
-      const newFields = prev.map((field) => {
-        if (field.id !== id) return field;
-        const updatedField = {
-          ...field,
-          [key]: key === 'fontSize' ? parseInt(value, 10) || field.fontSize || 12 :
-                 key === 'length' ? parseInt(value, 10) || field.length || 100 :
-                 key === 'width' && field.isImage ? parseInt(value, 10) || field.width || 100 :
-                 key === 'width' && !field.isImage && !field.isLine ? parseInt(value, 10) || field.width || 400 :
-                 key === 'zIndex' ? parseInt(value, 10) || field.zIndex || 10 :
-                 key === 'isBold' ? Boolean(value) :
-                 key === 'orientation' ? value :
-                 key === 'content' ? value :
-                 field[key],
-          ...(key === 'width' && field.isImage ? { height: Math.round((parseInt(value, 10) || field.width || 100) / (field.aspectRatio || 1)) } : {}),
-          ...(key === 'height' && field.isImage ? { width: Math.round((parseInt(value, 10) || field.height || 100) * (field.aspectRatio || 1)) } : {}),
-        };
-        console.log('Updated field:', updatedField);
-        return updatedField;
-      });
-      console.log('Fields updated:', newFields.length);
+      const newFields = prev.map((field) =>
+        field.id === fieldId
+          ? {
+              ...field,
+              [key]: key === 'width' || key === 'fontSize' || key === 'zIndex' || key === 'length' ? Number(value) : value,
+              ...(key === 'width' && field.isImage && field.aspectRatio
+                ? { height: Number(value) / field.aspectRatio }
+                : {}),
+            }
+          : field
+      );
+      console.log('Field updated:', { fieldId, key, value });
       return newFields;
     });
   }, []);
 
   const handleSave = useCallback(async () => {
     try {
-      const templatePayload = { template: { fields } };
-      console.log('Saving template:', `${apiUrl}/templates/default/save`);
       const response = await fetch(`${apiUrl}/templates/default/save?t=${Date.now()}`, {
         method: 'POST',
         headers: {
@@ -379,7 +368,7 @@ const PdfEditor = ({ recipe }) => {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
         },
-        body: JSON.stringify(templatePayload),
+        body: JSON.stringify({ template: { fields } }),
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -396,7 +385,6 @@ const PdfEditor = ({ recipe }) => {
 
   const handleResetToDefault = useCallback(async () => {
     try {
-      const watermarkUrl = `${frontendUrl}/logo.png`;
       const imageUrl = memoizedRecipe?.image
         ? `${apiUrl}/Uploads/${memoizedRecipe.image.split('/').pop()}`
         : `${frontendUrl}/logo.png`;
@@ -473,7 +461,7 @@ const PdfEditor = ({ recipe }) => {
         },
         {
           id: 'watermark',
-          content: watermarkUrl,
+          content: `${apiUrl}/Uploads/logo.png`,
           x: 421,
           y: 297.5,
           width: 200,
