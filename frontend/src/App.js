@@ -4,7 +4,6 @@ import { Navbar, Container, Alert, NavDropdown, Row, Col, Nav } from 'react-boot
 import RecipeList from './RecipeList';
 import RecipeDetail from './RecipeDetail';
 import RecipeForm from './RecipeForm';
-import Reports from './Reports';
 import Purveyors from './Purveyors';
 import PdfEditorWrapper from './PdfEditorWrapper';
 import { PdfPreview } from './PdfPreview';
