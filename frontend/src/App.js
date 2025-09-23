@@ -11,6 +11,7 @@ import SetupConfig from './SetupConfig';
 import ActiveRecipesReport from './ActiveRecipesReport';
 import InactiveRecipesReport from './InactiveRecipesReport';
 import ActiveIngredientsReport from './ActiveIngredientsReport';
+import ActiveRecipesPDFReport from './ActiveRecipesPDFReport';
 import { getRecipes, getConfig } from './api';
 
 function App() {
@@ -117,6 +118,7 @@ function App() {
                 <NavDropdown.Item as={Link} to="/reports/active-ingredients">Active Ingredients</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/reports/active-recipes">Active Recipes</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/reports/inactive-recipes">Inactive Recipes</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/reports/active-recipes-pdf">Active Recipes PDF</NavDropdown.Item>
               </NavDropdown>
               <NavDropdown title="Setups" id="setups-dropdown">
                 <NavDropdown.Item as={Link} to="/config">Configuration</NavDropdown.Item>
@@ -167,6 +169,7 @@ function App() {
                 <Route path="/reports/active-ingredients" element={<ActiveIngredientsReport />} />
                 <Route path="/reports/active-recipes" element={<ActiveRecipesReport />} />
                 <Route path="/reports/inactive-recipes" element={<InactiveRecipesReport />} />
+                <Route path="/reports/active-recipes-pdf" element={<ActiveRecipesPDFReport />} />
                 <Route path="/purveyors" element={<Purveyors />} />
                 <Route path="/config" element={<SetupConfig refreshConfig={refreshConfig} />} />
               </Routes>

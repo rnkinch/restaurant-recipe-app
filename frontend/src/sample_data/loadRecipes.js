@@ -82,7 +82,7 @@ async function loadRecipes() {
         allergens: recipe.allergens,
         serviceTypes: recipe.serviceTypes,
         active: recipe.active,
-        image: recipe.image || null,
+        image: null,
         createdAt: new Date()
       });
       inserted++;

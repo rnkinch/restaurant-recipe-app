@@ -95,3 +95,13 @@ export const uploadLogo = async (file) => {
   });
   return response.data;
 };
+
+export const getPdfTemplate = async () => {
+  try {
+    const response = await axios.get(`${apiUrl}/templates/default`);
+    return response.data.template.fields;
+  } catch (err) {
+    console.error('Error fetching PDF template:', err);
+    throw err;
+  }
+};
