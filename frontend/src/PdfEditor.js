@@ -126,6 +126,7 @@ const PdfEditor = ({ recipe }) => {
   const [templateError, setTemplateError] = useState(null);
   const [showGrid, setShowGrid] = useState(false);
   const [imageAspectRatios, setImageAspectRatios] = useState({});
+  const [imageDataUrls, setImageDataUrls] = useState({});
   const navigate = useNavigate();
   const canvasKey = useMemo(() => Date.now(), [fields]);
 
@@ -148,19 +149,36 @@ const PdfEditor = ({ recipe }) => {
 
     const validateImage = async (url, key) => {
       try {
-        const img = new Image();
-        img.src = url;
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+        const blob = await response.blob();
+        const dataUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+        const img = document.createElement('img');
+        img.src = dataUrl;
         await new Promise((resolve, reject) => {
           img.onload = () => {
             const aspectRatio = img.naturalWidth / img.naturalHeight;
             setImageAspectRatios((prev) => ({ ...prev, [key]: aspectRatio }));
-            console.log('Image aspect ratio:', key, aspectRatio);
+            setImageDataUrls((prev) => ({ ...prev, [key]: dataUrl }));
+            console.log('Image validated:', key, aspectRatio);
             resolve();
           };
           img.onerror = () => {
             console.error('Image load error:', url);
             setImageError(`Image not found: ${url}`);
-            reject();
+            resolve(); // Continue to allow rendering
           };
         });
       } catch (err) {
@@ -168,6 +186,7 @@ const PdfEditor = ({ recipe }) => {
         setImageError(`Image not found: ${url}`);
       }
     };
+
     validateImage(imageUrl, 'recipeImage');
     validateImage(watermarkUrl, 'watermark');
 
@@ -233,7 +252,7 @@ const PdfEditor = ({ recipe }) => {
       },
       {
         id: 'image',
-        content: imageUrl,
+        content: imageDataUrls['recipeImage'] || imageUrl,
         x: 450,
         y: 110,
         width: 100,
@@ -244,7 +263,7 @@ const PdfEditor = ({ recipe }) => {
       },
       {
         id: 'watermark',
-        content: `${apiUrl}/Uploads/logo.png`,
+        content: imageDataUrls['watermark'] || watermarkUrl,
         x: 421,
         y: 297.5,
         width: 200,
@@ -257,6 +276,10 @@ const PdfEditor = ({ recipe }) => {
 
     const fetchTemplate = async () => {
       try {
+        const imageUrl = memoizedRecipe?.image
+          ? `${apiUrl}/Uploads/${memoizedRecipe.image.split('/').pop()}`
+          : `${frontendUrl}/logo.png`;
+        const watermarkUrl = `${apiUrl}/Uploads/logo.png`;
         const timestamp = Date.now();
         console.log('Fetching template:', `${apiUrl}/templates/default?t=${timestamp}`);
         const res = await fetch(`${apiUrl}/templates/default?t=${timestamp}`, {
@@ -271,8 +294,17 @@ const PdfEditor = ({ recipe }) => {
           const templateData = await res.json();
           console.log('Template fetched successfully');
           if (templateData?.template?.fields) {
-            setFields(templateData.template.fields);
-            console.log('Loaded saved fields:', templateData.template.fields.length);
+            const updatedFields = templateData.template.fields.map((field) => {
+              if (field.isImage && field.id === 'image') {
+                return { ...field, content: imageDataUrls['recipeImage'] || imageUrl, aspectRatio: imageAspectRatios['recipeImage'] || 1 };
+              }
+              if (field.isImage && field.id === 'watermark') {
+                return { ...field, content: imageDataUrls['watermark'] || watermarkUrl, aspectRatio: imageAspectRatios['watermark'] || 1 };
+              }
+              return field;
+            });
+            setFields(updatedFields);
+            console.log('Loaded saved fields:', updatedFields.length);
           } else {
             console.warn('No template fields found, using default fields');
             setFields(defaultFields);
@@ -388,6 +420,7 @@ const PdfEditor = ({ recipe }) => {
       const imageUrl = memoizedRecipe?.image
         ? `${apiUrl}/Uploads/${memoizedRecipe.image.split('/').pop()}`
         : `${frontendUrl}/logo.png`;
+      const watermarkUrl = `${apiUrl}/Uploads/logo.png`;
       const defaultFields = [
         { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
         { id: 'title', content: memoizedRecipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
@@ -450,7 +483,7 @@ const PdfEditor = ({ recipe }) => {
         },
         {
           id: 'image',
-          content: imageUrl,
+          content: imageDataUrls['recipeImage'] || imageUrl,
           x: 450,
           y: 110,
           width: 100,
@@ -461,7 +494,7 @@ const PdfEditor = ({ recipe }) => {
         },
         {
           id: 'watermark',
-          content: `${apiUrl}/Uploads/logo.png`,
+          content: imageDataUrls['watermark'] || watermarkUrl,
           x: 421,
           y: 297.5,
           width: 200,
@@ -493,7 +526,7 @@ const PdfEditor = ({ recipe }) => {
       console.error('Reset failed:', err.message);
       alert(`Reset failed: ${err.message}`);
     }
-  }, [memoizedRecipe, apiUrl, frontendUrl, imageAspectRatios]);
+  }, [memoizedRecipe, apiUrl, frontendUrl, imageAspectRatios, imageDataUrls]);
 
   const toggleGrid = () => {
     setShowGrid((prev) => !prev);
