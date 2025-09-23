@@ -49,7 +49,7 @@ const ActiveRecipesPDFReport = () => {
   const frontendUrl = process.env.REACT_APP_FRONTEND_URL || 'http://192.168.68.129:3000';
   const currentFetchRef = useRef(null);
 
-  // Generate date-time stamp (e.g., 20250923_190845)
+  // Generate date-time stamp (e.g., 20250923_192345)
   const getDateTimeStamp = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -61,14 +61,14 @@ const ActiveRecipesPDFReport = () => {
     return `${year}${month}${day}_${hours}${minutes}${seconds}`;
   };
 
-  // Simplified validateImage function
+  // Memoized validateImage function
   const validateImage = useCallback(async (url, key) => {
-    console.log('Attempting to validate image:', url, key);
+    console.log('Validating image:', url, key);
     try {
-      // Temporarily bypass validation to use direct URLs
-      console.log('Bypassing fetch for image, using direct URL:', url, key);
+      // Use direct URL to avoid fetch issues
       setImageDataUrls((prev) => ({ ...prev, [key]: url }));
       setImageAspectRatios((prev) => ({ ...prev, [key]: 1 }));
+      console.log('Using direct URL for image:', url, key);
     } catch (err) {
       console.error('Image validation failed:', url, err.message);
       setImageErrors((prev) => ({ ...prev, [key]: `Failed to load image: ${url} - ${err.message}` }));
@@ -79,6 +79,7 @@ const ActiveRecipesPDFReport = () => {
   }, []);
 
   useEffect(() => {
+    console.log('useEffect triggered at:', new Date().toISOString());
     const fetchActiveRecipesAndTemplate = async () => {
       const fetchId = Date.now();
       currentFetchRef.current = fetchId;
@@ -96,10 +97,10 @@ const ActiveRecipesPDFReport = () => {
         if (currentFetchRef.current !== fetchId) return;
         console.log('Fetched config:', JSON.stringify(configData, null, 2));
         if (configData && configData.appName) {
-          // Replace spaces with underscores and remove invalid characters
           setAppName(configData.appName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, ''));
         }
         setProgress(25);
+        console.log('Progress updated to 25%');
 
         // Fetch PDF template
         console.log('Fetching PDF template from:', `${apiUrl}/templates/default`);
@@ -113,6 +114,7 @@ const ActiveRecipesPDFReport = () => {
           setTemplate(templateData);
         }
         setProgress(50);
+        console.log('Progress updated to 50%');
 
         // Fetch active recipes
         console.log('Fetching active recipes from:', `${apiUrl}/recipes?all=true`);
@@ -128,6 +130,7 @@ const ActiveRecipesPDFReport = () => {
         }
         setRecipes(activeRecipes);
         setProgress(75);
+        console.log('Progress updated to 75%');
 
         // Validate images for all recipes and watermark
         const imageValidations = [];
@@ -142,8 +145,10 @@ const ActiveRecipesPDFReport = () => {
         imageValidations.push(validateImage(`${apiUrl}/Uploads/logo.png`, 'watermark'));
         await Promise.all(imageValidations);
         setProgress(100);
+        console.log('Progress updated to 100%');
 
         setIsLoading(false);
+        console.log('Loading complete, rendering PDFViewer');
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(`Failed to load data: ${err.message}`);
@@ -154,6 +159,7 @@ const ActiveRecipesPDFReport = () => {
     fetchActiveRecipesAndTemplate();
     return () => {
       currentFetchRef.current = null;
+      console.log('useEffect cleanup at:', new Date().toISOString());
     };
   }, [apiUrl, frontendUrl, validateImage]);
 
@@ -319,6 +325,7 @@ const ActiveRecipesPDFReport = () => {
   const pdfFileName = `${appName}_${getDateTimeStamp()}.pdf`;
 
   if (isLoading) {
+    console.log('Rendering loading state with progress:', progress);
     return (
       <Container className="py-3">
         <h2>Active Recipes PDF Report</h2>
@@ -334,6 +341,7 @@ const ActiveRecipesPDFReport = () => {
   }
 
   if (error) {
+    console.log('Rendering error state:', error);
     return (
       <Container className="py-3">
         <h2>Active Recipes PDF Report</h2>
@@ -345,6 +353,7 @@ const ActiveRecipesPDFReport = () => {
   }
 
   if (Object.keys(imageErrors).length > 0) {
+    console.log('Rendering image errors:', imageErrors);
     return (
       <Container className="py-3">
         <h2>Active Recipes PDF Report</h2>
@@ -371,6 +380,7 @@ const ActiveRecipesPDFReport = () => {
     );
   }
 
+  console.log('Rendering final state with recipes:', recipes.length);
   return (
     <Container className="py-3">
       <h2>Active Recipes PDF Report</h2>
