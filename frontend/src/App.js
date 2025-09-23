@@ -9,6 +9,9 @@ import Purveyors from './Purveyors';
 import PdfEditorWrapper from './PdfEditorWrapper';
 import { PdfPreview } from './PdfPreview';
 import SetupConfig from './SetupConfig';
+import ActiveRecipesReport from './ActiveRecipesReport';
+import InactiveRecipesReport from './InactiveRecipesReport';
+import ActiveIngredientsReport from './ActiveIngredientsReport';
 import { getRecipes, getConfig } from './api';
 
 function App() {
@@ -93,7 +96,7 @@ function App() {
         <Container fluid>
           <Navbar.Brand as={Link} to="/">
             <img
-              src={`${process.env.REACT_APP_API_URL}/uploads/logo.png?t=${Date.now()}`}
+              src={`${process.env.REACT_APP_API_URL}/Uploads/logo.png?t=${Date.now()}`}
               alt="Logo"
               style={{ height: '24px', marginRight: '8px', verticalAlign: 'middle' }}
               onError={(e) => {
@@ -113,6 +116,8 @@ function App() {
               </NavDropdown>
               <NavDropdown title="Reports" id="reports-dropdown">
                 <NavDropdown.Item as={Link} to="/reports/active-ingredients">Active Ingredients</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/reports/active-recipes">Active Recipes</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/reports/inactive-recipes">Inactive Recipes</NavDropdown.Item>
               </NavDropdown>
               <NavDropdown title="Setups" id="setups-dropdown">
                 <NavDropdown.Item as={Link} to="/config">Configuration</NavDropdown.Item>
@@ -160,7 +165,9 @@ function App() {
                 <Route path="/edit-pdf-template" element={<PdfEditorWrapper />} />
                 <Route path="/recipes/:id/preview-pdf" element={<PdfPreview />} />
                 <Route path="/recipe/:id" element={<RecipeDetail refreshRecipes={refreshRecipes} />} />
-                <Route path="/reports/:type" element={<Reports />} />
+                <Route path="/reports/active-ingredients" element={<ActiveIngredientsReport />} />
+                <Route path="/reports/active-recipes" element={<ActiveRecipesReport />} />
+                <Route path="/reports/inactive-recipes" element={<InactiveRecipesReport />} />
                 <Route path="/purveyors" element={<Purveyors />} />
                 <Route path="/config" element={<SetupConfig refreshConfig={refreshConfig} />} />
               </Routes>
