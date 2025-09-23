@@ -115,8 +115,8 @@ function App() {
                 <NavDropdown.Item as={Link} to="/reports/active-ingredients">Active Ingredients</NavDropdown.Item>
               </NavDropdown>
               <NavDropdown title="Setups" id="setups-dropdown">
-                <NavDropdown.Item as={Link} to="/edit-pdf-template">Edit PDF Template</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/config">Configuration</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/edit-pdf-template">PDF Template</NavDropdown.Item>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>
