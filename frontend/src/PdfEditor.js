@@ -139,7 +139,6 @@ const PdfEditor = ({ recipe }) => {
       return;
     }
     console.log('useEffect triggered for recipe ID:', memoizedRecipe._id);
-
     const imageUrl = memoizedRecipe?.image
       ? `${apiUrl}/Uploads/${memoizedRecipe.image.split('/').pop()}`
       : `${frontendUrl}/logo.png`;
@@ -187,150 +186,152 @@ const PdfEditor = ({ recipe }) => {
       }
     };
 
-    validateImage(imageUrl, 'recipeImage');
-    validateImage(watermarkUrl, 'watermark');
+    const loadImagesAndTemplate = async () => {
+      await Promise.all([
+        validateImage(imageUrl, 'recipeImage'),
+        validateImage(watermarkUrl, 'watermark'),
+      ]);
 
-    const defaultFields = [
-      { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-      { id: 'title', content: memoizedRecipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-      { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-      {
-        id: 'ingredients',
-        content: Array.isArray(memoizedRecipe?.ingredients) && memoizedRecipe.ingredients.length > 0
-          ? memoizedRecipe.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
-          : 'No ingredients',
-        x: 20,
-        y: 80,
-        fontSize: 12,
-        isBold: false,
-        width: 500,
-        zIndex: 10,
-      },
-      { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-      {
-        id: 'steps',
-        content: memoizedRecipe?.steps || 'No steps',
-        x: 20,
-        y: 210,
-        fontSize: 12,
-        isBold: false,
-        width: 500,
-        zIndex: 10,
-      },
-      { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-      {
-        id: 'platingGuide',
-        content: memoizedRecipe?.platingGuide || 'No plating guide',
-        x: 20,
-        y: 340,
-        fontSize: 12,
-        isBold: false,
-        width: 500,
-        zIndex: 10,
-      },
-      { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-      {
-        id: 'allergens',
-        content: Array.isArray(memoizedRecipe?.allergens) && memoizedRecipe.allergens.length > 0 ? memoizedRecipe.allergens.join(', ') : 'No allergens',
-        x: 450,
-        y: 30,
-        fontSize: 12,
-        isBold: false,
-        width: 400,
-        zIndex: 10,
-      },
-      { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-      {
-        id: 'serviceTypes',
-        content: Array.isArray(memoizedRecipe?.serviceTypes) && memoizedRecipe.serviceTypes.length > 0 ? memoizedRecipe.serviceTypes.join(', ') : 'No service types',
-        x: 450,
-        y: 80,
-        fontSize: 12,
-        isBold: false,
-        width: 400,
-        zIndex: 10,
-      },
-      {
-        id: 'image',
-        content: imageDataUrls['recipeImage'] || imageUrl,
-        x: 450,
-        y: 110,
-        width: 100,
-        height: 100,
-        isImage: true,
-        aspectRatio: imageAspectRatios['recipeImage'] || 1,
-        zIndex: 10,
-      },
-      {
-        id: 'watermark',
-        content: imageDataUrls['watermark'] || watermarkUrl,
-        x: 421,
-        y: 297.5,
-        width: 200,
-        height: 200,
-        isImage: true,
-        aspectRatio: imageAspectRatios['watermark'] || 1,
-        zIndex: 5,
-      },
-    ];
+      const defaultFields = [
+        { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'title', content: memoizedRecipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        {
+          id: 'ingredients',
+          content: Array.isArray(memoizedRecipe?.ingredients) && memoizedRecipe.ingredients.length > 0
+            ? memoizedRecipe.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
+            : 'No ingredients',
+          x: 20,
+          y: 80,
+          fontSize: 12,
+          isBold: false,
+          width: 500,
+          zIndex: 10,
+        },
+        { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        {
+          id: 'steps',
+          content: memoizedRecipe?.steps || 'No steps',
+          x: 20,
+          y: 210,
+          fontSize: 12,
+          isBold: false,
+          width: 500,
+          zIndex: 10,
+        },
+        { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        {
+          id: 'platingGuide',
+          content: memoizedRecipe?.platingGuide || 'No plating guide',
+          x: 20,
+          y: 340,
+          fontSize: 12,
+          isBold: false,
+          width: 500,
+          zIndex: 10,
+        },
+        { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        {
+          id: 'allergens',
+          content: Array.isArray(memoizedRecipe?.allergens) && memoizedRecipe.allergens.length > 0 ? memoizedRecipe.allergens.join(', ') : 'No allergens',
+          x: 450,
+          y: 30,
+          fontSize: 12,
+          isBold: false,
+          width: 400,
+          zIndex: 10,
+        },
+        { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        {
+          id: 'serviceTypes',
+          content: Array.isArray(memoizedRecipe?.serviceTypes) && memoizedRecipe.serviceTypes.length > 0 ? memoizedRecipe.serviceTypes.join(', ') : 'No service types',
+          x: 450,
+          y: 80,
+          fontSize: 12,
+          isBold: false,
+          width: 400,
+          zIndex: 10,
+        },
+        {
+          id: 'image',
+          content: imageUrl,
+          x: 450,
+          y: 110,
+          width: 100,
+          height: 100 / (imageAspectRatios['recipeImage'] || 1),
+          isImage: true,
+          aspectRatio: imageAspectRatios['recipeImage'] || 1,
+          zIndex: 10,
+        },
+        {
+          id: 'watermark',
+          content: watermarkUrl,
+          x: 421,
+          y: 297.5,
+          width: 200,
+          height: 200 / (imageAspectRatios['watermark'] || 1),
+          isImage: true,
+          aspectRatio: imageAspectRatios['watermark'] || 1,
+          zIndex: 5,
+        },
+      ];
 
-    const fetchTemplate = async () => {
-      try {
-        const imageUrl = memoizedRecipe?.image
-          ? `${apiUrl}/Uploads/${memoizedRecipe.image.split('/').pop()}`
-          : `${frontendUrl}/logo.png`;
-        const watermarkUrl = `${apiUrl}/Uploads/logo.png`;
-        const timestamp = Date.now();
-        console.log('Fetching template:', `${apiUrl}/templates/default?t=${timestamp}`);
-        const res = await fetch(`${apiUrl}/templates/default?t=${timestamp}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-          },
-        });
-        if (res.ok) {
-          const templateData = await res.json();
-          console.log('Template fetched successfully');
-          if (templateData?.template?.fields) {
-            const updatedFields = templateData.template.fields.map((field) => {
-              if (field.isImage && field.id === 'image') {
-                return { ...field, content: imageDataUrls['recipeImage'] || imageUrl, aspectRatio: imageAspectRatios['recipeImage'] || 1 };
-              }
-              if (field.isImage && field.id === 'watermark') {
-                return { ...field, content: imageDataUrls['watermark'] || watermarkUrl, aspectRatio: imageAspectRatios['watermark'] || 1 };
-              }
-              return field;
-            });
-            setFields(updatedFields);
-            console.log('Loaded saved fields:', updatedFields.length);
+      const fetchTemplate = async () => {
+        try {
+          const timestamp = Date.now();
+          console.log('Fetching template:', `${apiUrl}/templates/default?t=${timestamp}`);
+          const res = await fetch(`${apiUrl}/templates/default?t=${timestamp}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+            },
+          });
+          if (res.ok) {
+            const templateData = await res.json();
+            console.log('Template fetched successfully');
+            if (templateData?.template?.fields) {
+              const updatedFields = templateData.template.fields.map((field) => {
+                if (field.isImage && field.id === 'image') {
+                  return { ...field, content: imageUrl, aspectRatio: imageAspectRatios['recipeImage'] || 1, height: (field.width || 100) / (imageAspectRatios['recipeImage'] || 1) };
+                }
+                if (field.isImage && field.id === 'watermark') {
+                  return { ...field, content: watermarkUrl, aspectRatio: imageAspectRatios['watermark'] || 1, height: (field.width || 200) / (imageAspectRatios['watermark'] || 1) };
+                }
+                return field;
+              });
+              setFields(updatedFields);
+              console.log('Loaded saved fields:', updatedFields.length);
+            } else {
+              console.warn('No template fields found, using default fields');
+              setFields(defaultFields);
+            }
           } else {
-            console.warn('No template fields found, using default fields');
+            const errorText = await res.text();
+            console.error('Template fetch failed:', res.status, errorText);
+            setTemplateError(`Failed to load template: ${res.status} - ${errorText}`);
             setFields(defaultFields);
           }
-        } else {
-          const errorText = await res.text();
-          console.error('Template fetch failed:', res.status, errorText);
-          setTemplateError(`Failed to load template: ${res.status} - ${errorText}`);
+        } catch (err) {
+          console.error('Template fetch error:', err.message);
+          setTemplateError(`Failed to load template: ${err.message}`);
           setFields(defaultFields);
         }
-      } catch (err) {
-        console.error('Template fetch error:', err.message);
-        setTemplateError(`Failed to load template: ${err.message}`);
-        setFields(defaultFields);
-      }
+      };
+
+      fetchTemplate();
     };
 
-    fetchTemplate();
+    loadImagesAndTemplate();
   }, [memoizedRecipe, apiUrl, frontendUrl]);
 
-  const addTextField = useCallback(() => {
+  const addCustomTextField = useCallback(() => {
     const newField = {
-      id: `customText${newTextId}`,
+      id: `customText-${newTextId}-${Date.now()}`,
       content: 'New Text',
-      x: 421,
-      y: 297.5,
+      x: 20,
+      y: 20 + newTextId * 20,
       fontSize: 12,
       isBold: false,
       width: 400,
@@ -346,11 +347,11 @@ const PdfEditor = ({ recipe }) => {
 
   const addLine = useCallback(() => {
     const newField = {
-      id: `line${newLineId}`,
+      id: `line-${newLineId}-${Date.now()}`,
       isLine: true,
       orientation: 'horizontal',
-      x: 421,
-      y: 297.5,
+      x: 20,
+      y: 20 + newLineId * 10,
       length: 100,
       zIndex: 10,
     };
@@ -393,6 +394,16 @@ const PdfEditor = ({ recipe }) => {
 
   const handleSave = useCallback(async () => {
     try {
+      // Remove base64 data URLs from fields to reduce payload size
+      const sanitizedFields = fields.map((field) => {
+        if (field.isImage && field.id === 'image') {
+          return { ...field, content: memoizedRecipe?.image ? `${apiUrl}/Uploads/${memoizedRecipe.image.split('/').pop()}` : `${frontendUrl}/logo.png` };
+        }
+        if (field.isImage && field.id === 'watermark') {
+          return { ...field, content: `${apiUrl}/Uploads/logo.png` };
+        }
+        return field;
+      });
       const response = await fetch(`${apiUrl}/templates/default/save?t=${Date.now()}`, {
         method: 'POST',
         headers: {
@@ -400,7 +411,7 @@ const PdfEditor = ({ recipe }) => {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
         },
-        body: JSON.stringify({ template: { fields } }),
+        body: JSON.stringify({ template: { fields: sanitizedFields } }),
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -413,7 +424,7 @@ const PdfEditor = ({ recipe }) => {
       console.error('Save failed:', err.message);
       alert(`Save failed: ${err.message}`);
     }
-  }, [fields, apiUrl]);
+  }, [fields, apiUrl, memoizedRecipe, frontendUrl]);
 
   const handleResetToDefault = useCallback(async () => {
     try {
@@ -483,22 +494,22 @@ const PdfEditor = ({ recipe }) => {
         },
         {
           id: 'image',
-          content: imageDataUrls['recipeImage'] || imageUrl,
+          content: imageUrl,
           x: 450,
           y: 110,
           width: 100,
-          height: 100,
+          height: 100 / (imageAspectRatios['recipeImage'] || 1),
           isImage: true,
           aspectRatio: imageAspectRatios['recipeImage'] || 1,
           zIndex: 10,
         },
         {
           id: 'watermark',
-          content: imageDataUrls['watermark'] || watermarkUrl,
+          content: watermarkUrl,
           x: 421,
           y: 297.5,
           width: 200,
-          height: 200,
+          height: 200 / (imageAspectRatios['watermark'] || 1),
           isImage: true,
           aspectRatio: imageAspectRatios['watermark'] || 1,
           zIndex: 5,
@@ -526,7 +537,11 @@ const PdfEditor = ({ recipe }) => {
       console.error('Reset failed:', err.message);
       alert(`Reset failed: ${err.message}`);
     }
-  }, [memoizedRecipe, apiUrl, frontendUrl, imageAspectRatios, imageDataUrls]);
+  }, [memoizedRecipe, apiUrl, frontendUrl, imageAspectRatios]);
+
+  const isRecipeField = (fieldId) => {
+    return ['title', 'ingredients', 'steps', 'platingGuide', 'allergens', 'serviceTypes'].includes(fieldId);
+  };
 
   const toggleGrid = () => {
     setShowGrid((prev) => !prev);
@@ -573,7 +588,7 @@ const PdfEditor = ({ recipe }) => {
         </Col>
         <Col md={3}>
           <div style={styles.buttonContainer}>
-            <Button onClick={addTextField} variant="secondary" size="sm">
+            <Button onClick={addCustomTextField} variant="secondary" size="sm">
               Add Text Field
             </Button>
             <Button onClick={addLine} variant="secondary" size="sm">
@@ -681,6 +696,9 @@ const PdfEditor = ({ recipe }) => {
                       type="text"
                       value={fields.find((f) => f.id === selectedField)?.content || ''}
                       onChange={(e) => handleFieldChange(selectedField, 'content', e.target.value)}
+                      readOnly={isRecipeField(selectedField)}
+                      disabled={isRecipeField(selectedField)}
+                      title={isRecipeField(selectedField) ? 'Recipe fields cannot be edited here; use the recipe form.' : ''}
                     />
                   </Form.Group>
                   <Form.Group className="mb-2">
