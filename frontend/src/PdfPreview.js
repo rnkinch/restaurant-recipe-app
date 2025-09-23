@@ -76,7 +76,7 @@ export const PdfPreview = () => {
           });
           const img = document.createElement('img');
           img.src = dataUrl;
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve) => {
             img.onload = () => {
               const aspectRatio = img.naturalWidth / img.naturalHeight;
               setImageAspectRatios((prev) => ({ ...prev, [key]: aspectRatio }));
@@ -86,12 +86,7 @@ export const PdfPreview = () => {
             };
             img.onerror = () => {
               console.error('Image load error:', url);
-              // Only set error for actual fetch failures, not rendering issues
-              if (response.ok) {
-                console.log('Image fetched but failed to load in DOM, using data URL');
-              } else {
-                setImageError(`Image not found: ${url}`);
-              }
+              setImageError(`Image not found: ${url}`);
               resolve(); // Continue to allow rendering
             };
           });
@@ -111,14 +106,17 @@ export const PdfPreview = () => {
         setRecipe(recipeData);
 
         const imageUrl = recipeData.image
-          ? `${apiUrl}/uploads/${recipeData.image.split('/').pop()}`
+          ? `${apiUrl}/Uploads/${recipeData.image.split('/').pop()}`
           : `${frontendUrl}/default_image.png`;
         const watermarkUrl = `${apiUrl}/Uploads/logo.png`;
         console.log('Image URL:', imageUrl);
         console.log('Watermark URL:', watermarkUrl);
 
-        // Validate recipe image only
-        await validateImage(imageUrl, 'recipeImage');
+        // Validate both recipe image and watermark
+        await Promise.all([
+          validateImage(imageUrl, 'recipeImage'),
+          validateImage(watermarkUrl, 'watermark'),
+        ]);
 
         const defaultFields = [
           { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
@@ -186,20 +184,20 @@ export const PdfPreview = () => {
             x: 450,
             y: 110,
             width: 100,
-            height: 100,
+            height: 100 / (imageAspectRatios['recipeImage'] || 1),
             isImage: true,
             aspectRatio: imageAspectRatios['recipeImage'] || 1,
             zIndex: 10,
           },
           {
             id: 'watermark',
-            content: `${apiUrl}/Uploads/logo.png`,
+            content: imageDataUrls['watermark'] || watermarkUrl,
             x: 421,
             y: 297.5,
             width: 200,
-            height: 200,
+            height: 200 / (imageAspectRatios['watermark'] || 1),
             isImage: true,
-            aspectRatio: 1,
+            aspectRatio: imageAspectRatios['watermark'] || 1,
             zIndex: 5,
             opacity: 0.2,
           },
@@ -222,10 +220,21 @@ export const PdfPreview = () => {
           if (templateData?.template?.fields) {
             const updatedFields = templateData.template.fields.map((field) => {
               if (field.isImage && field.id === 'image') {
-                return { ...field, content: imageDataUrls['recipeImage'] || imageUrl, aspectRatio: imageAspectRatios['recipeImage'] || 1 };
+                return {
+                  ...field,
+                  content: imageDataUrls['recipeImage'] || imageUrl,
+                  aspectRatio: imageAspectRatios['recipeImage'] || 1,
+                  height: (field.width || 100) / (imageAspectRatios['recipeImage'] || 1),
+                };
               }
               if (field.isImage && field.id === 'watermark') {
-                return { ...field, content: `${apiUrl}/Uploads/logo.png`, aspectRatio: field.aspectRatio || 1, opacity: 0.2 };
+                return {
+                  ...field,
+                  content: imageDataUrls['watermark'] || watermarkUrl,
+                  aspectRatio: imageAspectRatios['watermark'] || 1,
+                  height: (field.width || 200) / (imageAspectRatios['watermark'] || 1),
+                  opacity: field.opacity || 0.2,
+                };
               }
               if (field.id === 'title') {
                 return { ...field, content: recipeData?.name || 'Recipe Title' };
@@ -324,24 +333,24 @@ export const PdfPreview = () => {
           },
           {
             id: 'image',
-            content: `${frontendUrl}/default_image.png`,
+            content: imageDataUrls['recipeImage'] || `${frontendUrl}/default_image.png`,
             x: 450,
             y: 110,
             width: 100,
-            height: 100,
+            height: 100 / (imageAspectRatios['recipeImage'] || 1),
             isImage: true,
-            aspectRatio: 1,
+            aspectRatio: imageAspectRatios['recipeImage'] || 1,
             zIndex: 10,
           },
           {
             id: 'watermark',
-            content: `${apiUrl}/Uploads/logo.png`,
+            content: imageDataUrls['watermark'] || `${apiUrl}/Uploads/logo.png`,
             x: 421,
             y: 297.5,
             width: 200,
-            height: 200,
+            height: 200 / (imageAspectRatios['watermark'] || 1),
             isImage: true,
-            aspectRatio: 1,
+            aspectRatio: imageAspectRatios['watermark'] || 1,
             zIndex: 5,
             opacity: 0.2,
           },
@@ -424,7 +433,7 @@ export const PdfPreview = () => {
                             left: field.x,
                             top: field.y,
                             width: field.width || 100,
-                            height: field.height || (field.width || 100) / (field.aspectRatio || 1),
+                            height: (field.width || 100) / (field.aspectRatio || 1),
                             opacity: field.id === 'watermark' ? field.opacity || 0.2 : 1,
                           }
                         : field.isLine
@@ -446,7 +455,8 @@ export const PdfPreview = () => {
                       src={field.content}
                       style={{
                         width: field.width || 100,
-                        height: field.height || (field.width || 100) / (field.aspectRatio || 1),
+                        height: (field.width || 100) / (field.aspectRatio || 1),
+                        objectFit: 'contain', // Ensure aspect ratio is respected
                       }}
                     />
                   ) : field.isLine ? null : (
