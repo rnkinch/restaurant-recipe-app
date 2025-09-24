@@ -21,8 +21,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   viewerContainer: {
-    width: '878px', // 842px + 18px left border + 18px right border
-    height: '631px', // 595px + 18px top border + 18px bottom border
+    width: '828px', // 792px + 18px left border + 18px right border
+    height: '648px', // 612px + 18px top border + 18px bottom border
     border: '18px solid #000', // 1/4" border (18px at 72 DPI)
     boxSizing: 'border-box',
     marginTop: '1rem',
@@ -119,60 +119,60 @@ export const PdfPreview = () => {
         ]);
 
         const defaultFields = [
-          { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-          { id: 'title', content: recipeData?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-          { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'titleLabel', content: 'Recipe Title:', x: 18, y: 18, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'title', content: recipeData?.name || 'Recipe Title', x: 18, y: 38, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'ingredientsLabel', content: 'Ingredients:', x: 18, y: 68, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           {
             id: 'ingredients',
             content: Array.isArray(recipeData?.ingredients)
               ? recipeData.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
               : 'No ingredients',
-            x: 20,
-            y: 80,
+            x: 18,
+            y: 88,
             fontSize: 12,
             isBold: false,
             width: 500,
             zIndex: 10,
           },
-          { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'stepsLabel', content: 'Steps:', x: 18, y: 198, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           {
             id: 'steps',
             content: recipeData?.steps || 'No steps',
-            x: 20,
-            y: 210,
+            x: 18,
+            y: 218,
             fontSize: 12,
             isBold: false,
             width: 500,
             zIndex: 10,
           },
-          { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'platingGuideLabel', content: 'Plating Guide:', x: 18, y: 328, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           {
             id: 'platingGuide',
             content: recipeData?.platingGuide || 'No plating guide',
-            x: 20,
-            y: 340,
+            x: 18,
+            y: 348,
             fontSize: 12,
             isBold: false,
             width: 500,
             zIndex: 10,
           },
-          { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 18, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           {
             id: 'allergens',
             content: Array.isArray(recipeData?.allergens) ? recipeData.allergens.join(', ') : 'No allergens',
             x: 450,
-            y: 30,
+            y: 38,
             fontSize: 12,
             isBold: false,
             width: 400,
             zIndex: 10,
           },
-          { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 68, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           {
             id: 'serviceTypes',
             content: Array.isArray(recipeData?.serviceTypes) ? recipeData.serviceTypes.join(', ') : 'No service types',
             x: 450,
-            y: 80,
+            y: 88,
             fontSize: 12,
             isBold: false,
             width: 400,
@@ -182,7 +182,7 @@ export const PdfPreview = () => {
             id: 'image',
             content: imageDataUrls['recipeImage'] || imageUrl,
             x: 450,
-            y: 110,
+            y: 118,
             width: 100,
             height: 100 / (imageAspectRatios['recipeImage'] || 1),
             isImage: true,
@@ -219,12 +219,18 @@ export const PdfPreview = () => {
           if (currentIdRef.current !== id) return;
           if (templateData?.template?.fields) {
             const updatedFields = templateData.template.fields.map((field) => {
+              const maxWidth = field.isImage ? (field.width || 100) : field.isLine ? (field.orientation === 'horizontal' ? (field.length || 100) : 1) : (field.width || 400);
+              const maxHeight = field.isImage ? ((field.width || 100) / (field.aspectRatio || 1)) : field.isLine ? (field.orientation === 'vertical' ? (field.length || 100) : 1) : 20;
+              const constrainedX = Math.max(18, Math.min(792 - 18 - maxWidth, field.x));
+              const constrainedY = Math.max(18, Math.min(612 - 18 - maxHeight, field.y));
               if (field.isImage && field.id === 'image') {
                 return {
                   ...field,
                   content: imageDataUrls['recipeImage'] || imageUrl,
                   aspectRatio: imageAspectRatios['recipeImage'] || 1,
                   height: (field.width || 100) / (imageAspectRatios['recipeImage'] || 1),
+                  x: constrainedX,
+                  y: constrainedY,
                 };
               }
               if (field.isImage && field.id === 'watermark') {
@@ -234,10 +240,12 @@ export const PdfPreview = () => {
                   aspectRatio: imageAspectRatios['watermark'] || 1,
                   height: (field.width || 200) / (imageAspectRatios['watermark'] || 1),
                   opacity: field.opacity || 0.2,
+                  x: constrainedX,
+                  y: constrainedY,
                 };
               }
               if (field.id === 'title') {
-                return { ...field, content: recipeData?.name || 'Recipe Title' };
+                return { ...field, content: recipeData?.name || 'Recipe Title', x: constrainedX, y: constrainedY };
               }
               if (field.id === 'ingredients') {
                 return {
@@ -245,21 +253,23 @@ export const PdfPreview = () => {
                   content: Array.isArray(recipeData?.ingredients)
                     ? recipeData.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
                     : 'No ingredients',
+                  x: constrainedX,
+                  y: constrainedY,
                 };
               }
               if (field.id === 'steps') {
-                return { ...field, content: recipeData?.steps || 'No steps' };
+                return { ...field, content: recipeData?.steps || 'No steps', x: constrainedX, y: constrainedY };
               }
               if (field.id === 'platingGuide') {
-                return { ...field, content: recipeData?.platingGuide || 'No plating guide' };
+                return { ...field, content: recipeData?.platingGuide || 'No plating guide', x: constrainedX, y: constrainedY };
               }
               if (field.id === 'allergens') {
-                return { ...field, content: Array.isArray(recipeData?.allergens) ? recipeData.allergens.join(', ') : 'No allergens' };
+                return { ...field, content: Array.isArray(recipeData?.allergens) ? recipeData.allergens.join(', ') : 'No allergens', x: constrainedX, y: constrainedY };
               }
               if (field.id === 'serviceTypes') {
-                return { ...field, content: Array.isArray(recipeData?.serviceTypes) ? recipeData.serviceTypes.join(', ') : 'No service types' };
+                return { ...field, content: Array.isArray(recipeData?.serviceTypes) ? recipeData.serviceTypes.join(', ') : 'No service types', x: constrainedX, y: constrainedY };
               }
-              return field;
+              return { ...field, x: constrainedX, y: constrainedY };
             });
             setFields(updatedFields);
           } else {
@@ -274,58 +284,58 @@ export const PdfPreview = () => {
         console.error('Fetch failed:', err.message);
         setFetchError(`Failed to load recipe or template: ${err.message}`);
         const fallbackFields = [
-          { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-          { id: 'title', content: 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-          { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'titleLabel', content: 'Recipe Title:', x: 18, y: 18, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'title', content: 'Recipe Title', x: 18, y: 38, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'ingredientsLabel', content: 'Ingredients:', x: 18, y: 68, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           {
             id: 'ingredients',
             content: 'No ingredients',
-            x: 20,
-            y: 80,
+            x: 18,
+            y: 88,
             fontSize: 12,
             isBold: false,
             width: 500,
             zIndex: 10,
           },
-          { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'stepsLabel', content: 'Steps:', x: 18, y: 198, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           {
             id: 'steps',
             content: 'No steps',
-            x: 20,
-            y: 210,
+            x: 18,
+            y: 218,
             fontSize: 12,
             isBold: false,
             width: 500,
             zIndex: 10,
           },
-          { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'platingGuideLabel', content: 'Plating Guide:', x: 18, y: 328, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           {
             id: 'platingGuide',
             content: 'No plating guide',
-            x: 20,
-            y: 340,
+            x: 18,
+            y: 348,
             fontSize: 12,
             isBold: false,
             width: 500,
             zIndex: 10,
           },
-          { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 18, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           {
             id: 'allergens',
             content: 'No allergens',
             x: 450,
-            y: 30,
+            y: 38,
             fontSize: 12,
             isBold: false,
             width: 400,
             zIndex: 10,
           },
-          { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+          { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 68, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
           {
             id: 'serviceTypes',
             content: 'No service types',
             x: 450,
-            y: 80,
+            y: 88,
             fontSize: 12,
             isBold: false,
             width: 400,
@@ -335,7 +345,7 @@ export const PdfPreview = () => {
             id: 'image',
             content: imageDataUrls['recipeImage'] || `${frontendUrl}/default_image.png`,
             x: 450,
-            y: 110,
+            y: 118,
             width: 100,
             height: 100 / (imageAspectRatios['recipeImage'] || 1),
             isImage: true,
@@ -419,7 +429,7 @@ export const PdfPreview = () => {
         </div>
       )}
       <div style={styles.viewerContainer}>
-        <PDFViewer key={recipe._id} style={{ width: '842px', height: '595px' }} className="pdf-viewer">
+        <PDFViewer key={recipe._id} style={{ width: '792px', height: '612px' }} className="pdf-viewer">
           <Document>
             <Page size={[792, 612]} style={styles.page}>
               {fields.map((field) => (

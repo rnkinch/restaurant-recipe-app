@@ -20,8 +20,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   viewerContainer: {
-    width: '878px', // 842px + 18px left border + 18px right border
-    height: '631px', // 595px + 18px top border + 18px bottom border
+    width: '828px', // 792px + 18px left border + 18px right border
+    height: '648px', // 612px + 18px top border + 18px bottom border
     border: '18px solid #000', // 1/4" border (18px at 72 DPI)
     boxSizing: 'border-box',
     marginTop: '1rem',
@@ -111,7 +111,15 @@ const ActiveRecipesPDFReport = () => {
           console.warn('No valid template found, using default fields.');
           setTemplate([]);
         } else {
-          setTemplate(templateData);
+          // Constrain template fields
+          const constrainedTemplate = templateData.map((field) => {
+            const maxWidth = field.isImage ? (field.width || 100) : field.isLine ? (field.orientation === 'horizontal' ? (field.length || 100) : 1) : (field.width || 400);
+            const maxHeight = field.isImage ? ((field.width || 100) / (field.aspectRatio || 1)) : field.isLine ? (field.orientation === 'vertical' ? (field.length || 100) : 1) : 20;
+            const constrainedX = Math.max(18, Math.min(792 - 18 - maxWidth, field.x));
+            const constrainedY = Math.max(18, Math.min(612 - 18 - maxHeight, field.y));
+            return { ...field, x: constrainedX, y: constrainedY };
+          });
+          setTemplate(constrainedTemplate);
         }
         setProgress(50);
         console.log('Progress updated to 50%');
@@ -194,61 +202,61 @@ const ActiveRecipesPDFReport = () => {
       {recipes.map((recipe) => (
         <Page key={recipe._id} size={[792, 612]} style={styles.page}>
           {(template || [
-            { id: 'watermark', content: imageDataUrls['watermark'] || `${apiUrl}/Uploads/logo.png`, x: 421, y: 297.5, width: 200, height: 200 / (imageAspectRatios['watermark'] || 1), isImage: true, zIndex: 5, opacity: 0.2, aspectRatio: imageAspectRatios['watermark'] || 1 },
-            { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-            { id: 'title', content: recipe.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-            { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+            { id: 'watermark', content: imageDataUrls['watermark'] || `${apiUrl}/Uploads/logo.png`, x: 18, y: 18, width: 200, height: 200 / (imageAspectRatios['watermark'] || 1), isImage: true, zIndex: 5, opacity: 0.2, aspectRatio: imageAspectRatios['watermark'] || 1 },
+            { id: 'titleLabel', content: 'Recipe Title:', x: 18, y: 18, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+            { id: 'title', content: recipe.name || 'Recipe Title', x: 18, y: 38, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+            { id: 'ingredientsLabel', content: 'Ingredients:', x: 18, y: 68, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
             {
               id: 'ingredients',
               content: Array.isArray(recipe.ingredients)
                 ? recipe.ingredients.map((i) => `${i.quantity || ''} ${i.measure || ''} ${i.ingredient?.name || ''}`).join('\n')
                 : 'No ingredients',
-              x: 20,
-              y: 80,
+              x: 18,
+              y: 88,
               fontSize: 12,
               isBold: false,
               width: 500,
               zIndex: 10,
             },
-            { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+            { id: 'stepsLabel', content: 'Steps:', x: 18, y: 198, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
             {
               id: 'steps',
               content: recipe.steps ? recipe.steps.split('\n').filter((step) => step.trim()).join('\n') : 'No steps provided',
-              x: 20,
-              y: 210,
+              x: 18,
+              y: 218,
               fontSize: 12,
               isBold: false,
               width: 500,
               zIndex: 10,
             },
-            { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+            { id: 'platingGuideLabel', content: 'Plating Guide:', x: 18, y: 328, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
             {
               id: 'platingGuide',
               content: recipe.platingGuide ? recipe.platingGuide.split('\n').filter((guide) => guide.trim()).join('\n') : 'No plating guide provided',
-              x: 20,
-              y: 340,
+              x: 18,
+              y: 348,
               fontSize: 12,
               isBold: false,
               width: 500,
               zIndex: 10,
             },
-            { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+            { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 18, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
             {
               id: 'allergens',
               content: Array.isArray(recipe.allergens) && recipe.allergens.length > 0 ? recipe.allergens.join(', ') : 'No allergens',
               x: 450,
-              y: 30,
+              y: 38,
               fontSize: 12,
               isBold: false,
               width: 400,
               zIndex: 10,
             },
-            { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+            { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 68, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
             {
               id: 'serviceTypes',
               content: Array.isArray(recipe.serviceTypes) && recipe.serviceTypes.length > 0 ? recipe.serviceTypes.join(', ') : 'No service types',
               x: 450,
-              y: 80,
+              y: 88,
               fontSize: 12,
               isBold: false,
               width: 400,
@@ -258,65 +266,78 @@ const ActiveRecipesPDFReport = () => {
               id: 'image',
               content: imageDataUrls[`recipeImage_${recipe._id}`] || `${frontendUrl}/default_image.png`,
               x: 450,
-              y: 110,
+              y: 118,
               width: 100,
               height: 100 / (imageAspectRatios[`recipeImage_${recipe._id}`] || 1),
               isImage: true,
               aspectRatio: imageAspectRatios[`recipeImage_${recipe._id}`] || 1,
               zIndex: 10,
             },
-          ]).map((field) => (
-            <View
-              key={field.id}
-              style={{
-                ...(field.isImage
-                  ? {
-                      ...styles.image,
-                      left: field.x,
-                      top: field.y,
-                      width: field.width || 100,
-                      height: (field.width || 100) / (field.aspectRatio || 1),
-                      opacity: field.id === 'watermark' ? field.opacity || 0.2 : 1,
-                    }
-                  : field.isLine
-                  ? {
-                      ...styles.line,
-                      left: field.x,
-                      top: field.y,
-                      width: field.orientation === 'horizontal' ? (field.length || 100) : 1,
-                      height: field.orientation === 'vertical' ? (field.length || 100) : 1,
-                      backgroundColor: '#000',
-                    }
-                  : {
-                      ...styles.field,
-                      left: field.x,
-                      top: field.y,
-                      width: field.width || 400,
-                    }),
-                zIndex: field.zIndex || (field.id === 'watermark' ? 5 : 10),
-              }}
-            >
-              {field.isImage && !imageErrors[field.id] && !imageErrors[`recipeImage_${recipe._id}`] ? (
-                <Image
-                  src={getFieldContent(field, recipe)}
-                  style={{
-                    width: field.width || 100,
-                    height: (field.width || 100) / (field.aspectRatio || 1),
-                    objectFit: 'contain',
-                  }}
-                />
-              ) : field.isLine ? null : (
-                <Text
-                  style={{
-                    fontSize: field.fontSize || 12,
-                    fontWeight: field.isBold ? 'bold' : 'normal',
-                  }}
-                >
-                  {getFieldContent(field, recipe)}
-                </Text>
-              )}
-            </View>
-          ))}
+          ]).map((field) => {
+            // Apply content for default fields as well
+            const contentField = { ...field };
+            contentField.content = getFieldContent(contentField, recipe);
+            if (contentField.isImage && contentField.id === 'image') {
+              contentField.aspectRatio = imageAspectRatios[`recipeImage_${recipe._id}`] || 1;
+              contentField.height = (contentField.width || 100) / contentField.aspectRatio;
+            }
+            if (contentField.isImage && contentField.id === 'watermark') {
+              contentField.aspectRatio = imageAspectRatios['watermark'] || 1;
+              contentField.height = (contentField.width || 200) / contentField.aspectRatio;
+            }
+            return (
+              <View
+                key={contentField.id}
+                style={{
+                  ...(contentField.isImage
+                    ? {
+                        ...styles.image,
+                        left: contentField.x,
+                        top: contentField.y,
+                        width: contentField.width || 100,
+                        height: contentField.height,
+                        opacity: contentField.id === 'watermark' ? contentField.opacity || 0.2 : 1,
+                      }
+                    : contentField.isLine
+                    ? {
+                        ...styles.line,
+                        left: contentField.x,
+                        top: contentField.y,
+                        width: contentField.orientation === 'horizontal' ? (contentField.length || 100) : 1,
+                        height: contentField.orientation === 'vertical' ? (contentField.length || 100) : 1,
+                        backgroundColor: '#000',
+                      }
+                    : {
+                        ...styles.field,
+                        left: contentField.x,
+                        top: contentField.y,
+                        width: contentField.width || 400,
+                      }),
+                  zIndex: contentField.zIndex || (contentField.id === 'watermark' ? 5 : 10),
+                }}
+              >
+                {contentField.isImage && !imageErrors[contentField.id] && !imageErrors[`recipeImage_${recipe._id}`] ? (
+                  <Image
+                    src={contentField.content}
+                    style={{
+                      width: contentField.width || 100,
+                      height: contentField.height,
+                      objectFit: 'contain',
+                    }}
+                  />
+                ) : contentField.isLine ? null : (
+                  <Text
+                    style={{
+                      fontSize: contentField.fontSize || 12,
+                      fontWeight: contentField.isBold ? 'bold' : 'normal',
+                    }}
+                  >
+                    {contentField.content}
+                  </Text>
+                )}
+              </View>
+            );
+          })}
         </Page>
       ))}
     </Document>
@@ -372,7 +393,7 @@ const ActiveRecipesPDFReport = () => {
           </PDFDownloadLink>
         </div>
         <div style={styles.viewerContainer}>
-          <PDFViewer style={{ width: '842px', height: '595px' }} className="pdf-viewer">
+          <PDFViewer style={{ width: '792px', height: '612px' }} className="pdf-viewer">
             <MyDocument />
           </PDFViewer>
         </div>
@@ -397,7 +418,7 @@ const ActiveRecipesPDFReport = () => {
         <p>No active recipes found.</p>
       ) : (
         <div style={styles.viewerContainer}>
-          <PDFViewer style={{ width: '842px', height: '595px' }} className="pdf-viewer">
+          <PDFViewer style={{ width: '792px', height: '612px' }} className="pdf-viewer">
             <MyDocument />
           </PDFViewer>
         </div>
