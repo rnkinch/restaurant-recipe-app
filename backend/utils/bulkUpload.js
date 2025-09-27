@@ -3,6 +3,7 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const { google } = require('googleapis');
 const Recipe = require('../models/Recipe');
+const ChangeLog = require('../models/ChangeLog');
 
 class BulkUploadUtility {
   constructor() {
@@ -248,6 +249,12 @@ class BulkUploadUtility {
 
   /**
    * Upload recipes in bulk
+   * @param {Array} recipesData - Array of recipe data objects
+   * @param {Object} options - Upload options
+   * @param {boolean} options.skipDuplicates - Whether to skip duplicate recipes
+   * @param {Object} options.user - User object for change logging (optional)
+   * @param {string} options.ipAddress - IP address for change logging (optional)
+   * @param {string} options.userAgent - User agent for change logging (optional)
    */
   async uploadRecipes(recipesData, options = {}) {
     const results = {
@@ -295,6 +302,25 @@ class BulkUploadUtility {
         // Create recipe
         const newRecipe = new Recipe(recipe);
         const savedRecipe = await newRecipe.save();
+        
+        // Log the creation in change log if user information is provided
+        if (options.user) {
+          try {
+            await ChangeLog.create({
+              user: options.user.userId || options.user._id,
+              username: options.user.username,
+              recipe: savedRecipe._id,
+              recipeName: savedRecipe.name,
+              action: 'created',
+              changes: null,
+              ipAddress: options.ipAddress || null,
+              userAgent: options.userAgent || null
+            });
+          } catch (logError) {
+            console.error('Error logging bulk upload recipe creation:', logError);
+            // Don't fail the upload if logging fails
+          }
+        }
         
         results.successful++;
         results.created.push({

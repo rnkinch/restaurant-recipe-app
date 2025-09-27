@@ -78,7 +78,10 @@ router.post('/upload', authenticateToken, requireEditPermission, upload.single('
     const filePath = req.file.path;
     const fileExt = path.extname(req.file.originalname).toLowerCase().substring(1);
     const options = {
-      skipDuplicates: req.body.skipDuplicates === 'true'
+      skipDuplicates: req.body.skipDuplicates === 'true',
+      user: req.user,
+      ipAddress: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('User-Agent')
     };
 
     // Parse the uploaded file
@@ -99,7 +102,7 @@ router.post('/upload', authenticateToken, requireEditPermission, upload.single('
 
     res.json({
       success: true,
-      message: `Bulk upload completed. ${results.successful} successful, ${results.failed} failed, ${results.skipped.length} skipped`,
+      message: `Bulk upload completed. ${results.successful} successful, ${results.failed} failed, ${results.skipped.length} skipped. ${results.successful > 0 ? 'All successful uploads have been logged in the change log.' : ''}`,
       results
     });
 
@@ -141,7 +144,12 @@ router.post('/google-sheets', authenticateToken, requireEditPermission, async (r
       });
     }
 
-    const options = { skipDuplicates };
+    const options = { 
+      skipDuplicates,
+      user: req.user,
+      ipAddress: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('User-Agent')
+    };
 
     // Parse Google Sheets data
     const recipesData = await bulkUpload.parseGoogleSheets(sheetId, credentials);
@@ -158,7 +166,7 @@ router.post('/google-sheets', authenticateToken, requireEditPermission, async (r
 
     res.json({
       success: true,
-      message: `Google Sheets upload completed. ${results.successful} successful, ${results.failed} failed, ${results.skipped.length} skipped`,
+      message: `Google Sheets upload completed. ${results.successful} successful, ${results.failed} failed, ${results.skipped.length} skipped. ${results.successful > 0 ? 'All successful uploads have been logged in the change log.' : ''}`,
       results
     });
 
