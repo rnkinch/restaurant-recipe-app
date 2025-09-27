@@ -350,7 +350,7 @@ app.get('/purveyors', authenticateToken, requireReadOnly, async (req, res) => {
   }
 });
 
-app.post('/purveyors', authenticateToken, requireAdmin, async (req, res) => {
+app.post('/purveyors', authenticateToken, requireEditPermission, async (req, res) => {
   try {
     const purveyor = new Purveyor(req.body);
     await purveyor.save();
@@ -361,7 +361,7 @@ app.post('/purveyors', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-app.put('/purveyors/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.put('/purveyors/:id', authenticateToken, requireEditPermission, async (req, res) => {
   try {
     const purveyor = await Purveyor.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!purveyor) return res.status(404).json({ error: 'Purveyor not found' });
@@ -372,7 +372,7 @@ app.put('/purveyors/:id', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-app.delete('/purveyors/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.delete('/purveyors/:id', authenticateToken, requireEditPermission, async (req, res) => {
   try {
     const purveyor = await Purveyor.findByIdAndDelete(req.params.id);
     if (!purveyor) return res.status(404).json({ error: 'Purveyor not found' });
@@ -394,7 +394,7 @@ app.get('/ingredients', authenticateToken, requireReadOnly, async (req, res) => 
   }
 });
 
-app.post('/ingredients', authenticateToken, requireAdmin, async (req, res) => {
+app.post('/ingredients', authenticateToken, requireEditPermission, async (req, res) => {
   try {
     const ingredient = new Ingredient(req.body);
     await ingredient.save();
@@ -406,7 +406,7 @@ app.post('/ingredients', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-app.put('/ingredients/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.put('/ingredients/:id', authenticateToken, requireEditPermission, async (req, res) => {
   try {
     const ingredient = await Ingredient.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!ingredient) return res.status(404).json({ error: 'Ingredient not found' });
@@ -418,7 +418,7 @@ app.put('/ingredients/:id', authenticateToken, requireAdmin, async (req, res) =>
   }
 });
 
-app.delete('/ingredients/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.delete('/ingredients/:id', authenticateToken, requireEditPermission, async (req, res) => {
   try {
     const ingredient = await Ingredient.findByIdAndDelete(req.params.id);
     if (!ingredient) return res.status(404).json({ error: 'Ingredient not found' });
