@@ -192,7 +192,7 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
       </div>
       
       {/* Horizontal Rule for Separation */}
-      <hr className="my-3" />
+      <hr className="my-3" style={{ borderColor: '#6c757d', borderWidth: '2px', opacity: '0.8' }} />
       <div className="mb-3">
         <InputGroup>
           <Form.Control
