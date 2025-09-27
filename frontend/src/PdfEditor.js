@@ -630,7 +630,7 @@ const PdfEditor = ({ recipe }) => {
             <Button onClick={addLine} variant="secondary" size="sm">
               Add Line
             </Button>
-            {selectedField && (selectedField.startsWith('customText') || selectedField.startsWith('line')) && (
+            {selectedField && (
               <Button onClick={deleteField} variant="danger" size="sm">
                 Delete Field
               </Button>

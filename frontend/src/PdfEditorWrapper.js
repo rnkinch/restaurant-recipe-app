@@ -6,12 +6,12 @@ import { getRecipes } from './api';
 const PdfEditorWrapper = () => {
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSampleRecipe = async () => {
       try {
         const data = await getRecipes();
-        console.log('Fetched recipes:', JSON.stringify(data, null, 2));
         if (data && Array.isArray(data) && data.length > 0) {
           setRecipe(data[0]); // Use the first recipe as a sample
         } else {
@@ -25,6 +25,7 @@ const PdfEditorWrapper = () => {
             serviceTypes: [],
           });
         }
+        setLoading(false);
       } catch (err) {
         console.error('Fetch failed:', err.message);
         setRecipe({
@@ -36,6 +37,7 @@ const PdfEditorWrapper = () => {
           allergens: [],
           serviceTypes: [],
         });
+        setLoading(false);
       }
     };
 
@@ -46,8 +48,12 @@ const PdfEditorWrapper = () => {
     navigate('/');
   };
 
+  if (loading) {
+    return <div>Loading recipes...</div>;
+  }
+
   if (!recipe) {
-    return <div>Loading...</div>;
+    return <div>No recipe data available</div>;
   }
 
   return <PdfEditor recipe={recipe} onBack={handleBack} />;
