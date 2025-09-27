@@ -15,7 +15,7 @@ const RecipeForm = ({ refreshRecipes }) => {
   const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.184.138:8080';
   const [formData, setFormData] = useState({
     name: '',
-    ingredients: [{ ingredient: '', quantity: '', measure: '', purveyor: null }],
+    ingredients: [],
     steps: '',
     platingGuide: '',
     allergens: [],
