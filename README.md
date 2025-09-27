@@ -3,6 +3,17 @@
 A full-stack application for managing recipes, ingredients, purveyors, and plating guides.  
 Built with **React (frontend)** and **Node.js/Express + MongoDB (backend)**.
 
+## ✨ Features
+
+- **Recipe Management** - Create, edit, and organize recipes
+- **Ingredient Tracking** - Manage ingredients and purveyors
+- **Plating Guides** - Visual plating instructions
+- **User Authentication** - Role-based access control
+- **Change Logging** - Track recipe modifications
+- **Bulk Upload** - Import recipes from CSV/Excel
+- **PDF Generation** - Export recipes and reports
+- **Comprehensive Validation** - Data integrity protection
+
 ---
 
 ## 🐳 Running with Docker (Current Setup)
@@ -111,3 +122,52 @@ For **production deployment** (cloud/VPS), you’d likely add **Nginx** as a rev
 This setup reduces exposed ports (only `80/443`) and improves performance & security.
 
 > ✅ Nginx is **not required** for your current local/LAN usage — only add it if/when you deploy publicly.
+
+---
+
+## 🧪 Testing
+
+### Automated Tests
+```bash
+# Run validation tests
+node test-validation.js
+
+# Quick validation check
+node -e "
+const { validateRecipe } = require('./frontend/src/utils/validation.js');
+const result = validateRecipe({ name: '', steps: 'Valid steps', platingGuide: 'Valid guide', ingredients: [] });
+console.log('Validation test:', result.isValid ? 'FAIL' : 'PASS');
+"
+```
+
+### Manual Testing
+1. Open `manual-validation-test.html` in your browser
+2. Test form validation interactively
+3. Verify error messages and user feedback
+
+### Test Coverage
+- ✅ **Frontend Validation** - Real-time form validation
+- ✅ **Backend Validation** - API endpoint validation  
+- ✅ **Database Validation** - Schema constraints
+- ✅ **Security Testing** - XSS protection, input sanitization
+- ✅ **File Upload Testing** - Size, type, extension validation
+
+---
+
+## 🔧 Development
+
+### Project Structure
+```
+├── frontend/          # React application
+├── backend/           # Node.js/Express API
+├── docker-compose.yml # Container orchestration
+├── test-validation.js # Automated test runner
+└── manual-validation-test.html # Interactive testing
+```
+
+### Key Technologies
+- **Frontend**: React, Bootstrap, Axios
+- **Backend**: Node.js, Express, MongoDB, Mongoose
+- **Validation**: Custom validation middleware
+- **Security**: Input sanitization, XSS protection
+- **Testing**: Jest, Supertest, Manual testing suite

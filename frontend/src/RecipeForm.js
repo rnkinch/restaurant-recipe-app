@@ -7,6 +7,7 @@ import RecipeFormIngredients from './RecipeFormIngredients';
 import RecipeFormModal from './RecipeFormModal';
 import { getRecipeById, getPurveyors, getIngredients, createIngredient, createRecipe, updateRecipe, deleteRecipe } from './api';
 import { useNotification } from './NotificationContext';
+import { validateRecipe, validateIngredient, validateFileUpload, sanitizeInput } from './utils/validation';
 
 const RecipeForm = ({ refreshRecipes }) => {
   const { id } = useParams();
@@ -25,6 +26,7 @@ const RecipeForm = ({ refreshRecipes }) => {
     removeImage: false
   });
   const [error, setError] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
   const [previewImage, setPreviewImage] = useState(null);
   const [loading, setLoading] = useState(!!id);
   const [purveyors, setPurveyors] = useState([]);
@@ -124,7 +126,19 @@ const RecipeForm = ({ refreshRecipes }) => {
   }, [id]);
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const sanitizedValue = sanitizeInput(value);
+    
+    setFormData({ ...formData, [name]: sanitizedValue });
+    
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleCheckboxChange = (e, field) => {
@@ -139,8 +153,17 @@ const RecipeForm = ({ refreshRecipes }) => {
 
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
-      setFormData({ ...formData, image: e.target.files[0], removeImage: false });
-      setPreviewImage(URL.createObjectURL(e.target.files[0]));
+      const file = e.target.files[0];
+      const fileValidation = validateFileUpload(file);
+      
+      if (!fileValidation.isValid) {
+        setError(fileValidation.errors.join(', '));
+        return;
+      }
+      
+      setFormData({ ...formData, image: file, removeImage: false });
+      setPreviewImage(URL.createObjectURL(file));
+      setError(null);
     }
   };
 
@@ -174,8 +197,19 @@ const RecipeForm = ({ refreshRecipes }) => {
   };
 
   const handleNewIngredientSubmit = async (newIngredient) => {
+    // Validate ingredient data
+    const validation = validateIngredient(newIngredient);
+    if (!validation.isValid) {
+      throw new Error(Object.values(validation.errors).join(', '));
+    }
+    
     try {
-      const createdIngredient = await createIngredient(newIngredient.name, newIngredient.purveyor);
+      const sanitizedIngredient = {
+        name: sanitizeInput(newIngredient.name),
+        purveyor: newIngredient.purveyor
+      };
+      
+      const createdIngredient = await createIngredient(sanitizedIngredient.name, sanitizedIngredient.purveyor);
       setIngredientsList(prev => [...prev, {
         ...createdIngredient,
         _id: createdIngredient._id.toString(),
@@ -191,15 +225,15 @@ const RecipeForm = ({ refreshRecipes }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setValidationErrors({});
     setLoading(true);
 
     try {
-      // Validate ingredients
-      const invalidIngredients = formData.ingredients.some(
-        ing => !ing.ingredient || !ing.quantity.trim() || !ing.measure.trim()
-      );
-      if (invalidIngredients) {
-        setError('All ingredients must have a valid ingredient, quantity, and measure.');
+      // Comprehensive validation
+      const validation = validateRecipe(formData);
+      if (!validation.isValid) {
+        setValidationErrors(validation.errors);
+        setError('Please fix the validation errors below.');
         setLoading(false);
         return;
       }
@@ -320,6 +354,7 @@ const RecipeForm = ({ refreshRecipes }) => {
                 removeIngredient={removeIngredient}
                 showAddIngredientModal={showAddIngredientModal}
                 setShowAddIngredientModal={setShowAddIngredientModal}
+                validationErrors={validationErrors}
               />
             </Form.Group>
             <hr style={hrStyle} />
@@ -378,6 +413,7 @@ const RecipeForm = ({ refreshRecipes }) => {
               defaultImage={defaultImage}
               apiUrl={apiUrl}
               isRightColumn={true}
+              validationErrors={validationErrors}
               headerStyle={headerStyle}
               hrStyle={hrStyle}
             />

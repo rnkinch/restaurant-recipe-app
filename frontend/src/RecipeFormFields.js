@@ -15,7 +15,8 @@ const RecipeFormFields = ({
   excludeName = false,
   headerStyle,
   hrStyle,
-  isRightColumn = false
+  isRightColumn = false,
+  validationErrors = {}
 }) => {
   const allergensOptions = ['Gluten', 'Dairy', 'Nuts', 'Shellfish', 'Eggs', 'Soy', 'Fish'];
   const serviceTypesOptions = ['Brunch', 'Bar', 'Catering', 'Lunch', 'Dinner', 'Special'];
@@ -31,8 +32,14 @@ const RecipeFormFields = ({
               name="name"
               value={formData.name}
               onChange={handleInputChange}
+              isInvalid={!!validationErrors.name}
               required
             />
+            {validationErrors.name && (
+              <Form.Control.Feedback type="invalid">
+                {validationErrors.name}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
           <hr style={hrStyle} />
         </>
@@ -47,8 +54,14 @@ const RecipeFormFields = ({
               name="steps"
               value={formData.steps}
               onChange={handleInputChange}
+              isInvalid={!!validationErrors.steps}
               required
             />
+            {validationErrors.steps && (
+              <Form.Control.Feedback type="invalid">
+                {validationErrors.steps}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
           <hr style={hrStyle} />
           <Form.Group className="mb-3">
@@ -59,8 +72,14 @@ const RecipeFormFields = ({
               name="platingGuide"
               value={formData.platingGuide}
               onChange={handleInputChange}
+              isInvalid={!!validationErrors.platingGuide}
               required
             />
+            {validationErrors.platingGuide && (
+              <Form.Control.Feedback type="invalid">
+                {validationErrors.platingGuide}
+              </Form.Control.Feedback>
+            )}
           </Form.Group>
           <hr style={hrStyle} />
         </>

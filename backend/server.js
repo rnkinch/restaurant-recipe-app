@@ -18,6 +18,7 @@ const {
   securityLogger 
 } = require('./middleware/security');
 const { authenticateToken, requireAdmin, requireUser, requireEditPermission, requireReadOnly } = require('./middleware/auth');
+const { validateRecipe, validateIngredient, validatePurveyor, sanitizeInputs } = require('./middleware/validation');
 const { logRecipeChange, captureChanges, logRecipeUpdate, logUpdateResult } = require('./middleware/changelog');
 
 const app = express();
@@ -350,7 +351,7 @@ app.get('/purveyors', authenticateToken, requireReadOnly, async (req, res) => {
   }
 });
 
-app.post('/purveyors', authenticateToken, requireEditPermission, async (req, res) => {
+app.post('/purveyors', authenticateToken, requireEditPermission, sanitizeInputs, validatePurveyor, async (req, res) => {
   try {
     const purveyor = new Purveyor(req.body);
     await purveyor.save();
@@ -361,7 +362,7 @@ app.post('/purveyors', authenticateToken, requireEditPermission, async (req, res
   }
 });
 
-app.put('/purveyors/:id', authenticateToken, requireEditPermission, async (req, res) => {
+app.put('/purveyors/:id', authenticateToken, requireEditPermission, sanitizeInputs, validatePurveyor, async (req, res) => {
   try {
     const purveyor = await Purveyor.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!purveyor) return res.status(404).json({ error: 'Purveyor not found' });
@@ -394,7 +395,7 @@ app.get('/ingredients', authenticateToken, requireReadOnly, async (req, res) => 
   }
 });
 
-app.post('/ingredients', authenticateToken, requireEditPermission, async (req, res) => {
+app.post('/ingredients', authenticateToken, requireEditPermission, sanitizeInputs, validateIngredient, async (req, res) => {
   try {
     const ingredient = new Ingredient(req.body);
     await ingredient.save();
@@ -406,7 +407,7 @@ app.post('/ingredients', authenticateToken, requireEditPermission, async (req, r
   }
 });
 
-app.put('/ingredients/:id', authenticateToken, requireEditPermission, async (req, res) => {
+app.put('/ingredients/:id', authenticateToken, requireEditPermission, sanitizeInputs, validateIngredient, async (req, res) => {
   try {
     const ingredient = await Ingredient.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!ingredient) return res.status(404).json({ error: 'Ingredient not found' });
@@ -461,7 +462,7 @@ app.get('/recipes/:id', authenticateToken, requireReadOnly, async (req, res) => 
   }
 });
 
-app.post('/recipes', uploadLimiter, authenticateToken, requireEditPermission, upload.single('image'), validateFileUpload, logRecipeChange('created'), async (req, res) => {
+app.post('/recipes', uploadLimiter, authenticateToken, requireEditPermission, upload.single('image'), validateFileUpload, sanitizeInputs, validateRecipe, logRecipeChange('created'), async (req, res) => {
   try {
     const { name, steps, platingGuide, allergens, serviceTypes, active } = req.body;
     
@@ -493,7 +494,7 @@ app.post('/recipes', uploadLimiter, authenticateToken, requireEditPermission, up
   }
 });
 
-app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission, upload.single('image'), validateFileUpload, captureChanges, logRecipeUpdate, async (req, res) => {
+app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission, upload.single('image'), validateFileUpload, sanitizeInputs, validateRecipe, captureChanges, logRecipeUpdate, async (req, res) => {
   try {
     const { name, steps, platingGuide, allergens, serviceTypes, active, removeImage } = req.body;
     

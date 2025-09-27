@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation Test Suite</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .test-case { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 3px; }
+        .pass { color: green; font-weight: bold; }
+        .fail { color: red; font-weight: bold; }
+        .test-button { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .test-button:hover { background: #0056b3; }
+        .result { margin-top: 10px; padding: 10px; border-radius: 3px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; }
+        input, textarea, select { margin: 5px; padding: 5px; width: 200px; }
+        .form-group { margin: 10px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Manual Validation Test Suite</h1>
+    <p>This page allows you to manually test the validation system by filling out forms and checking the results.</p>
+
+    <div class="test-section">
+        <h2>📝 Recipe Form Validation Tests</h2>
+        
+        <div class="test-case">
+            <h3>Test 1: Empty Recipe Name</h3>
+            <p>Try submitting a recipe with an empty name field.</p>
+            <form id="test1-form">
+                <div class="form-group">
+                    <label>Recipe Name:</label>
+                    <input type="text" id="test1-name" value="" placeholder="Enter empty name">
+                </div>
+                <div class="form-group">
+                    <label>Steps:</label>
+                    <textarea id="test1-steps" placeholder="Enter valid steps">Valid steps that are long enough to pass validation</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Plating Guide:</label>
+                    <textarea id="test1-plating" placeholder="Enter valid plating guide">Valid plating guide that is long enough</textarea>
+                </div>
+                <button type="button" class="test-button" onclick="testRecipeValidation('test1')">Test Validation</button>
+                <div id="test1-result" class="result" style="display: none;"></div>
+            </form>
+        </div>
+
+        <div class="test-case">
+            <h3>Test 2: Name Too Short</h3>
+            <p>Try submitting a recipe with a name that's only 1 character.</p>
+            <form id="test2-form">
+                <div class="form-group">
+                    <label>Recipe Name:</label>
+                    <input type="text" id="test2-name" value="A" placeholder="Enter single character">
+                </div>
+                <div class="form-group">
+                    <label>Steps:</label>
+                    <textarea id="test2-steps" placeholder="Enter valid steps">Valid steps that are long enough to pass validation</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Plating Guide:</label>
+                    <textarea id="test2-plating" placeholder="Enter valid plating guide">Valid plating guide that is long enough</textarea>
+                </div>
+                <button type="button" class="test-button" onclick="testRecipeValidation('test2')">Test Validation</button>
+                <div id="test2-result" class="result" style="display: none;"></div>
+            </form>
+        </div>
+
+        <div class="test-case">
+            <h3>Test 3: Steps Too Short</h3>
+            <p>Try submitting a recipe with steps that are too short.</p>
+            <form id="test3-form">
+                <div class="form-group">
+                    <label>Recipe Name:</label>
+                    <input type="text" id="test3-name" value="Valid Recipe Name" placeholder="Enter valid name">
+                </div>
+                <div class="form-group">
+                    <label>Steps:</label>
+                    <textarea id="test3-steps" placeholder="Enter short steps">Short</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Plating Guide:</label>
+                    <textarea id="test3-plating" placeholder="Enter valid plating guide">Valid plating guide that is long enough</textarea>
+                </div>
+                <button type="button" class="test-button" onclick="testRecipeValidation('test3')">Test Validation</button>
+                <div id="test3-result" class="result" style="display: none;"></div>
+            </form>
+        </div>
+
+        <div class="test-case">
+            <h3>Test 4: Valid Recipe</h3>
+            <p>Try submitting a recipe with all valid data.</p>
+            <form id="test4-form">
+                <div class="form-group">
+                    <label>Recipe Name:</label>
+                    <input type="text" id="test4-name" value="Valid Recipe Name" placeholder="Enter valid name">
+                </div>
+                <div class="form-group">
+                    <label>Steps:</label>
+                    <textarea id="test4-steps" placeholder="Enter valid steps">Valid steps that are long enough to pass validation</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Plating Guide:</label>
+                    <textarea id="test4-plating" placeholder="Enter valid plating guide">Valid plating guide that is long enough</textarea>
+                </div>
+                <button type="button" class="test-button" onclick="testRecipeValidation('test4')">Test Validation</button>
+                <div id="test4-result" class="result" style="display: none;"></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Ingredient Validation Tests</h2>
+        
+        <div class="test-case">
+            <h3>Test 5: Empty Ingredient Name</h3>
+            <p>Try creating an ingredient with an empty name.</p>
+            <form id="test5-form">
+                <div class="form-group">
+                    <label>Ingredient Name:</label>
+                    <input type="text" id="test5-name" value="" placeholder="Enter empty name">
+                </div>
+                <div class="form-group">
+                    <label>Purveyor:</label>
+                    <select id="test5-purveyor">
+                        <option value="">Select a purveyor</option>
+                        <option value="valid-id">Test Purveyor</option>
+                    </select>
+                </div>
+                <button type="button" class="test-button" onclick="testIngredientValidation('test5')">Test Validation</button>
+                <div id="test5-result" class="result" style="display: none;"></div>
+            </form>
+        </div>
+
+        <div class="test-case">
+            <h3>Test 6: Valid Ingredient</h3>
+            <p>Try creating an ingredient with valid data.</p>
+            <form id="test6-form">
+                <div class="form-group">
+                    <label>Ingredient Name:</label>
+                    <input type="text" id="test6-name" value="Valid Ingredient Name" placeholder="Enter valid name">
+                </div>
+                <div class="form-group">
+                    <label>Purveyor:</label>
+                    <select id="test6-purveyor">
+                        <option value="">Select a purveyor</option>
+                        <option value="valid-id" selected>Test Purveyor</option>
+                    </select>
+                </div>
+                <button type="button" class="test-button" onclick="testIngredientValidation('test6')">Test Validation</button>
+                <div id="test6-result" class="result" style="display: none;"></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📁 File Upload Validation Tests</h2>
+        
+        <div class="test-case">
+            <h3>Test 7: File Upload</h3>
+            <p>Try uploading different types of files to test validation.</p>
+            <form id="test7-form">
+                <div class="form-group">
+                    <label>Upload File:</label>
+                    <input type="file" id="test7-file" accept="image/*">
+                </div>
+                <button type="button" class="test-button" onclick="testFileUpload('test7')">Test File Validation</button>
+                <div id="test7-result" class="result" style="display: none;"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Mock validation functions (you can replace these with actual imports)
+        function validateRecipe(formData) {
+            const errors = {};
+            
+            if (!formData.name || formData.name.trim() === '') {
+                errors.name = 'Recipe name is required';
+            } else if (formData.name.length < 2) {
+                errors.name = 'Recipe name must be at least 2 characters';
+            } else if (formData.name.length > 100) {
+                errors.name = 'Recipe name cannot exceed 100 characters';
+            }
+            
+            if (!formData.steps || formData.steps.trim() === '') {
+                errors.steps = 'Preparation steps are required';
+            } else if (formData.steps.length < 10) {
+                errors.steps = 'Preparation steps must be at least 10 characters';
+            }
+            
+            if (!formData.platingGuide || formData.platingGuide.trim() === '') {
+                errors.platingGuide = 'Plating guide is required';
+            } else if (formData.platingGuide.length < 5) {
+                errors.platingGuide = 'Plating guide must be at least 5 characters';
+            }
+            
+            return {
+                isValid: Object.keys(errors).length === 0,
+                errors
+            };
+        }
+        
+        function validateIngredient(formData) {
+            const errors = {};
+            
+            if (!formData.name || formData.name.trim() === '') {
+                errors.name = 'Ingredient name is required';
+            } else if (formData.name.length < 2) {
+                errors.name = 'Ingredient name must be at least 2 characters';
+            }
+            
+            if (!formData.purveyor) {
+                errors.purveyor = 'Please select a purveyor';
+            }
+            
+            return {
+                isValid: Object.keys(errors).length === 0,
+                errors
+            };
+        }
+        
+        function validateFileUpload(file) {
+            const errors = [];
+            
+            if (!file) {
+                return { isValid: true, errors: [] };
+            }
+            
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                errors.push('File size must be less than 5MB');
+            }
+            
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!allowedTypes.includes(file.type)) {
+                errors.push('Only JPEG and PNG images are allowed');
+            }
+            
+            return {
+                isValid: errors.length === 0,
+                errors
+            };
+        }
+        
+        function testRecipeValidation(testId) {
+            const name = document.getElementById(`${testId}-name`).value;
+            const steps = document.getElementById(`${testId}-steps`).value;
+            const platingGuide = document.getElementById(`${testId}-plating`).value;
+            
+            const formData = { name, steps, platingGuide, ingredients: [] };
+            const result = validateRecipe(formData);
+            
+            const resultDiv = document.getElementById(`${testId}-result`);
+            resultDiv.style.display = 'block';
+            
+            if (result.isValid) {
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = '<span class="pass">✅ PASS</span> - Recipe validation passed';
+            } else {
+                resultDiv.className = 'result error';
+                let errorHtml = '<span class="fail">❌ FAIL</span> - Validation errors:<ul>';
+                for (const [field, error] of Object.entries(result.errors)) {
+                    errorHtml += `<li><strong>${field}:</strong> ${error}</li>`;
+                }
+                errorHtml += '</ul>';
+                resultDiv.innerHTML = errorHtml;
+            }
+        }
+        
+        function testIngredientValidation(testId) {
+            const name = document.getElementById(`${testId}-name`).value;
+            const purveyor = document.getElementById(`${testId}-purveyor`).value;
+            
+            const formData = { name, purveyor };
+            const result = validateIngredient(formData);
+            
+            const resultDiv = document.getElementById(`${testId}-result`);
+            resultDiv.style.display = 'block';
+            
+            if (result.isValid) {
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = '<span class="pass">✅ PASS</span> - Ingredient validation passed';
+            } else {
+                resultDiv.className = 'result error';
+                let errorHtml = '<span class="fail">❌ FAIL</span> - Validation errors:<ul>';
+                for (const [field, error] of Object.entries(result.errors)) {
+                    errorHtml += `<li><strong>${field}:</strong> ${error}</li>`;
+                }
+                errorHtml += '</ul>';
+                resultDiv.innerHTML = errorHtml;
+            }
+        }
+        
+        function testFileUpload(testId) {
+            const fileInput = document.getElementById(`${testId}-file`);
+            const file = fileInput.files[0];
+            
+            const result = validateFileUpload(file);
+            
+            const resultDiv = document.getElementById(`${testId}-result`);
+            resultDiv.style.display = 'block';
+            
+            if (result.isValid) {
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = '<span class="pass">✅ PASS</span> - File validation passed';
+            } else {
+                resultDiv.className = 'result error';
+                let errorHtml = '<span class="fail">❌ FAIL</span> - Validation errors:<ul>';
+                result.errors.forEach(error => {
+                    errorHtml += `<li>${error}</li>`;
+                });
+                errorHtml += '</ul>';
+                resultDiv.innerHTML = errorHtml;
+            }
+        }
+    </script>
+</body>
+</html>

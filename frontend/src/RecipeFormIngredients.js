@@ -1,17 +1,17 @@
 // RecipeFormIngredients.js (With fix for issue b: removed feedback text, kept red border)
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Card, Row, Col } from 'react-bootstrap';
+import { Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
 
-const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeIngredient, showAddIngredientModal, setShowAddIngredientModal }) => {
+const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeIngredient, showAddIngredientModal, setShowAddIngredientModal, validationErrors = {} }) => {
   const measures = ['tsp', 'tbsp', 'cup', 'oz', 'fl oz', 'lb', 'g', 'kg', 'ml', 'l', 'pinch', 'dash', 'each', 'slice', 'whole'];
-  const [validationErrors, setValidationErrors] = useState(
+  const [localValidationErrors, setLocalValidationErrors] = useState(
     formData.ingredients.map(() => ({ quantity: '', measure: '' }))
   );
 
   useEffect(() => {
     console.log('formData.ingredients:', formData.ingredients);
     console.log('validationErrors:', validationErrors);
-    setValidationErrors(prev =>
+    setLocalValidationErrors(prev =>
       formData.ingredients.map((ing, index) => ({
         quantity: typeof ing.quantity !== 'string' || !ing.quantity.trim() ? 'Quantity is required' : '',
         measure: typeof ing.measure !== 'string' || !ing.measure.trim() ? 'Measure is required' : ''
@@ -27,7 +27,7 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
       return { ...prev, ingredients: newIngredients };
     });
 
-    setValidationErrors(prev => {
+    setLocalValidationErrors(prev => {
       const newErrors = [...prev];
       newErrors[index] = {
         ...newErrors[index],
@@ -45,6 +45,11 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
 
   return (
     <>
+      {validationErrors.ingredients && typeof validationErrors.ingredients === 'string' && (
+        <Alert variant="danger" className="mb-3">
+          {validationErrors.ingredients}
+        </Alert>
+      )}
       {formData.ingredients.map((ing, index) => (
         <Card key={index} className="mb-1" style={{ minHeight: '40px', padding: '4px', display: 'flex', alignItems: 'center' }}>
           <Card.Body style={{ padding: '4px', width: '100%' }}>
@@ -64,7 +69,7 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
                   placeholder="Quantity"
                   value={ing.quantity || ''}
                   onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
-                  isInvalid={!!validationErrors[index]?.quantity}
+                  isInvalid={!!(localValidationErrors[index]?.quantity || validationErrors.ingredients?.[index]?.quantity)}
                   style={{ height: '34px', fontSize: '14px' }}
                 />
               </Col>
@@ -73,7 +78,7 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
                   size="sm"
                   value={ing.measure || ''}
                   onChange={(e) => handleIngredientChange(index, 'measure', e.target.value)}
-                  isInvalid={!!validationErrors[index]?.measure}
+                  isInvalid={!!(localValidationErrors[index]?.measure || validationErrors.ingredients?.[index]?.measure)}
                   style={{ height: '34px', fontSize: '14px' }}
                 >
                   <option value="">Select Measure</option>
@@ -88,7 +93,7 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
                   size="sm"
                   onClick={() => {
                     removeIngredient(index);
-                    setValidationErrors(prev => prev.filter((_, i) => i !== index));
+                    setLocalValidationErrors(prev => prev.filter((_, i) => i !== index));
                   }}
                   style={{ height: '34px', padding: '0 8px', fontSize: '14px' }}
                 >
