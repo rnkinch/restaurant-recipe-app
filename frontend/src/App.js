@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
 import { Navbar, Container, Alert, NavDropdown, Row, Col, Nav, Button } from 'react-bootstrap';
 import RecipeList from './RecipeList';
 import RecipeDetail from './RecipeDetail';
@@ -22,7 +22,9 @@ import { NotificationProvider } from './NotificationContext';
 import { RoleProvider } from './RoleContext';
 import Navigation from './Navigation';
 
-function App() {
+// Component that can use useNavigate hook
+function AppContent() {
+  const navigate = useNavigate();
   const [recipes, setRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -88,6 +90,8 @@ function App() {
     setUser(getCurrentUser());
     refreshRecipes(true);
     refreshConfig();
+    // Navigate to main recipe list after successful login
+    navigate('/');
   };
 
   const handleLogout = () => {
@@ -138,64 +142,70 @@ function App() {
   return (
     <NotificationProvider>
       <RoleProvider user={user}>
-        <Router>
         <Navigation user={user} onLogout={handleLogout} config={config} />
-      <Container fluid>
-        <Row>
-          {config.showLeftNav && (
-            <Col md={2} className="bg-light p-0" style={{ minHeight: 'calc(100vh - 56px)', overflowY: 'auto' }}>
-              <h4>Recipe List</h4>
-              <Nav className="flex-column recipe-nav" style={{ fontSize: '0.84375rem' }}>
-                {recipes.map(recipe => (
-                  <Nav.Link
-                    key={recipe._id}
-                    as={Link}
-                    to={`/recipe/${recipe._id}`}
-                    className="d-flex align-items-center py-0 mb-1"
-                  >
-                    <span className={recipe.active ? 'text-success' : 'text-danger'} style={{ marginRight: '5px' }}>
-                      ●
-                    </span>
-                    {recipe.name}
-                  </Nav.Link>
-                ))}
-              </Nav>
+        <Container fluid>
+          <Row>
+            {config.showLeftNav && (
+              <Col md={2} className="bg-light p-0" style={{ minHeight: 'calc(100vh - 56px)', overflowY: 'auto' }}>
+                <h4>Recipe List</h4>
+                <Nav className="flex-column recipe-nav" style={{ fontSize: '0.84375rem' }}>
+                  {recipes.map(recipe => (
+                    <Nav.Link
+                      key={recipe._id}
+                      as={Link}
+                      to={`/recipe/${recipe._id}`}
+                      className="d-flex align-items-center py-0 mb-1"
+                    >
+                      <span className={recipe.active ? 'text-success' : 'text-danger'} style={{ marginRight: '5px' }}>
+                        ●
+                      </span>
+                      {recipe.name}
+                    </Nav.Link>
+                  ))}
+                </Nav>
+              </Col>
+            )}
+            <Col md={config.showLeftNav ? 10 : 12}>
+              <Container className="py-3">
+                {loading && <p>Loading...</p>}
+                {error && (
+                  <Alert variant="danger" dismissible onClose={() => setError(null)}>
+                    {error}
+                  </Alert>
+                )}
+                <Routes>
+                  <Route path="/" element={<RecipeList recipes={filteredRecipes} setRecipes={setRecipes} onSearch={handleSearch} />} />
+                  <Route path="/add" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
+                  <Route path="/edit/:id" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
+                  <Route path="/copy/:id" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
+                  <Route path="/edit-pdf-template" element={<PdfEditorWrapper />} />
+                  <Route path="/recipes/:id/preview-pdf" element={<PdfPreview />} />
+                  <Route path="/recipe/:id" element={<RecipeDetail refreshRecipes={refreshRecipes} />} />
+                  <Route path="/reports/active-ingredients" element={<ActiveIngredientsReport />} />
+                  <Route path="/reports/active-recipes" element={<ActiveRecipesReport />} />
+                  <Route path="/reports/inactive-recipes" element={<InactiveRecipesReport />} />
+                  <Route path="/reports/active-recipes-pdf" element={<ActiveRecipesPDFReport />} />
+                  <Route path="/reports/users" element={<UserReport />} />
+                  <Route path="/purveyors" element={<Purveyors />} />
+                  <Route path="/changelog" element={<ChangeLog />} />
+                  <Route path="/users" element={<UserManagement />} />
+                  <Route path="/config" element={<SetupConfig refreshConfig={refreshConfig} />} />
+                  <Route path="/bulk-upload" element={<BulkUpload />} />
+                </Routes>
+              </Container>
             </Col>
-          )}
-          <Col md={config.showLeftNav ? 10 : 12}>
-            <Container className="py-3">
-              {loading && <p>Loading...</p>}
-              {error && (
-                <Alert variant="danger" dismissible onClose={() => setError(null)}>
-                  {error}
-                </Alert>
-              )}
-              <Routes>
-                <Route path="/" element={<RecipeList recipes={filteredRecipes} setRecipes={setRecipes} onSearch={handleSearch} />} />
-                <Route path="/add" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
-                <Route path="/edit/:id" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
-                <Route path="/copy/:id" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
-                <Route path="/edit-pdf-template" element={<PdfEditorWrapper />} />
-                <Route path="/recipes/:id/preview-pdf" element={<PdfPreview />} />
-                <Route path="/recipe/:id" element={<RecipeDetail refreshRecipes={refreshRecipes} />} />
-                <Route path="/reports/active-ingredients" element={<ActiveIngredientsReport />} />
-                <Route path="/reports/active-recipes" element={<ActiveRecipesReport />} />
-                <Route path="/reports/inactive-recipes" element={<InactiveRecipesReport />} />
-                <Route path="/reports/active-recipes-pdf" element={<ActiveRecipesPDFReport />} />
-                <Route path="/reports/users" element={<UserReport />} />
-                <Route path="/purveyors" element={<Purveyors />} />
-                <Route path="/changelog" element={<ChangeLog />} />
-                <Route path="/users" element={<UserManagement />} />
-                <Route path="/config" element={<SetupConfig refreshConfig={refreshConfig} />} />
-                <Route path="/bulk-upload" element={<BulkUpload />} />
-              </Routes>
-            </Container>
-          </Col>
-        </Row>
-      </Container>
-      </Router>
+          </Row>
+        </Container>
       </RoleProvider>
     </NotificationProvider>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 
