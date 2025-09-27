@@ -20,21 +20,21 @@ const Navigation = ({ user, onLogout, config }) => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
-            <Nav.Link as={Link} to="/">Recipes</Nav.Link>
+            <Nav.Link as={Link} to="/">🍽️ Recipes</Nav.Link>
             
             {/* Purveyors - Show for all users */}
-            <NavDropdown title="Purveyors" id="purveyors-dropdown">
+            <NavDropdown title="🏪 Purveyors" id="purveyors-dropdown">
               <NavDropdown.Item as={Link} to="/purveyors">
-                {isReadOnly ? 'View Purveyors' : 'Manage Purveyors'}
+                {isReadOnly ? '👁️ View Purveyors' : '⚙️ Manage Purveyors'}
               </NavDropdown.Item>
             </NavDropdown>
             
             {/* Reports - Show for all users */}
-            <NavDropdown title="Reports" id="reports-dropdown">
-              <NavDropdown.Item as={Link} to="/reports/active-ingredients">Active Ingredients</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/reports/active-recipes">Active Recipes</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/reports/inactive-recipes">Inactive Recipes</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/reports/active-recipes-pdf">Active Recipes PDF</NavDropdown.Item>
+            <NavDropdown title="📊 Reports" id="reports-dropdown">
+              <NavDropdown.Item as={Link} to="/reports/active-ingredients">🥕 Active Ingredients</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/reports/active-recipes">✅ Active Recipes</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/reports/inactive-recipes">❌ Inactive Recipes</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/reports/active-recipes-pdf">📄 Active Recipes PDF</NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item as={Link} to="/changelog">📋 Change Log</NavDropdown.Item>
               {isAdmin && (
@@ -44,9 +44,9 @@ const Navigation = ({ user, onLogout, config }) => {
             
             {/* Setups - Admin only */}
             {isAdmin && (
-              <NavDropdown title="Setups" id="setups-dropdown">
-                <NavDropdown.Item as={Link} to="/config">Configuration</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/edit-pdf-template">PDF Template</NavDropdown.Item>
+              <NavDropdown title="⚙️ Setups" id="setups-dropdown">
+                <NavDropdown.Item as={Link} to="/config">🔧 Configuration</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/edit-pdf-template">📝 PDF Template</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/bulk-upload">📤 Bulk Upload</NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item as={Link} to="/users">👥 User Management</NavDropdown.Item>
@@ -54,13 +54,13 @@ const Navigation = ({ user, onLogout, config }) => {
             )}
             
             {/* User dropdown */}
-            <NavDropdown title={`Welcome, ${user?.username || 'User'}`} id="user-dropdown">
+            <NavDropdown title={`👤 Welcome, ${user?.username || 'User'}`} id="user-dropdown">
               {isReadOnly && (
                 <NavDropdown.Item disabled>
-                  <small className="text-muted">Read-Only Access</small>
+                  <small className="text-muted">🔒 Read-Only Access</small>
                 </NavDropdown.Item>
               )}
-              <NavDropdown.Item onClick={onLogout}>Logout</NavDropdown.Item>
+              <NavDropdown.Item onClick={onLogout}>🚪 Logout</NavDropdown.Item>
             </NavDropdown>
           </Nav>
         </Navbar.Collapse>
