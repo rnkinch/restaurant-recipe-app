@@ -1,27 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PdfEditor from './PdfEditor';
+import { getRecipes } from './api';
 
 const PdfEditorWrapper = () => {
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
 
   useEffect(() => {
     const fetchSampleRecipe = async () => {
       try {
-        const res = await fetch(`${apiUrl}/recipes?t=${Date.now()}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-          },
-        });
-        if (!res.ok) {
-          throw new Error(`Recipe fetch failed: ${res.status} - ${res.statusText}`);
-        }
-        const data = await res.json();
+        const data = await getRecipes();
         console.log('Fetched recipes:', JSON.stringify(data, null, 2));
         if (data && Array.isArray(data) && data.length > 0) {
           setRecipe(data[0]); // Use the first recipe as a sample
@@ -51,7 +40,7 @@ const PdfEditorWrapper = () => {
     };
 
     fetchSampleRecipe();
-  }, [apiUrl]);
+  }, []);
 
   const handleBack = () => {
     navigate('/');
