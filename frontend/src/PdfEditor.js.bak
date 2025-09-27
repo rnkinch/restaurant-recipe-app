@@ -140,8 +140,8 @@ const Field = ({ field, index, setFields, selectedField, setSelectedField, selec
 };
 
 const PdfEditor = ({ recipe }) => {
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.176.1:8080';
-  const frontendUrl = process.env.REACT_APP_FRONTEND_URL || 'http://172.30.176.1:3000';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
+  const frontendUrl = process.env.REACT_APP_FRONTEND_URL || 'http://192.168.68.129:3000';
   const [fields, setFields] = useState([]);
   const [selectedField, setSelectedField] = useState(null);
   const [selectedFields, setSelectedFields] = useState(new Set());

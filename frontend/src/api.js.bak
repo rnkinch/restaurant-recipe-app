@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.176.1:8080';
+const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
 
 export const getRecipes = async (all = true) => {
   const query = all ? '' : '?active=true';

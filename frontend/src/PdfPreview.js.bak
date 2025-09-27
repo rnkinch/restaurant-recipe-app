@@ -32,8 +32,8 @@ const styles = StyleSheet.create({
 export const PdfPreview = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.176.1:8080';
-  const frontendUrl = process.env.REACT_APP_FRONTEND_URL || 'http://172.30.176.1:3000';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
+  const frontendUrl = process.env.REACT_APP_FRONTEND_URL || 'http://192.168.68.129:3000';
   const [fields, setFields] = useState([]);
   const [recipe, setRecipe] = useState(null);
   const [imageError, setImageError] = useState(null);

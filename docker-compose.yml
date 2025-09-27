@@ -10,6 +10,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - recipe-app-network
+
   init-backend:
     image: node:20-alpine
     user: "0:0"
@@ -26,10 +29,13 @@ services:
       - uploads:/app/uploads
     depends_on:
       - mongo-container
+    networks:
+      - recipe-app-network
+
   backend-container:
     build: ./backend
     ports:
-      - "0.0.0.0:5000:5000"
+      - "0.0.0.0:8080:8080"  # Changed from 5000 to 8080
     depends_on:
       init-backend:
         condition: service_completed_successfully
@@ -37,23 +43,29 @@ services:
         condition: service_healthy
     environment:
       - MONGO_URI=mongodb://mongo-container:27017/recipeDB
+      - PORT=8080
+      - NODE_ENV=production
     volumes:
       - uploads:/app/uploads
+    networks:
+      - recipe-app-network
+
   frontend-container:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        REACT_APP_API_URL: http://192.168.68.129:5000
+        REACT_APP_API_URL: http://172.30.176.1:8080  # Updated to new backend port
     ports:
       - "0.0.0.0:3000:3000"
     environment:
-      - REACT_APP_API_URL=http://192.168.68.129:5000
+      - REACT_APP_API_URL=http://172.30.176.1:8080  # Updated to new backend port
     depends_on:
       - backend-container
+    networks:
+      - recipe-app-network
 networks:
-  default:
-    name: recipe-app-network
+  recipe-app-network:
     driver: bridge
 volumes:
   mongo-data:

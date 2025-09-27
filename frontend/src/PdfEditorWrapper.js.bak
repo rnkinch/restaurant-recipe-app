@@ -5,7 +5,7 @@ import PdfEditor from './PdfEditor';
 const PdfEditorWrapper = () => {
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.176.1:8080';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
 
   useEffect(() => {
     const fetchSampleRecipe = async () => {

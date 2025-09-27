@@ -6,7 +6,7 @@ import { deleteRecipe, getRecipes } from './api';
 const RecipeList = ({ recipes, setRecipes, onSearch }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showActiveOnly, setShowActiveOnly] = useState(false);
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.176.1:8080';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
   const defaultImage = '/default_image.png';
   const fallbackImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
   let validDefaultImage = defaultImage;
