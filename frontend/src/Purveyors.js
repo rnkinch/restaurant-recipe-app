@@ -3,9 +3,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button, Container, Alert, Form, Modal, Spinner, Row, Col } from 'react-bootstrap';
 import { getPurveyors, createPurveyor, updatePurveyor, deletePurveyor, createIngredient, deleteIngredient, checkIngredientUsage, getIngredients, updateIngredient } from './api';
 import { useNotification } from './NotificationContext';
+import { useRole } from './RoleContext';
 
 const Purveyors = () => {
   const { showError, showSuccess, confirm } = useNotification();
+  const { canEdit } = useRole();
   const [purveyors, setPurveyors] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [error, setError] = useState(null);
@@ -195,9 +197,11 @@ const Purveyors = () => {
     <Container className="py-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h1>Purveyors</h1>
-        <Button variant="primary" size="sm" onClick={() => setShowAddPurveyorModal(true)}>
-          Add Purveyor
-        </Button>
+        {canEdit && (
+          <Button variant="primary" size="sm" onClick={() => setShowAddPurveyorModal(true)}>
+            Add Purveyor
+          </Button>
+        )}
       </div>
       <Form.Group className="mb-3">
         <Form.Control
@@ -215,26 +219,28 @@ const Purveyors = () => {
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center">
                   <Card.Title>{purveyor.name}</Card.Title>
-                  <div>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => {
-                        setEditPurveyor({ id: purveyor._id, name: purveyor.name });
-                        setShowEditPurveyorModal(true);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleDeletePurveyor(purveyor._id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
+                  {canEdit && (
+                    <div>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => {
+                          setEditPurveyor({ id: purveyor._id, name: purveyor.name });
+                          setShowEditPurveyorModal(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDeletePurveyor(purveyor._id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <hr />
                 <h6>Ingredients</h6>
@@ -243,47 +249,51 @@ const Purveyors = () => {
                     {purveyor.ingredients.map(ingredient => (
                       <li key={ingredient._id} className="d-flex justify-content-between align-items-center">
                         {ingredient.name}
-                        <div>
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            className="me-2"
-                            onClick={() => {
-                              setEditIngredient({
-                                id: ingredient._id,
-                                name: ingredient.name,
-                                purveyorId: ingredient.purveyor?._id || ''
-                              });
-                              setShowEditIngredientModal(true);
-                            }}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline-danger"
-                            size="sm"
-                            onClick={() => handleDeleteIngredient(ingredient._id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                        {canEdit && (
+                          <div>
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              className="me-2"
+                              onClick={() => {
+                                setEditIngredient({
+                                  id: ingredient._id,
+                                  name: ingredient.name,
+                                  purveyorId: ingredient.purveyor?._id || ''
+                                });
+                                setShowEditIngredientModal(true);
+                              }}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => handleDeleteIngredient(ingredient._id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>
                 ) : (
                   <p>No ingredients</p>
                 )}
-                <Button
-                  variant="outline-primary"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedPurveyorId(purveyor._id);
-                    setNewIngredient({ name: '', purveyorId: purveyor._id });
-                    setShowAddIngredientModal(true);
-                  }}
-                >
-                  Add Ingredient
-                </Button>
+                {canEdit && (
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedPurveyorId(purveyor._id);
+                      setNewIngredient({ name: '', purveyorId: purveyor._id });
+                      setShowAddIngredientModal(true);
+                    }}
+                  >
+                    Add Ingredient
+                  </Button>
+                )}
               </Card.Body>
             </Card>
           </Col>

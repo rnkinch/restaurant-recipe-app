@@ -13,8 +13,13 @@ import InactiveRecipesReport from './InactiveRecipesReport';
 import ActiveIngredientsReport from './ActiveIngredientsReport';
 import ActiveRecipesPDFReport from './ActiveRecipesPDFReport';
 import Login from './Login';
+import ChangeLog from './ChangeLog';
+import UserManagement from './UserManagement';
+import UserReport from './UserReport';
 import { getRecipes, getConfig, isAuthenticated, getCurrentUser, logout } from './api';
 import { NotificationProvider } from './NotificationContext';
+import { RoleProvider } from './RoleContext';
+import Navigation from './Navigation';
 
 function App() {
   const [recipes, setRecipes] = useState([]);
@@ -127,46 +132,9 @@ function App() {
 
   return (
     <NotificationProvider>
-      <Router>
-      <Navbar bg="light" expand="lg" className="mb-3 shadow-sm">
-        <Container fluid>
-          <Navbar.Brand as={Link} to="/">
-            <img
-              src={`${process.env.REACT_APP_API_URL}/uploads/logo.png?t=${Date.now()}`}
-              alt="Logo"
-              style={{ height: '24px', marginRight: '8px', verticalAlign: 'middle' }}
-              onError={(e) => {
-                console.error('Navbar logo failed to load:', e.target.src);
-                e.target.style.display = 'none';
-              }}
-              onLoad={() => console.log('Navbar logo loaded successfully')}
-            />
-            {config.appName}
-          </Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="ms-auto">
-              <Nav.Link as={Link} to="/">Recipes</Nav.Link>
-              <NavDropdown title="Purveyors" id="purveyors-dropdown">
-                <NavDropdown.Item as={Link} to="/purveyors">Manage Purveyors</NavDropdown.Item>
-              </NavDropdown>
-              <NavDropdown title="Reports" id="reports-dropdown">
-                <NavDropdown.Item as={Link} to="/reports/active-ingredients">Active Ingredients</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/reports/active-recipes">Active Recipes</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/reports/inactive-recipes">Inactive Recipes</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/reports/active-recipes-pdf">Active Recipes PDF</NavDropdown.Item>
-              </NavDropdown>
-              <NavDropdown title="Setups" id="setups-dropdown">
-                <NavDropdown.Item as={Link} to="/config">Configuration</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/edit-pdf-template">PDF Template</NavDropdown.Item>
-              </NavDropdown>
-              <NavDropdown title={`Welcome, ${user?.username || 'User'}`} id="user-dropdown">
-                <NavDropdown.Item onClick={handleLogout}>Logout</NavDropdown.Item>
-              </NavDropdown>
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
+      <RoleProvider user={user}>
+        <Router>
+      <Navigation user={user} onLogout={handleLogout} />
       <Container fluid>
         <Row>
           {config.showLeftNav && (
@@ -209,7 +177,10 @@ function App() {
                 <Route path="/reports/active-recipes" element={<ActiveRecipesReport />} />
                 <Route path="/reports/inactive-recipes" element={<InactiveRecipesReport />} />
                 <Route path="/reports/active-recipes-pdf" element={<ActiveRecipesPDFReport />} />
+                <Route path="/reports/users" element={<UserReport />} />
                 <Route path="/purveyors" element={<Purveyors />} />
+                <Route path="/changelog" element={<ChangeLog />} />
+                <Route path="/users" element={<UserManagement />} />
                 <Route path="/config" element={<SetupConfig refreshConfig={refreshConfig} />} />
               </Routes>
             </Container>
@@ -217,6 +188,7 @@ function App() {
         </Row>
       </Container>
       </Router>
+      </RoleProvider>
     </NotificationProvider>
   );
 }

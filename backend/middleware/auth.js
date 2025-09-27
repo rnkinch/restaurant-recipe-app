@@ -1,20 +1,8 @@
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
-
-// User schema for authentication
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true, trim: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['admin', 'user'], default: 'user' },
-  isActive: { type: Boolean, default: true },
-  lastLogin: { type: Date },
-  createdAt: { type: Date, default: Date.now }
-});
-
-const User = mongoose.model('User', userSchema);
+const User = require('../models/User');
 
 // Authentication middleware
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -22,13 +10,26 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ error: 'Access token required' });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Invalid or expired token' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    
+    // Fetch current user data to check if still active
+    const user = await User.findById(decoded.userId);
+    if (!user || !user.isActive) {
+      return res.status(403).json({ error: 'User account is inactive or deleted' });
     }
-    req.user = user;
+    
+    req.user = {
+      userId: user._id,
+      username: user.username,
+      role: user.role,
+      isActive: user.isActive
+    };
+    
     next();
-  });
+  } catch (err) {
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
 };
 
 // Authorization middleware
@@ -52,10 +53,45 @@ const requireAdmin = requireRole(['admin']);
 // User or Admin middleware
 const requireUser = requireRole(['user', 'admin']);
 
+// Read-only access middleware (for viewing only)
+const requireReadOnly = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  // Allow read-only access for all authenticated users
+  next();
+};
+
+// Edit permission middleware (for creating/updating/deleting)
+const requireEditPermission = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  // Only allow editing for active users with user or admin role (exclude readonly)
+  if (!req.user.isActive || req.user.role === 'readonly') {
+    return res.status(403).json({ 
+      error: 'Edit permission denied. Read-only users cannot modify data.' 
+    });
+  }
+  
+  // Allow editing for user and admin roles
+  if (req.user.role !== 'user' && req.user.role !== 'admin') {
+    return res.status(403).json({ 
+      error: 'Edit permission denied. Contact administrator for access.' 
+    });
+  }
+  
+  next();
+};
+
 module.exports = {
   User,
   authenticateToken,
   requireAdmin,
   requireUser,
-  requireRole
+  requireRole,
+  requireReadOnly,
+  requireEditPermission
 };

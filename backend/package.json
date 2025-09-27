@@ -23,6 +23,7 @@
     "mongoose": "^8.18.0",
     "multer": "^2.0.2",
     "node-fetch": "^2.7.0",
+    "node-schedule": "^2.1.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "xss-clean": "^0.1.4"

@@ -3,11 +3,13 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button, Row, Col, Alert, Card, Container, Spinner } from 'react-bootstrap';
 import { getRecipeById, deleteRecipe } from './api';
 import { useNotification } from './NotificationContext';
+import { useRole } from './RoleContext';
 
 const RecipeDetail = ({ refreshRecipes }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { confirm } = useNotification();
+  const { canEdit } = useRole();
   const [recipe, setRecipe] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -153,15 +155,19 @@ const RecipeDetail = ({ refreshRecipes }) => {
         </Col>
       </Row>
       <div className="d-flex justify-content-start mt-3">
-        <Button variant="outline-primary" size="sm" as={Link} to={`/edit/${id}`} className="me-2">
-          Edit
-        </Button>
-        <Button variant="outline-primary" size="sm" as={Link} to={`/copy/${id}`} className="me-2">
-          Copy
-        </Button>
-        <Button variant="outline-danger" size="sm" onClick={handleDelete} className="me-2">
-          Delete
-        </Button>
+        {canEdit && (
+          <>
+            <Button variant="outline-primary" size="sm" as={Link} to={`/edit/${id}`} className="me-2">
+              Edit
+            </Button>
+            <Button variant="outline-primary" size="sm" as={Link} to={`/copy/${id}`} className="me-2">
+              Copy
+            </Button>
+            <Button variant="outline-danger" size="sm" onClick={handleDelete} className="me-2">
+              Delete
+            </Button>
+          </>
+        )}
         <Button
           variant="outline-primary"
           size="sm"

@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { Button, Card, Form, InputGroup, Row, Col, Container } from 'react-bootstrap';
 import { deleteRecipe, getRecipes } from './api';
 import { useNotification } from './NotificationContext';
+import { useRole } from './RoleContext';
 
 const RecipeList = ({ recipes, setRecipes, onSearch }) => {
   const { showError, confirm } = useNotification();
+  const { canEdit } = useRole();
   const [searchQuery, setSearchQuery] = useState('');
   const [showActiveOnly, setShowActiveOnly] = useState(false);
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
@@ -125,11 +127,13 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
     <Container className="py-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h1>Recipes</h1>
-        <div>
-          <Button variant="primary" size="sm" as={Link} to="/add" className="me-2">
-            Add New Recipe
-          </Button>
-        </div>
+        {canEdit && (
+          <div>
+            <Button variant="primary" size="sm" as={Link} to="/add" className="me-2">
+              Add New Recipe
+            </Button>
+          </div>
+        )}
       </div>
       <div className="mb-3">
         <InputGroup>
@@ -177,31 +181,35 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
                       >
                         View
                       </Button>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        as={Link}
-                        to={`/edit/${recipe._id}`}
-                        className="me-2"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        as={Link}
-                        to={`/copy/${recipe._id}`}
-                        className="me-2"
-                      >
-                        Copy
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(recipe._id)}
-                      >
-                        Delete
-                      </Button>
+                      {canEdit && (
+                        <>
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            as={Link}
+                            to={`/edit/${recipe._id}`}
+                            className="me-2"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            as={Link}
+                            to={`/copy/${recipe._id}`}
+                            className="me-2"
+                          >
+                            Copy
+                          </Button>
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => handleDelete(recipe._id)}
+                          >
+                            Delete
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </Card.Body>
                 </Card>

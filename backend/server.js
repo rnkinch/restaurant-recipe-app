@@ -17,7 +17,8 @@ const {
   validateFileUpload, 
   securityLogger 
 } = require('./middleware/security');
-const { authenticateToken, requireAdmin, requireUser } = require('./middleware/auth');
+const { authenticateToken, requireAdmin, requireUser, requireEditPermission, requireReadOnly } = require('./middleware/auth');
+const { logRecipeChange, logRecipeView, captureChanges, logRecipeUpdate, logUpdateResult } = require('./middleware/changelog');
 
 const app = express();
 // Secure CORS configuration
@@ -249,7 +250,8 @@ app.post('/auth/login', authLimiter, async (req, res) => {
       user: { 
         id: user._id, 
         username: user.username, 
-        role: user.role 
+        role: user.role,
+        isActive: user.isActive
       } 
     });
   } catch (err) {
@@ -337,7 +339,7 @@ app.get('/api/status', (req, res) => {
 });
 
 // Purveyors routes
-app.get('/purveyors', authenticateToken, requireUser, async (req, res) => {
+app.get('/purveyors', authenticateToken, requireReadOnly, async (req, res) => {
   try {
     const purveyors = await Purveyor.find().sort({ name: 1 });
     res.json(purveyors);
@@ -381,7 +383,7 @@ app.delete('/purveyors/:id', authenticateToken, requireAdmin, async (req, res) =
 });
 
 // Ingredients routes
-app.get('/ingredients', authenticateToken, requireUser, async (req, res) => {
+app.get('/ingredients', authenticateToken, requireReadOnly, async (req, res) => {
   try {
     const ingredients = await Ingredient.find().populate('purveyor').sort({ name: 1 });
     res.json(ingredients);
@@ -427,7 +429,7 @@ app.delete('/ingredients/:id', authenticateToken, requireAdmin, async (req, res)
 });
 
 // Recipes routes
-app.get('/recipes', authenticateToken, requireUser, async (req, res) => {
+app.get('/recipes', authenticateToken, requireReadOnly, async (req, res) => {
   try {
     const { ingredient, active } = req.query;
     const query = {};
@@ -444,7 +446,7 @@ app.get('/recipes', authenticateToken, requireUser, async (req, res) => {
   }
 });
 
-app.get('/recipes/:id', authenticateToken, requireUser, async (req, res) => {
+app.get('/recipes/:id', authenticateToken, requireReadOnly, logRecipeView, async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id).populate({
       path: 'ingredients.ingredient',
@@ -458,7 +460,7 @@ app.get('/recipes/:id', authenticateToken, requireUser, async (req, res) => {
   }
 });
 
-app.post('/recipes', uploadLimiter, authenticateToken, requireAdmin, upload.single('image'), validateFileUpload, async (req, res) => {
+app.post('/recipes', uploadLimiter, authenticateToken, requireEditPermission, upload.single('image'), validateFileUpload, logRecipeChange('created'), async (req, res) => {
   try {
     const { name, steps, platingGuide, allergens, serviceTypes, active } = req.body;
     
@@ -490,7 +492,7 @@ app.post('/recipes', uploadLimiter, authenticateToken, requireAdmin, upload.sing
   }
 });
 
-app.put('/recipes/:id', uploadLimiter, authenticateToken, requireAdmin, upload.single('image'), validateFileUpload, async (req, res) => {
+app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission, upload.single('image'), validateFileUpload, captureChanges, logRecipeUpdate, async (req, res) => {
   try {
     const { name, steps, platingGuide, allergens, serviceTypes, active, removeImage } = req.body;
     
@@ -517,6 +519,10 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireAdmin, upload.s
       path: 'ingredients.ingredient',
       populate: { path: 'purveyor' }
     });
+    
+    // Log the update after successful operation
+    await logUpdateResult(req, res, () => {});
+    
     res.json(populatedRecipe);
   } catch (err) {
     console.error('Update recipe error:', err.message);
@@ -524,10 +530,27 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireAdmin, upload.s
   }
 });
 
-app.delete('/recipes/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.delete('/recipes/:id', authenticateToken, requireEditPermission, async (req, res) => {
   try {
-    const recipe = await Recipe.findByIdAndDelete(req.params.id);
+    // First, get the recipe to capture its name before deletion
+    const recipe = await Recipe.findById(req.params.id);
     if (!recipe) return res.status(404).json({ error: 'Recipe not found' });
+    
+    // Log the deletion with the recipe name
+    const ChangeLog = require('./models/ChangeLog');
+    await ChangeLog.create({
+      user: req.user.userId || req.user._id,
+      username: req.user.username,
+      recipe: req.params.id,
+      recipeName: recipe.name,
+      action: 'deleted',
+      ipAddress: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('User-Agent')
+    });
+    
+    // Now delete the recipe
+    await Recipe.findByIdAndDelete(req.params.id);
+    
     if (recipe.image) {
       const imagePath = path.join(uploadsDir, path.basename(recipe.image));
       fs.unlink(imagePath, (err) => {
@@ -544,9 +567,32 @@ app.delete('/recipes/:id', authenticateToken, requireAdmin, async (req, res) => 
 const templateRoutes = require('./routes/templates');
 app.use('/templates', templateRoutes);
 
+// Change log routes
+const changelogRoutes = require('./routes/changelog');
+app.use('/api/changelog', changelogRoutes);
+
+// User management routes
+const userRoutes = require('./routes/users');
+app.use('/api/users', userRoutes);
+
+// Schedule cleanup of old change logs (runs daily at 2 AM)
+const schedule = require('node-schedule');
+const ChangeLog = require('./models/ChangeLog');
+
+// Clean up old change logs daily at 2 AM
+schedule.scheduleJob('0 2 * * *', async () => {
+  try {
+    console.log('Running scheduled change log cleanup...');
+    await ChangeLog.cleanupOldLogs();
+  } catch (error) {
+    console.error('Error during scheduled cleanup:', error);
+  }
+});
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT} at ${new Date().toISOString()}`);
   console.log(`Backend API available at: http://localhost:${PORT}`);
   console.log(`Backend API available on network at: http://[YOUR_IP]:${PORT}`);
+  console.log('📋 Change log system initialized with 14-day retention policy');
 });

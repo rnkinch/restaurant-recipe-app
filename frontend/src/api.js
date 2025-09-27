@@ -168,3 +168,148 @@ export const getPdfTemplate = async () => {
     throw err;
   }
 };
+
+// Change Log API functions
+export const getChangeLogs = async (params = {}) => {
+  try {
+    const response = await api.get('/api/changelog', { params });
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching change logs:', err);
+    throw err;
+  }
+};
+
+export const getUserChangeLogs = async (userId, params = {}) => {
+  try {
+    const response = await api.get(`/api/changelog/user/${userId}`, { params });
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching user change logs:', err);
+    throw err;
+  }
+};
+
+export const getRecipeChangeLogs = async (recipeId, params = {}) => {
+  try {
+    const response = await api.get(`/api/changelog/recipe/${recipeId}`, { params });
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching recipe change logs:', err);
+    throw err;
+  }
+};
+
+export const getMyChangeLogs = async (params = {}) => {
+  try {
+    const response = await api.get('/api/changelog/my-logs', { params });
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching my change logs:', err);
+    throw err;
+  }
+};
+
+export const getChangeLogStats = async (params = {}) => {
+  try {
+    const response = await api.get('/api/changelog/stats', { params });
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching change log stats:', err);
+    throw err;
+  }
+};
+
+export const cleanupChangeLogs = async () => {
+  try {
+    const response = await api.delete('/api/changelog/cleanup');
+    return response.data;
+  } catch (err) {
+    console.error('Error cleaning up change logs:', err);
+    throw err;
+  }
+};
+
+export const exportChangeLogs = async (params = {}) => {
+  try {
+    const response = await api.get('/api/changelog/export', { 
+      params,
+      responseType: 'blob'
+    });
+    return response.data;
+  } catch (err) {
+    console.error('Error exporting change logs:', err);
+    throw err;
+  }
+};
+
+// User Management API functions
+export const getUsers = async () => {
+  try {
+    const response = await api.get('/api/users');
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    throw err;
+  }
+};
+
+export const getUserReport = async () => {
+  try {
+    const response = await api.get('/api/users/report');
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching user report:', err);
+    throw err;
+  }
+};
+
+export const createUser = async (userData) => {
+  try {
+    const response = await api.post('/api/users', userData);
+    return response.data;
+  } catch (err) {
+    console.error('Error creating user:', err);
+    throw err;
+  }
+};
+
+export const updateUser = async (userId, userData) => {
+  try {
+    const response = await api.put(`/api/users/${userId}`, userData);
+    return response.data;
+  } catch (err) {
+    console.error('Error updating user:', err);
+    throw err;
+  }
+};
+
+export const deleteUser = async (userId) => {
+  try {
+    const response = await api.delete(`/api/users/${userId}`);
+    return response.data;
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    throw err;
+  }
+};
+
+export const getMyProfile = async () => {
+  try {
+    const response = await api.get('/api/users/my-profile');
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching user profile:', err);
+    throw err;
+  }
+};
+
+export const updateMyProfile = async (profileData) => {
+  try {
+    const response = await api.put('/api/users/my-profile', profileData);
+    return response.data;
+  } catch (err) {
+    console.error('Error updating user profile:', err);
+    throw err;
+  }
+};
