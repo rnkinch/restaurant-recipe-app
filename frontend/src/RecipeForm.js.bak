@@ -12,7 +12,7 @@ const RecipeForm = ({ refreshRecipes }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { confirm } = useNotification();
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.184.138:8080';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
   const [formData, setFormData] = useState({
     name: '',
     ingredients: [{ ingredient: '', quantity: '', measure: '', purveyor: null }],
@@ -41,9 +41,9 @@ const RecipeForm = ({ refreshRecipes }) => {
     const checkImage = () => {
       return new Promise((resolve) => {
         const img = new Image();
-        img.onload = () => resolve(`http://172.30.184.138:3000${defaultImage}`);
+        img.onload = () => resolve(`http://192.168.68.129:3000${defaultImage}`);
         img.onerror = () => resolve(fallbackImage);
-        img.src = `http://172.30.184.138:3000${defaultImage}`;
+        img.src = `http://192.168.68.129:3000${defaultImage}`;
       });
     };
 

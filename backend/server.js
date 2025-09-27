@@ -25,7 +25,8 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
-  'http://192.168.68.129:3000', // Your specific IP from docker-compose
+  'http://192.168.68.129:3000', // Your Windows host IP
+  'http://172.30.184.138:3000', // Your WSL local IP
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   process.env.FRONTEND_URL || 'http://localhost:3000'
