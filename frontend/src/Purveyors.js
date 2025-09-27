@@ -193,6 +193,13 @@ const Purveyors = () => {
 
   if (loading) return <Spinner animation="border" />;
 
+  // Calculate stats
+  const totalPurveyors = purveyors.length;
+  const totalIngredients = ingredients.length;
+  const purveyorsWithIngredients = purveyors.filter(p => p.ingredients && p.ingredients.length > 0).length;
+  const purveyorsWithoutIngredients = purveyors.filter(p => !p.ingredients || p.ingredients.length === 0).length;
+  const avgIngredientsPerPurveyor = totalPurveyors > 0 ? Math.round(totalIngredients / totalPurveyors) : 0;
+
   return (
     <Container className="py-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -202,6 +209,58 @@ const Purveyors = () => {
             Add Purveyor
           </Button>
         )}
+      </div>
+
+      {/* Stats Cards */}
+      <div className="row mb-4">
+        <div className="col-md-2">
+          <div className="card text-center bg-primary text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{totalPurveyors}</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>Total Purveyors</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-2">
+          <div className="card text-center bg-success text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{totalIngredients}</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>Total Ingredients</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-2">
+          <div className="card text-center bg-info text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{purveyorsWithIngredients}</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>With Ingredients</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-2">
+          <div className="card text-center bg-warning text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{purveyorsWithoutIngredients}</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>Without Ingredients</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-2">
+          <div className="card text-center bg-secondary text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{avgIngredientsPerPurveyor}</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>Avg Ingredients</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-2">
+          <div className="card text-center bg-dark text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{Math.round((purveyorsWithIngredients / totalPurveyors) * 100) || 0}%</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>Utilization</p>
+            </div>
+          </div>
+        </div>
       </div>
       <Form.Group className="mb-3">
         <Form.Control

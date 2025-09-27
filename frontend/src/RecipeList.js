@@ -123,6 +123,13 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
     objectFit: 'cover'
   };
 
+  // Calculate stats
+  const totalRecipes = recipes.length;
+  const activeRecipes = recipes.filter(recipe => recipe.active).length;
+  const inactiveRecipes = recipes.filter(recipe => !recipe.active).length;
+  const recipesWithImages = recipes.filter(recipe => recipe.image).length;
+  const recipesWithoutImages = recipes.filter(recipe => !recipe.image).length;
+
   return (
     <Container className="py-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -134,6 +141,58 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
             </Button>
           </div>
         )}
+      </div>
+
+      {/* Stats Cards */}
+      <div className="row mb-4">
+        <div className="col-md-2">
+          <div className="card text-center bg-primary text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{totalRecipes}</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>Total Recipes</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-2">
+          <div className="card text-center bg-success text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{activeRecipes}</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>Active Recipes</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-2">
+          <div className="card text-center bg-danger text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{inactiveRecipes}</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>Inactive Recipes</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-2">
+          <div className="card text-center bg-info text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{recipesWithImages}</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>With Images</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-2">
+          <div className="card text-center bg-warning text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{recipesWithoutImages}</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>Without Images</p>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-2">
+          <div className="card text-center bg-secondary text-white">
+            <div className="card-body">
+              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{Math.round((activeRecipes / totalRecipes) * 100) || 0}%</h4>
+              <p className="card-text" style={{ fontSize: '0.9rem' }}>Active Rate</p>
+            </div>
+          </div>
+        </div>
       </div>
       <div className="mb-3">
         <InputGroup>

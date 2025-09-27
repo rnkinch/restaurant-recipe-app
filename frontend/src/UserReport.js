@@ -92,56 +92,56 @@ const UserReport = () => {
             <div className="col-md-2">
               <div className="card text-center bg-primary text-white">
                 <div className="card-body">
-                  <h3 className="card-title">{stats.totalUsers || 0}</h3>
-                  <p className="card-text">Total Users</p>
+                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.totalUsers || 0}</h4>
+                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Total Users</p>
                 </div>
               </div>
             </div>
             <div className="col-md-2">
               <div className="card text-center bg-success text-white">
                 <div className="card-body">
-                  <h3 className="card-title">{stats.activeUsers || 0}</h3>
-                  <p className="card-text">Active Users</p>
+                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.activeUsers || 0}</h4>
+                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Active Users</p>
                 </div>
               </div>
             </div>
             <div className="col-md-2">
               <div className="card text-center bg-danger text-white">
                 <div className="card-body">
-                  <h3 className="card-title">{stats.adminUsers || 0}</h3>
-                  <p className="card-text">Administrators</p>
+                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.adminUsers || 0}</h4>
+                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Administrators</p>
                 </div>
               </div>
             </div>
             <div className="col-md-2">
               <div className="card text-center bg-info text-white">
                 <div className="card-body">
-                  <h3 className="card-title">{stats.regularUsers || 0}</h3>
-                  <p className="card-text">Regular Users</p>
+                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.regularUsers || 0}</h4>
+                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Regular Users</p>
                 </div>
               </div>
             </div>
             <div className="col-md-2">
               <div className="card text-center bg-secondary text-white">
                 <div className="card-body">
-                  <h3 className="card-title">{stats.readonlyUsers || 0}</h3>
-                  <p className="card-text">Read-Only Users</p>
+                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.readonlyUsers || 0}</h4>
+                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Read-Only Users</p>
                 </div>
               </div>
             </div>
             <div className="col-md-2">
               <div className="card text-center bg-warning text-white">
                 <div className="card-body">
-                  <h3 className="card-title">{stats.recentUsers || 0}</h3>
-                  <p className="card-text">Recent (7 days)</p>
+                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.recentUsers || 0}</h4>
+                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Recent (7 days)</p>
                 </div>
               </div>
             </div>
             <div className="col-md-2">
               <div className="card text-center bg-secondary text-white">
                 <div className="card-body">
-                  <h3 className="card-title">{stats.inactiveUsers || 0}</h3>
-                  <p className="card-text">Inactive Users</p>
+                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.inactiveUsers || 0}</h4>
+                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Inactive Users</p>
                 </div>
               </div>
             </div>
