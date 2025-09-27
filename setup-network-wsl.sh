@@ -66,6 +66,10 @@ esac
 echo "🔧 Updating docker-compose.yml with IP: $SELECTED_IP"
 sed -i.bak "s/192\.168\.68\.129/$SELECTED_IP/g" docker-compose.yml
 
+# Update backend CORS configuration
+echo "🔧 Updating backend CORS configuration with IP: $SELECTED_IP"
+sed -i.bak "s/192\.168\.68\.129:3000/$SELECTED_IP:3000/g" backend/server.js
+
 # Update frontend Dockerfile
 echo "🔧 Updating frontend Dockerfile with IP: $SELECTED_IP"
 sed -i.bak "s/192\.168\.68\.129/$SELECTED_IP/g" frontend/Dockerfile
@@ -92,6 +96,12 @@ else
     echo "   - From other devices: http://$SELECTED_IP:3000"
 fi
 echo ""
+echo "🔧 Files updated:"
+echo "   - docker-compose.yml"
+echo "   - backend/server.js (CORS configuration)"
+echo "   - frontend/Dockerfile"
+echo "   - frontend/src/*.js files"
+echo ""
 echo "🚀 To start the application:"
 echo "   docker-compose up --build"
 echo ""
@@ -99,3 +109,4 @@ echo "🛑 To stop the application:"
 echo "   docker-compose down"
 echo ""
 echo "📝 Note: If your IP address changes, run this script again."
+echo "💡 Tip: Use Windows Host IP for access from mobile devices and other computers."

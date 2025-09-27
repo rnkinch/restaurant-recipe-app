@@ -34,6 +34,10 @@ Write-Host "📍 Windows Host IP: $WINDOWS_IP" -ForegroundColor Cyan
 Write-Host "🔧 Updating docker-compose.yml with IP: $WINDOWS_IP" -ForegroundColor Yellow
 (Get-Content docker-compose.yml) -replace '192\.168\.68\.129', $WINDOWS_IP | Set-Content docker-compose.yml
 
+# Update backend CORS configuration
+Write-Host "🔧 Updating backend CORS configuration with IP: $WINDOWS_IP" -ForegroundColor Yellow
+(Get-Content backend/server.js) -replace '192\.168\.68\.129:3000', "$WINDOWS_IP:3000" | Set-Content backend/server.js
+
 # Update frontend Dockerfile
 Write-Host "🔧 Updating frontend Dockerfile with IP: $WINDOWS_IP" -ForegroundColor Yellow
 (Get-Content frontend/Dockerfile) -replace '192\.168\.68\.129', $WINDOWS_IP | Set-Content frontend/Dockerfile
@@ -56,6 +60,12 @@ Write-Host "   - From Windows: http://localhost:3000" -ForegroundColor White
 Write-Host "   - From WSL: http://$WINDOWS_IP:3000" -ForegroundColor White
 Write-Host "   - From other devices: http://$WINDOWS_IP:3000" -ForegroundColor White
 Write-Host ""
+Write-Host "🔧 Files updated:" -ForegroundColor Yellow
+Write-Host "   - docker-compose.yml" -ForegroundColor White
+Write-Host "   - backend/server.js (CORS configuration)" -ForegroundColor White
+Write-Host "   - frontend/Dockerfile" -ForegroundColor White
+Write-Host "   - frontend/src/*.js files" -ForegroundColor White
+Write-Host ""
 Write-Host "🚀 To start the application:" -ForegroundColor Green
 Write-Host "   docker-compose up --build" -ForegroundColor White
 Write-Host ""
@@ -63,3 +73,4 @@ Write-Host "🛑 To stop the application:" -ForegroundColor Red
 Write-Host "   docker-compose down" -ForegroundColor White
 Write-Host ""
 Write-Host "📝 Note: If your IP address changes, run this script again." -ForegroundColor Yellow
+Write-Host "💡 Tip: Use Windows Host IP for access from mobile devices and other computers." -ForegroundColor Cyan
