@@ -313,3 +313,73 @@ export const updateMyProfile = async (profileData) => {
     throw err;
   }
 };
+
+// Bulk Upload API functions
+export const getBulkUploadTemplate = async () => {
+  try {
+    const response = await api.get('/api/bulk-upload/template');
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching bulk upload template:', err);
+    throw err;
+  }
+};
+
+export const uploadRecipesFromFile = async (file, skipDuplicates = false) => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('skipDuplicates', skipDuplicates.toString());
+
+    const response = await api.post('/api/bulk-upload/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (err) {
+    console.error('Error uploading recipes from file:', err);
+    throw err;
+  }
+};
+
+export const uploadRecipesFromGoogleSheets = async (sheetId, credentials, skipDuplicates = false) => {
+  try {
+    const response = await api.post('/api/bulk-upload/google-sheets', {
+      sheetId,
+      credentials,
+      skipDuplicates
+    });
+    return response.data;
+  } catch (err) {
+    console.error('Error uploading recipes from Google Sheets:', err);
+    throw err;
+  }
+};
+
+export const previewRecipesFromFile = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post('/api/bulk-upload/preview', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (err) {
+    console.error('Error previewing recipes from file:', err);
+    throw err;
+  }
+};
+
+export const getSupportedFormats = async () => {
+  try {
+    const response = await api.get('/api/bulk-upload/supported-formats');
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching supported formats:', err);
+    throw err;
+  }
+};

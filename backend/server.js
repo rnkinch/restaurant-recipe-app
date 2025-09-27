@@ -576,6 +576,10 @@ app.use('/api/changelog', changelogRoutes);
 const userRoutes = require('./routes/users');
 app.use('/api/users', userRoutes);
 
+// Bulk upload routes
+const bulkUploadRoutes = require('./routes/bulkUpload');
+app.use('/api/bulk-upload', bulkUploadRoutes);
+
 // Schedule cleanup of old change logs (runs daily at 2 AM)
 const schedule = require('node-schedule');
 const ChangeLog = require('./models/ChangeLog');

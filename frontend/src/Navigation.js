@@ -47,6 +47,7 @@ const Navigation = ({ user, onLogout, config }) => {
               <NavDropdown title="Setups" id="setups-dropdown">
                 <NavDropdown.Item as={Link} to="/config">Configuration</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/edit-pdf-template">PDF Template</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/bulk-upload">📤 Bulk Upload</NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item as={Link} to="/users">👥 User Management</NavDropdown.Item>
               </NavDropdown>

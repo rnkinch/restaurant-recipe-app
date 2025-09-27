@@ -16,6 +16,7 @@ import Login from './Login';
 import ChangeLog from './ChangeLog';
 import UserManagement from './UserManagement';
 import UserReport from './UserReport';
+import BulkUpload from './BulkUpload';
 import { getRecipes, getConfig, isAuthenticated, getCurrentUser, logout } from './api';
 import { NotificationProvider } from './NotificationContext';
 import { RoleProvider } from './RoleContext';
@@ -186,6 +187,7 @@ function App() {
                 <Route path="/changelog" element={<ChangeLog />} />
                 <Route path="/users" element={<UserManagement />} />
                 <Route path="/config" element={<SetupConfig refreshConfig={refreshConfig} />} />
+                <Route path="/bulk-upload" element={<BulkUpload />} />
               </Routes>
             </Container>
           </Col>
