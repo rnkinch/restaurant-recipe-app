@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Navbar, Nav, NavDropdown, Container } from 'react-bootstrap';
 import { useRole } from './RoleContext';
 
-const Navigation = ({ user, onLogout }) => {
+const Navigation = ({ user, onLogout, config }) => {
   const { isAdmin, isReadOnly } = useRole();
 
   return (
@@ -15,7 +15,7 @@ const Navigation = ({ user, onLogout }) => {
             alt="Logo"
             style={{ height: '30px', marginRight: '10px' }}
           />
-          Recipe Management System
+          {config?.appName || 'Recipe Management System'}
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">

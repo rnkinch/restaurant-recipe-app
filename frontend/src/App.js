@@ -82,6 +82,7 @@ function App() {
   }, [refreshRecipes, refreshConfig]);
 
   const handleLogin = () => {
+    console.log('Login successful, setting authenticated to true');
     setAuthenticated(true);
     setUser(getCurrentUser());
     refreshRecipes(true);
@@ -123,6 +124,7 @@ function App() {
 
   // Show login if not authenticated
   if (!authenticated) {
+    console.log('Not authenticated, showing login page');
     return (
       <NotificationProvider>
         <Login onLogin={handleLogin} />
@@ -130,11 +132,13 @@ function App() {
     );
   }
 
+  console.log('Authenticated, showing main app');
+
   return (
     <NotificationProvider>
       <RoleProvider user={user}>
         <Router>
-      <Navigation user={user} onLogout={handleLogout} />
+        <Navigation user={user} onLogout={handleLogout} config={config} />
       <Container fluid>
         <Row>
           {config.showLeftNav && (
