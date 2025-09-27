@@ -13,6 +13,7 @@ const {
   uploadLimiter, 
   securityHeaders, 
   sanitizeInput, 
+  noSqlInjectionProtection,
   validateFileUpload, 
   securityLogger 
 } = require('./middleware/security');
@@ -24,6 +25,8 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'http://192.168.68.129:3000', // Your specific IP from docker-compose
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
   process.env.FRONTEND_URL || 'http://localhost:3000'
 ];
 
@@ -45,30 +48,32 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-// Apply security middleware
-app.use(securityHeaders);
-app.use(securityLogger);
-app.use(generalLimiter);
-app.use(sanitizeInput);
-app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
-
+// Serve static files FIRST - before ANY other middleware
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve uploads with CORS for allowed origins
 app.use('/uploads', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  console.log('Static request for:', req.path);
+  res.setHeader('Cache-Control', 'public, max-age=31536000');
+  console.log('Serving static file:', req.path, 'for origin:', origin);
   next();
 }, express.static('/app/uploads'));
 
-app.use('/uploads', (err, req, res, next) => {
-  if (err) {
-    console.error('Static serve error:', err.message, 'for path:', req.path);
-    res.status(404).send('File not found');
-  } else {
-    next();
-  }
-});
+// Apply security middleware to API routes only
+app.use(securityHeaders);
+app.use(securityLogger);
+app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
+app.use(noSqlInjectionProtection);
+app.use(generalLimiter);
+
+// No additional error handler needed - express.static handles this
 
 const uploadsDir = '/app/uploads';
 try {
@@ -253,7 +258,7 @@ app.post('/auth/login', authLimiter, async (req, res) => {
   }
 });
 
-// Configuration routes
+// Configuration routes (public for frontend initialization)
 app.get('/config', async (req, res) => {
   try {
     const config = await Config.findOrCreate();
@@ -298,6 +303,37 @@ app.post('/config/logo', uploadLimiter, authenticateToken, requireAdmin, upload.
 
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Backend is running', timestamp: new Date().toISOString() });
+});
+
+// Test endpoint to check if uploads directory and files exist
+app.get('/test-uploads', (req, res) => {
+  try {
+    const files = fs.readdirSync('/app/uploads');
+    res.json({ 
+      status: 'OK', 
+      uploadsDir: '/app/uploads',
+      files: files,
+      count: files.length 
+    });
+  } catch (err) {
+    res.json({ 
+      status: 'ERROR', 
+      error: err.message,
+      uploadsDir: '/app/uploads'
+    });
+  }
+});
+
+// Public endpoint for frontend to check if authentication is required
+app.get('/api/status', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    authentication: 'required',
+    endpoints: {
+      login: '/auth/login',
+      register: '/auth/register'
+    }
+  });
 });
 
 // Purveyors routes

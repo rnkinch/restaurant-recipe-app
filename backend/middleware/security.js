@@ -1,6 +1,5 @@
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 
@@ -56,15 +55,46 @@ const securityHeaders = helmet({
 
 // Input sanitization middleware
 const sanitizeInput = [
-  // Sanitize data against NoSQL injection attacks
-  mongoSanitize(),
-  
   // Sanitize data against XSS attacks
   xss(),
   
   // Prevent parameter pollution
   hpp()
 ];
+
+// Custom NoSQL injection protection
+const noSqlInjectionProtection = (req, res, next) => {
+  // Remove $ and . from request body to prevent NoSQL injection
+  const sanitizeObject = (obj) => {
+    if (typeof obj !== 'object' || obj === null) return obj;
+    
+    if (Array.isArray(obj)) {
+      return obj.map(sanitizeObject);
+    }
+    
+    const sanitized = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Remove keys that start with $ or contain .
+      if (key.startsWith('$') || key.includes('.')) {
+        continue;
+      }
+      sanitized[key] = sanitizeObject(value);
+    }
+    return sanitized;
+  };
+  
+  if (req.body) {
+    req.body = sanitizeObject(req.body);
+  }
+  if (req.query) {
+    req.query = sanitizeObject(req.query);
+  }
+  if (req.params) {
+    req.params = sanitizeObject(req.params);
+  }
+  
+  next();
+};
 
 // File upload security validation
 const validateFileUpload = (req, res, next) => {
@@ -127,6 +157,7 @@ module.exports = {
   uploadLimiter,
   securityHeaders,
   sanitizeInput,
+  noSqlInjectionProtection,
   validateFileUpload,
   securityLogger
 };

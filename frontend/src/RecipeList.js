@@ -8,7 +8,7 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
   const { showError, confirm } = useNotification();
   const [searchQuery, setSearchQuery] = useState('');
   const [showActiveOnly, setShowActiveOnly] = useState(false);
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
   const defaultImage = '/default_image.png';
   const fallbackImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
   let validDefaultImage = defaultImage;
@@ -30,13 +30,43 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
 
   const getImageSrc = (recipe) => {
     if (!recipe) return validDefaultImage;
-    const imgPath = recipe.image || validDefaultImage;
-    const resolvedPath = imgPath.startsWith('/uploads/') ? `${apiUrl}${imgPath}` : imgPath;
-    return resolvedPath;
+    
+    if (!recipe.image) return validDefaultImage;
+    
+    // Handle different image path formats from old vs new uploads
+    const imgPath = recipe.image;
+    let finalUrl;
+    
+    // If it already starts with /uploads/, just prepend API URL
+    if (imgPath.startsWith('/uploads/')) {
+      finalUrl = `${apiUrl}${imgPath}`;
+    }
+    // If it's just a filename, add the uploads path
+    else if (!imgPath.startsWith('/') && !imgPath.startsWith('http')) {
+      finalUrl = `${apiUrl}/uploads/${imgPath}`;
+    }
+    // If it's already a full URL, use as-is
+    else if (imgPath.startsWith('http')) {
+      finalUrl = imgPath;
+    }
+    // Default case
+    else {
+      finalUrl = `${apiUrl}${imgPath}`;
+    }
+    
+    // Add cache-busting parameter to prevent browser caching issues
+    const cacheBuster = `?t=${Date.now()}`;
+    finalUrl += cacheBuster;
+    
+    console.log(`Recipe ${recipe._id}: original="${imgPath}" -> final="${finalUrl}"`);
+    return finalUrl;
   };
 
   const handleImageError = (e, recipeId) => {
     console.error(`Failed to load image for recipe ${recipeId}:`, e.target.src);
+    
+    // For old images that don't exist, just show the default image
+    console.log(`Image not found for recipe ${recipeId}, showing default image`);
     e.target.src = validDefaultImage;
   };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import { Navbar, Container, Alert, NavDropdown, Row, Col, Nav } from 'react-bootstrap';
+import { Navbar, Container, Alert, NavDropdown, Row, Col, Nav, Button } from 'react-bootstrap';
 import RecipeList from './RecipeList';
 import RecipeDetail from './RecipeDetail';
 import RecipeForm from './RecipeForm';
@@ -12,7 +12,8 @@ import ActiveRecipesReport from './ActiveRecipesReport';
 import InactiveRecipesReport from './InactiveRecipesReport';
 import ActiveIngredientsReport from './ActiveIngredientsReport';
 import ActiveRecipesPDFReport from './ActiveRecipesPDFReport';
-import { getRecipes, getConfig } from './api';
+import Login from './Login';
+import { getRecipes, getConfig, isAuthenticated, getCurrentUser, logout } from './api';
 import { NotificationProvider } from './NotificationContext';
 
 function App() {
@@ -21,6 +22,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [config, setConfig] = useState({ appName: "XYZCompany Recipe and Plating Guide", showLeftNav: true });
+  const [authenticated, setAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
 
   const refreshRecipes = useCallback(async (all = true) => {
     setLoading(true);
@@ -56,15 +59,37 @@ function App() {
     }
   }, []);
 
+  // Check authentication on app load
   useEffect(() => {
-    if (!process.env.REACT_APP_API_URL) {
-      setError('REACT_APP_API_URL environment variable is not set.');
-      setLoading(false);
-    } else {
-      refreshRecipes(true);
-      refreshConfig();
-    }
+    const checkAuth = () => {
+      if (isAuthenticated()) {
+        setAuthenticated(true);
+        setUser(getCurrentUser());
+        refreshRecipes(true);
+        refreshConfig();
+      } else {
+        setAuthenticated(false);
+        setUser(null);
+        setLoading(false);
+      }
+    };
+    checkAuth();
   }, [refreshRecipes, refreshConfig]);
+
+  const handleLogin = () => {
+    setAuthenticated(true);
+    setUser(getCurrentUser());
+    refreshRecipes(true);
+    refreshConfig();
+  };
+
+  const handleLogout = () => {
+    logout();
+    setAuthenticated(false);
+    setUser(null);
+    setRecipes([]);
+    setFilteredRecipes([]);
+  };
 
   const handleSearch = useCallback((query) => {
     console.log('Search triggered with query:', query);
@@ -91,6 +116,15 @@ function App() {
     setFilteredRecipes(filtered);
   }, [recipes]);
 
+  // Show login if not authenticated
+  if (!authenticated) {
+    return (
+      <NotificationProvider>
+        <Login onLogin={handleLogin} />
+      </NotificationProvider>
+    );
+  }
+
   return (
     <NotificationProvider>
       <Router>
@@ -98,7 +132,7 @@ function App() {
         <Container fluid>
           <Navbar.Brand as={Link} to="/">
             <img
-              src={`${process.env.REACT_APP_API_URL}/Uploads/logo.png?t=${Date.now()}`}
+              src={`${process.env.REACT_APP_API_URL}/uploads/logo.png?t=${Date.now()}`}
               alt="Logo"
               style={{ height: '24px', marginRight: '8px', verticalAlign: 'middle' }}
               onError={(e) => {
@@ -125,6 +159,9 @@ function App() {
               <NavDropdown title="Setups" id="setups-dropdown">
                 <NavDropdown.Item as={Link} to="/config">Configuration</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/edit-pdf-template">PDF Template</NavDropdown.Item>
+              </NavDropdown>
+              <NavDropdown title={`Welcome, ${user?.username || 'User'}`} id="user-dropdown">
+                <NavDropdown.Item onClick={handleLogout}>Logout</NavDropdown.Item>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>

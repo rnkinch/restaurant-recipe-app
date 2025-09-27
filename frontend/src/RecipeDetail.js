@@ -11,7 +11,7 @@ const RecipeDetail = ({ refreshRecipes }) => {
   const [recipe, setRecipe] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
   const defaultImage = '/default_image.png';
 
   useEffect(() => {
@@ -61,9 +61,31 @@ const RecipeDetail = ({ refreshRecipes }) => {
   if (!recipe) return null;
 
   const imageStyle = { width: '300px', height: '200px', objectFit: 'cover' };
-  const imageSrc = recipe.image
-    ? `${apiUrl}/Uploads/${recipe.image.split('/').pop()}`
-    : `http://192.168.68.129:3000${defaultImage}`;
+  
+  const getImageSrc = (recipe) => {
+    if (!recipe.image) return defaultImage;
+    
+    const imgPath = recipe.image;
+    
+    // If it already starts with /uploads/, just prepend API URL
+    if (imgPath.startsWith('/uploads/')) {
+      return `${apiUrl}${imgPath}`;
+    }
+    // If it's just a filename, add the uploads path
+    else if (!imgPath.startsWith('/') && !imgPath.startsWith('http')) {
+      return `${apiUrl}/uploads/${imgPath}`;
+    }
+    // If it's already a full URL, use as-is
+    else if (imgPath.startsWith('http')) {
+      return imgPath;
+    }
+    // Default case
+    else {
+      return `${apiUrl}${imgPath}`;
+    }
+  };
+  
+  const imageSrc = getImageSrc(recipe);
   const allServiceTypes = Array.isArray(recipe.serviceTypes) && recipe.serviceTypes.length > 0 ? recipe.serviceTypes : ['None'];
   const ingredientsList = recipe.ingredients && recipe.ingredients.length > 0 ? (
     recipe.ingredients.map((item, index) => (
@@ -116,7 +138,10 @@ const RecipeDetail = ({ refreshRecipes }) => {
               src={imageSrc}
               alt={recipe.name || 'No Image'}
               style={imageStyle}
-              onError={(e) => { e.target.src = `http://192.168.68.129:3000${defaultImage}`; }}
+              onError={(e) => { 
+                console.log(`Image not found for recipe ${recipe._id}, showing default`);
+                e.target.src = defaultImage; 
+              }}
             />
           </Card>
           <p><strong>Allergens:</strong></p>
