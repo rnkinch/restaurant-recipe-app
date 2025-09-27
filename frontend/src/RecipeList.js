@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Card, Form, InputGroup, Row, Col, Container } from 'react-bootstrap';
 import { deleteRecipe, getRecipes } from './api';
+import { useNotification } from './NotificationContext';
 
 const RecipeList = ({ recipes, setRecipes, onSearch }) => {
+  const { showError, confirm } = useNotification();
   const [searchQuery, setSearchQuery] = useState('');
   const [showActiveOnly, setShowActiveOnly] = useState(false);
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.176.1:8080';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
   const defaultImage = '/default_image.png';
   const fallbackImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
   let validDefaultImage = defaultImage;
@@ -62,7 +64,7 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this recipe?')) {
+    if (confirm('Are you sure you want to delete this recipe?')) {
       console.log('Attempting to delete recipe with ID:', id);
       console.log('Full recipe object:', recipes.find(r => r._id === id));
       const requestUrl = `${apiUrl}/recipes/${id}`;
@@ -74,7 +76,7 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
         })
         .catch(err => {
           console.error('Error deleting recipe:', err.message, 'Status:', err.response?.status, 'Response data:', err.response?.data, 'Request URL:', requestUrl);
-          alert('Failed to delete recipe: ' + err.message);
+          showError('Failed to delete recipe: ' + err.message);
         });
     }
   };

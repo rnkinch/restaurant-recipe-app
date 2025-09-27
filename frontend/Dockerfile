@@ -11,7 +11,7 @@ RUN npm install
 COPY . .
 
 # LAN default (your current setup)
-ARG REACT_APP_API_URL=http://172.30.176.1:8080
+ARG REACT_APP_API_URL=http://192.168.68.129:8080
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 
 # Build static files

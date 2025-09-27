@@ -6,11 +6,13 @@ import RecipeFormFields from './RecipeFormFields';
 import RecipeFormIngredients from './RecipeFormIngredients';
 import RecipeFormModal from './RecipeFormModal';
 import { getRecipeById, getPurveyors, getIngredients, createIngredient, createRecipe, updateRecipe, deleteRecipe } from './api';
+import { useNotification } from './NotificationContext';
 
 const RecipeForm = ({ refreshRecipes }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.176.1:8080';
+  const { confirm } = useNotification();
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
   const [formData, setFormData] = useState({
     name: '',
     ingredients: [{ ingredient: '', quantity: '', measure: '', purveyor: null }],
@@ -39,9 +41,9 @@ const RecipeForm = ({ refreshRecipes }) => {
     const checkImage = () => {
       return new Promise((resolve) => {
         const img = new Image();
-        img.onload = () => resolve(`http://172.30.176.1:3000${defaultImage}`);
+        img.onload = () => resolve(`http://192.168.68.129:3000${defaultImage}`);
         img.onerror = () => resolve(fallbackImage);
-        img.src = `http://172.30.176.1:3000${defaultImage}`;
+        img.src = `http://192.168.68.129:3000${defaultImage}`;
       });
     };
 
@@ -243,7 +245,7 @@ const RecipeForm = ({ refreshRecipes }) => {
   };
 
   const handleDelete = async () => {
-    if (id && window.confirm('Are you sure you want to delete this recipe?')) {
+    if (id && confirm('Are you sure you want to delete this recipe?')) {
       try {
         await deleteRecipe(id);
         if (refreshRecipes) refreshRecipes();

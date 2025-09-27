@@ -2,8 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button, Container, Alert, Form, Modal, Spinner, Row, Col } from 'react-bootstrap';
 import { getPurveyors, createPurveyor, updatePurveyor, deletePurveyor, createIngredient, deleteIngredient, checkIngredientUsage, getIngredients, updateIngredient } from './api';
+import { useNotification } from './NotificationContext';
 
 const Purveyors = () => {
+  const { showError, showSuccess, confirm } = useNotification();
   const [purveyors, setPurveyors] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [error, setError] = useState(null);
@@ -41,7 +43,7 @@ const Purveyors = () => {
           console.warn('Some purveyors were filtered out due to missing or invalid _id/name:', purveyorsData);
         }
       } catch (err) {
-        setError('Failed to load data: ' + err.message);
+        showError('Failed to load data: ' + err.message);
         setLoading(false);
       }
     };
@@ -58,7 +60,7 @@ const Purveyors = () => {
     e.preventDefault();
     try {
       if (!newPurveyor.name.trim()) {
-        setError('Purveyor name is required');
+        showError('Purveyor name is required');
         return;
       }
       const purveyor = await createPurveyor(newPurveyor);
@@ -66,8 +68,9 @@ const Purveyors = () => {
       setNewPurveyor({ name: '' });
       setShowAddPurveyorModal(false);
       setError(null);
+      showSuccess('Purveyor added successfully!');
     } catch (err) {
-      setError('Failed to add purveyor: ' + err.message);
+      showError('Failed to add purveyor: ' + err.message);
     }
   };
 
@@ -75,7 +78,7 @@ const Purveyors = () => {
     e.preventDefault();
     try {
       if (!editPurveyor.name.trim()) {
-        setError('Purveyor name is required');
+        showError('Purveyor name is required');
         return;
       }
       const updatedPurveyor = await updatePurveyor(editPurveyor.id, editPurveyor.name);
@@ -83,8 +86,9 @@ const Purveyors = () => {
       setEditPurveyor({ id: '', name: '' });
       setShowEditPurveyorModal(false);
       setError(null);
+      showSuccess('Purveyor updated successfully!');
     } catch (err) {
-      setError('Failed to update purveyor: ' + err.message);
+      showError('Failed to update purveyor: ' + err.message);
     }
   };
 
@@ -93,15 +97,16 @@ const Purveyors = () => {
       // Check if any ingredients are associated with the purveyor
       const ingredientsForPurveyor = ingredients.filter(i => i.purveyor?._id?.toString() === id);
       if (ingredientsForPurveyor.length > 0) {
-        setError('Cannot delete purveyor because it is associated with one or more ingredients.');
+        showError('Cannot delete purveyor because it is associated with one or more ingredients.');
         return;
       }
       await deletePurveyor(id);
       setPurveyors(purveyors.filter(p => p._id !== id));
       setError(null);
+      showSuccess('Purveyor deleted successfully!');
     } catch (err) {
       console.error('Delete purveyor error:', err.message);
-      setError(err.response?.data?.error || 'Failed to delete purveyor: ' + err.message);
+      showError(err.response?.data?.error || 'Failed to delete purveyor: ' + err.message);
     }
   };
 
@@ -109,7 +114,7 @@ const Purveyors = () => {
     e.preventDefault();
     try {
       if (!newIngredient.name.trim() || !newIngredient.purveyorId) {
-        setError('Ingredient name and purveyor are required');
+        showError('Ingredient name and purveyor are required');
         return;
       }
       console.log('Adding ingredient:', newIngredient);
@@ -125,9 +130,10 @@ const Purveyors = () => {
       setNewIngredient({ name: '', purveyorId: '' });
       setShowAddIngredientModal(false);
       setError(null);
+      showSuccess('Ingredient added successfully!');
     } catch (err) {
       console.error('Add ingredient error:', err.message);
-      setError('Failed to add ingredient: ' + err.message);
+      showError('Failed to add ingredient: ' + err.message);
     }
   };
 
@@ -135,7 +141,7 @@ const Purveyors = () => {
     e.preventDefault();
     try {
       if (!editIngredient.name.trim() || !editIngredient.purveyorId) {
-        setError('Ingredient name and purveyor are required');
+        showError('Ingredient name and purveyor are required');
         return;
       }
       const updatedIngredient = await updateIngredient(editIngredient.id, editIngredient.name, editIngredient.purveyorId);
@@ -147,9 +153,10 @@ const Purveyors = () => {
       setEditIngredient({ id: '', name: '', purveyorId: '' });
       setShowEditIngredientModal(false);
       setError(null);
+      showSuccess('Ingredient updated successfully!');
     } catch (err) {
       console.error('Edit ingredient error:', err.message);
-      setError('Failed to edit ingredient: ' + err.message);
+      showError('Failed to edit ingredient: ' + err.message);
     }
   };
 
@@ -158,7 +165,7 @@ const Purveyors = () => {
       // Check if the ingredient is used in any active recipes
       const isUsed = await checkIngredientUsage(id);
       if (isUsed) {
-        setError('Cannot delete ingredient because it is used in one or more active recipes.');
+        showError('Cannot delete ingredient because it is used in one or more active recipes.');
         return;
       }
       await deleteIngredient(id);
@@ -168,9 +175,10 @@ const Purveyors = () => {
         ingredients: p.ingredients.filter(i => i._id !== id)
       })));
       setError(null);
+      showSuccess('Ingredient deleted successfully!');
     } catch (err) {
       console.error('Delete ingredient error:', err.message);
-      setError('Failed to delete ingredient: ' + err.message);
+      showError('Failed to delete ingredient: ' + err.message);
     }
   };
 
@@ -200,11 +208,6 @@ const Purveyors = () => {
           ref={searchInputRef}
         />
       </Form.Group>
-      {error && (
-        <Alert variant="danger" dismissible onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
       <Row>
         {filteredPurveyors.map(purveyor => (
           <Col md={6} key={purveyor._id} className="mb-3">
@@ -314,7 +317,6 @@ const Purveyors = () => {
             >
               Add Purveyor
             </Button>
-            {error && <Alert variant="danger" className="mt-2">{error}</Alert>}
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -358,7 +360,6 @@ const Purveyors = () => {
             >
               Save Changes
             </Button>
-            {error && <Alert variant="danger" className="mt-2">{error}</Alert>}
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -417,7 +418,6 @@ const Purveyors = () => {
             >
               Add Ingredient
             </Button>
-            {error && <Alert variant="danger" className="mt-2">{error}</Alert>}
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -476,7 +476,6 @@ const Purveyors = () => {
             >
               Save Changes
             </Button>
-            {error && <Alert variant="danger" className="mt-2">{error}</Alert>}
           </Form>
         </Modal.Body>
         <Modal.Footer>

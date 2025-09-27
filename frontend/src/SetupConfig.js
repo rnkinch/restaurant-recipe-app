@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Container, Alert, Spinner, Image } from 'react-bootstrap';
 import { getConfig, updateConfig, uploadLogo } from './api';
+import { useNotification } from './NotificationContext';
 
 const SetupConfig = ({ refreshConfig }) => {
+  const { showError, showSuccess } = useNotification();
   const [config, setConfig] = useState({ appName: '', showLeftNav: true });
   const [file, setFile] = useState(null);
   const [error, setError] = useState(null);
@@ -17,7 +19,7 @@ const SetupConfig = ({ refreshConfig }) => {
         setLoading(false);
       })
       .catch(err => {
-        setError(`Failed to load config: ${err.message}`);
+        showError(`Failed to load config: ${err.message}`);
         setLoading(false);
       });
   }, []);
@@ -29,16 +31,16 @@ const SetupConfig = ({ refreshConfig }) => {
     try {
       if (file) {
         await uploadLogo(file);
-        setSuccess('Logo uploaded successfully. ');
+        showSuccess('Logo uploaded successfully.');
         setLogoKey(Date.now()); // Update logoKey to force image refresh
       }
       const updated = await updateConfig({ appName: config.appName, showLeftNav: config.showLeftNav });
       setConfig(updated);
-      setSuccess((success || '') + 'Configuration updated successfully.');
+      showSuccess('Configuration updated successfully.');
       if (refreshConfig) refreshConfig();
     } catch (err) {
       console.error('Config save error:', err.message);
-      setError(`Failed to save: ${err.message}`);
+      showError(`Failed to save: ${err.message}`);
     }
   };
 
@@ -61,8 +63,6 @@ const SetupConfig = ({ refreshConfig }) => {
           onLoad={() => console.log('Config page logo loaded successfully:', logoUrl)}
         />
       </div>
-      {error && <Alert variant="danger" dismissible onClose={() => setError(null)}>{error}</Alert>}
-      {success && <Alert variant="success" dismissible onClose={() => setSuccess(null)}>{success}</Alert>}
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
           <Form.Label>Application Name (Personalization)</Form.Label>

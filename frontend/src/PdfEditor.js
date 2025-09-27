@@ -3,6 +3,7 @@ import { DndProvider, useDrag } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Button, Form, Row, Col } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
+import { useNotification } from './NotificationContext';
 
 const styles = {
   field: {
@@ -140,8 +141,9 @@ const Field = ({ field, index, setFields, selectedField, setSelectedField, selec
 };
 
 const PdfEditor = ({ recipe }) => {
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.176.1:8080';
-  const frontendUrl = process.env.REACT_APP_FRONTEND_URL || 'http://172.30.176.1:3000';
+  const { showSuccess, showError } = useNotification();
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
+  const frontendUrl = process.env.REACT_APP_FRONTEND_URL || 'http://192.168.68.129:3000';
   const [fields, setFields] = useState([]);
   const [selectedField, setSelectedField] = useState(null);
   const [selectedFields, setSelectedFields] = useState(new Set());
@@ -444,10 +446,10 @@ const PdfEditor = ({ recipe }) => {
       }
       const saveData = await response.json();
       console.log('Template saved:', saveData);
-      alert('Template saved successfully!');
+      showSuccess('Template saved successfully!');
     } catch (err) {
       console.error('Save failed:', err.message);
-      alert(`Save failed: ${err.message}`);
+      showError(`Save failed: ${err.message}`);
     }
   }, [fields, apiUrl, memoizedRecipe, frontendUrl]);
 
@@ -557,10 +559,10 @@ const PdfEditor = ({ recipe }) => {
       }
       const saveData = await response.json();
       console.log('Default template reset:', saveData);
-      alert('Template reset to default!');
+      showSuccess('Template reset to default!');
     } catch (err) {
       console.error('Reset failed:', err.message);
-      alert(`Reset failed: ${err.message}`);
+      showError(`Reset failed: ${err.message}`);
     }
   }, [memoizedRecipe, apiUrl, frontendUrl, imageAspectRatios]);
 

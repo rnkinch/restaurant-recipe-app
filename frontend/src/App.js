@@ -13,6 +13,7 @@ import InactiveRecipesReport from './InactiveRecipesReport';
 import ActiveIngredientsReport from './ActiveIngredientsReport';
 import ActiveRecipesPDFReport from './ActiveRecipesPDFReport';
 import { getRecipes, getConfig } from './api';
+import { NotificationProvider } from './NotificationContext';
 
 function App() {
   const [recipes, setRecipes] = useState([]);
@@ -91,7 +92,8 @@ function App() {
   }, [recipes]);
 
   return (
-    <Router>
+    <NotificationProvider>
+      <Router>
       <Navbar bg="light" expand="lg" className="mb-3 shadow-sm">
         <Container fluid>
           <Navbar.Brand as={Link} to="/">
@@ -177,7 +179,8 @@ function App() {
           </Col>
         </Row>
       </Container>
-    </Router>
+      </Router>
+    </NotificationProvider>
   );
 }
 

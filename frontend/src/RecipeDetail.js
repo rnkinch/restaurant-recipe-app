@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button, Row, Col, Alert, Card, Container, Spinner } from 'react-bootstrap';
 import { getRecipeById, deleteRecipe } from './api';
+import { useNotification } from './NotificationContext';
 
 const RecipeDetail = ({ refreshRecipes }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { confirm } = useNotification();
   const [recipe, setRecipe] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.176.1:8080';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://192.168.68.129:8080';
   const defaultImage = '/default_image.png';
 
   useEffect(() => {
@@ -37,7 +39,7 @@ const RecipeDetail = ({ refreshRecipes }) => {
   }, [id]);
 
   const handleDelete = async () => {
-    if (id && window.confirm('Are you sure you want to delete this recipe?')) {
+    if (id && confirm('Are you sure you want to delete this recipe?')) {
       try {
         await deleteRecipe(id);
         if (refreshRecipes) refreshRecipes();
@@ -61,7 +63,7 @@ const RecipeDetail = ({ refreshRecipes }) => {
   const imageStyle = { width: '300px', height: '200px', objectFit: 'cover' };
   const imageSrc = recipe.image
     ? `${apiUrl}/Uploads/${recipe.image.split('/').pop()}`
-    : `http://172.30.176.1:3000${defaultImage}`;
+    : `http://192.168.68.129:3000${defaultImage}`;
   const allServiceTypes = Array.isArray(recipe.serviceTypes) && recipe.serviceTypes.length > 0 ? recipe.serviceTypes : ['None'];
   const ingredientsList = recipe.ingredients && recipe.ingredients.length > 0 ? (
     recipe.ingredients.map((item, index) => (
@@ -114,7 +116,7 @@ const RecipeDetail = ({ refreshRecipes }) => {
               src={imageSrc}
               alt={recipe.name || 'No Image'}
               style={imageStyle}
-              onError={(e) => { e.target.src = `http://172.30.176.1:3000${defaultImage}`; }}
+              onError={(e) => { e.target.src = `http://192.168.68.129:3000${defaultImage}`; }}
             />
           </Card>
           <p><strong>Allergens:</strong></p>

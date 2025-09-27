@@ -55,11 +55,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        REACT_APP_API_URL: http://172.30.176.1:8080  # Updated to new backend port
+        REACT_APP_API_URL: http://192.168.68.129:8080  # Updated to new backend port
     ports:
       - "0.0.0.0:3000:3000"
     environment:
-      - REACT_APP_API_URL=http://172.30.176.1:8080  # Updated to new backend port
+      - REACT_APP_API_URL=http://192.168.68.129:8080  # Updated to new backend port
     depends_on:
       - backend-container
     networks:
