@@ -143,57 +143,56 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
         )}
       </div>
 
-      {/* Stats Cards */}
-      <div className="row mb-4">
-        <div className="col-md-2">
-          <div className="card text-center bg-primary text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{totalRecipes}</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>Total Recipes</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-2">
-          <div className="card text-center bg-success text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{activeRecipes}</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>Active Recipes</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-2">
-          <div className="card text-center bg-danger text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{inactiveRecipes}</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>Inactive Recipes</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-2">
-          <div className="card text-center bg-info text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{recipesWithImages}</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>With Images</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-2">
-          <div className="card text-center bg-warning text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{recipesWithoutImages}</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>Without Images</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-2">
-          <div className="card text-center bg-secondary text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{Math.round((activeRecipes / totalRecipes) * 100) || 0}%</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>Active Rate</p>
+      {/* Stats Cards - Compact Horizontal Layout */}
+      <div className="row mb-3">
+        <div className="col-12">
+          <div className="card bg-light border-0">
+            <div className="card-body py-2">
+              <div className="row text-center">
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-primary mb-0">{totalRecipes}</span>
+                    <small className="text-muted">Total Recipes</small>
+                  </div>
+                </div>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-success mb-0">{activeRecipes}</span>
+                    <small className="text-muted">Active Recipes</small>
+                  </div>
+                </div>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-danger mb-0">{inactiveRecipes}</span>
+                    <small className="text-muted">Inactive Recipes</small>
+                  </div>
+                </div>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-info mb-0">{recipesWithImages}</span>
+                    <small className="text-muted">With Images</small>
+                  </div>
+                </div>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-warning mb-0">{recipesWithoutImages}</span>
+                    <small className="text-muted">Without Images</small>
+                  </div>
+                </div>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-secondary mb-0">{Math.round((activeRecipes / totalRecipes) * 100) || 0}%</span>
+                    <small className="text-muted">Active Rate</small>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Horizontal Rule for Separation */}
+      <hr className="my-3" />
       <div className="mb-3">
         <InputGroup>
           <Form.Control

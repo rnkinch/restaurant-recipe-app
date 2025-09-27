@@ -211,57 +211,56 @@ const Purveyors = () => {
         )}
       </div>
 
-      {/* Stats Cards */}
-      <div className="row mb-4">
-        <div className="col-md-2">
-          <div className="card text-center bg-primary text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{totalPurveyors}</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>Total Purveyors</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-2">
-          <div className="card text-center bg-success text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{totalIngredients}</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>Total Ingredients</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-2">
-          <div className="card text-center bg-info text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{purveyorsWithIngredients}</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>With Ingredients</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-2">
-          <div className="card text-center bg-warning text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{purveyorsWithoutIngredients}</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>Without Ingredients</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-2">
-          <div className="card text-center bg-secondary text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{avgIngredientsPerPurveyor}</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>Avg Ingredients</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-2">
-          <div className="card text-center bg-dark text-white">
-            <div className="card-body">
-              <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{Math.round((purveyorsWithIngredients / totalPurveyors) * 100) || 0}%</h4>
-              <p className="card-text" style={{ fontSize: '0.9rem' }}>Utilization</p>
+      {/* Stats Cards - Compact Horizontal Layout */}
+      <div className="row mb-3">
+        <div className="col-12">
+          <div className="card bg-light border-0">
+            <div className="card-body py-2">
+              <div className="row text-center">
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-primary mb-0">{totalPurveyors}</span>
+                    <small className="text-muted">Total Purveyors</small>
+                  </div>
+                </div>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-success mb-0">{totalIngredients}</span>
+                    <small className="text-muted">Total Ingredients</small>
+                  </div>
+                </div>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-info mb-0">{purveyorsWithIngredients}</span>
+                    <small className="text-muted">With Ingredients</small>
+                  </div>
+                </div>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-warning mb-0">{purveyorsWithoutIngredients}</span>
+                    <small className="text-muted">Without Ingredients</small>
+                  </div>
+                </div>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-secondary mb-0">{avgIngredientsPerPurveyor}</span>
+                    <small className="text-muted">Avg Ingredients</small>
+                  </div>
+                </div>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-dark mb-0">{Math.round((purveyorsWithIngredients / totalPurveyors) * 100) || 0}%</span>
+                    <small className="text-muted">Utilization</small>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Horizontal Rule for Separation */}
+      <hr className="my-3" />
       <Form.Group className="mb-3">
         <Form.Control
           type="text"

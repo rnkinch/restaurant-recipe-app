@@ -87,65 +87,62 @@ const UserReport = () => {
             </button>
           </div>
 
-          {/* Statistics Cards */}
-          <div className="row mb-4">
-            <div className="col-md-2">
-              <div className="card text-center bg-primary text-white">
-                <div className="card-body">
-                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.totalUsers || 0}</h4>
-                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Total Users</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-2">
-              <div className="card text-center bg-success text-white">
-                <div className="card-body">
-                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.activeUsers || 0}</h4>
-                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Active Users</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-2">
-              <div className="card text-center bg-danger text-white">
-                <div className="card-body">
-                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.adminUsers || 0}</h4>
-                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Administrators</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-2">
-              <div className="card text-center bg-info text-white">
-                <div className="card-body">
-                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.regularUsers || 0}</h4>
-                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Regular Users</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-2">
-              <div className="card text-center bg-secondary text-white">
-                <div className="card-body">
-                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.readonlyUsers || 0}</h4>
-                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Read-Only Users</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-2">
-              <div className="card text-center bg-warning text-white">
-                <div className="card-body">
-                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.recentUsers || 0}</h4>
-                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Recent (7 days)</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-2">
-              <div className="card text-center bg-secondary text-white">
-                <div className="card-body">
-                  <h4 className="card-title" style={{ fontSize: '1.5rem' }}>{stats.inactiveUsers || 0}</h4>
-                  <p className="card-text" style={{ fontSize: '0.9rem' }}>Inactive Users</p>
+          {/* Statistics Cards - Compact Horizontal Layout */}
+          <div className="row mb-3">
+            <div className="col-12">
+              <div className="card bg-light border-0">
+                <div className="card-body py-2">
+                  <div className="row text-center">
+                    <div className="col-md-2">
+                      <div className="d-flex flex-column align-items-center">
+                        <span className="h5 text-primary mb-0">{stats.totalUsers || 0}</span>
+                        <small className="text-muted">Total Users</small>
+                      </div>
+                    </div>
+                    <div className="col-md-2">
+                      <div className="d-flex flex-column align-items-center">
+                        <span className="h5 text-success mb-0">{stats.activeUsers || 0}</span>
+                        <small className="text-muted">Active Users</small>
+                      </div>
+                    </div>
+                    <div className="col-md-2">
+                      <div className="d-flex flex-column align-items-center">
+                        <span className="h5 text-danger mb-0">{stats.adminUsers || 0}</span>
+                        <small className="text-muted">Administrators</small>
+                      </div>
+                    </div>
+                    <div className="col-md-2">
+                      <div className="d-flex flex-column align-items-center">
+                        <span className="h5 text-info mb-0">{stats.regularUsers || 0}</span>
+                        <small className="text-muted">Regular Users</small>
+                      </div>
+                    </div>
+                    <div className="col-md-2">
+                      <div className="d-flex flex-column align-items-center">
+                        <span className="h5 text-secondary mb-0">{stats.readonlyUsers || 0}</span>
+                        <small className="text-muted">Read-Only Users</small>
+                      </div>
+                    </div>
+                    <div className="col-md-2">
+                      <div className="d-flex flex-column align-items-center">
+                        <span className="h5 text-warning mb-0">{stats.recentUsers || 0}</span>
+                        <small className="text-muted">Recent (7 days)</small>
+                      </div>
+                    </div>
+                    <div className="col-md-2">
+                      <div className="d-flex flex-column align-items-center">
+                        <span className="h5 text-dark mb-0">{stats.inactiveUsers || 0}</span>
+                        <small className="text-muted">Inactive Users</small>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+          
+          {/* Horizontal Rule for Separation */}
+          <hr className="my-3" />
 
           {/* Error Message */}
           {error && (
