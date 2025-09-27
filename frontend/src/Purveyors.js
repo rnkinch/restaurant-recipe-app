@@ -260,7 +260,7 @@ const Purveyors = () => {
       </div>
       
       {/* Horizontal Rule for Separation */}
-      <hr className="my-3" style={{ borderColor: '#6c757d', borderWidth: '2px', opacity: '0.8' }} />
+      <hr className="my-3" style={{ borderColor: '#343a40', borderWidth: '3px', opacity: '1', height: '3px' }} />
       <Form.Group className="mb-3">
         <Form.Control
           type="text"
