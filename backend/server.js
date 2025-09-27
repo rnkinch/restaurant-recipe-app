@@ -6,14 +6,51 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config({ quiet: true });
 
+// Import security middleware
+const { 
+  generalLimiter, 
+  authLimiter, 
+  uploadLimiter, 
+  securityHeaders, 
+  sanitizeInput, 
+  validateFileUpload, 
+  securityLogger 
+} = require('./middleware/security');
+const { authenticateToken, requireAdmin, requireUser } = require('./middleware/auth');
+
 const app = express();
+// Secure CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://192.168.68.129:3000', // Your specific IP from docker-compose
+  process.env.FRONTEND_URL || 'http://localhost:3000'
+];
+
 app.use(cors({
-  origin: '*',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn('CORS blocked request from origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Cache-Control', 'Pragma'],
-  credentials: false
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma'],
+  credentials: true, // Enable credentials for authentication
+  optionsSuccessStatus: 200
 }));
-app.use(express.json());
+
+// Apply security middleware
+app.use(securityHeaders);
+app.use(securityLogger);
+app.use(generalLimiter);
+app.use(sanitizeInput);
+app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', (req, res, next) => {
@@ -82,7 +119,11 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ 
   storage, 
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }
+  limits: { 
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+    files: 1, // Only 1 file at a time
+    fieldSize: 1024 * 1024 // 1MB field size limit
+  }
 });
 
 app.use((req, res, next) => {
@@ -138,6 +179,79 @@ const recipeSchema = new mongoose.Schema({
 const Recipe = mongoose.model('Recipe', recipeSchema);
 
 const Config = require('./Config');
+const { User } = require('./middleware/auth');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+// Authentication routes
+app.post('/auth/register', authLimiter, async (req, res) => {
+  try {
+    const { username, password, role = 'user' } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password required' });
+    }
+    
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+    
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+    
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const user = new User({ username, password: hashedPassword, role });
+    await user.save();
+    
+    res.status(201).json({ message: 'User created successfully' });
+  } catch (err) {
+    console.error('Registration error:', err.message);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+app.post('/auth/login', authLimiter, async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password required' });
+    }
+    
+    const user = await User.findOne({ username, isActive: true });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    user.lastLogin = new Date();
+    await user.save();
+    
+    const token = jwt.sign(
+      { userId: user._id, username: user.username, role: user.role },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+    
+    res.json({ 
+      token, 
+      user: { 
+        id: user._id, 
+        username: user.username, 
+        role: user.role 
+      } 
+    });
+  } catch (err) {
+    console.error('Login error:', err.message);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
 
 // Configuration routes
 app.get('/config', async (req, res) => {
@@ -150,7 +264,7 @@ app.get('/config', async (req, res) => {
   }
 });
 
-app.put('/config', async (req, res) => {
+app.put('/config', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { appName, showLeftNav } = req.body;
     const config = await Config.findOne();
@@ -170,7 +284,7 @@ app.put('/config', async (req, res) => {
   }
 });
 
-app.post('/config/logo', upload.single('logo'), async (req, res) => {
+app.post('/config/logo', uploadLimiter, authenticateToken, requireAdmin, upload.single('logo'), validateFileUpload, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No logo file provided' });
@@ -187,7 +301,7 @@ app.get('/health', (req, res) => {
 });
 
 // Purveyors routes
-app.get('/purveyors', async (req, res) => {
+app.get('/purveyors', authenticateToken, requireUser, async (req, res) => {
   try {
     const purveyors = await Purveyor.find().sort({ name: 1 });
     res.json(purveyors);
@@ -197,7 +311,7 @@ app.get('/purveyors', async (req, res) => {
   }
 });
 
-app.post('/purveyors', async (req, res) => {
+app.post('/purveyors', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const purveyor = new Purveyor(req.body);
     await purveyor.save();
@@ -208,7 +322,7 @@ app.post('/purveyors', async (req, res) => {
   }
 });
 
-app.put('/purveyors/:id', async (req, res) => {
+app.put('/purveyors/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const purveyor = await Purveyor.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!purveyor) return res.status(404).json({ error: 'Purveyor not found' });
@@ -219,7 +333,7 @@ app.put('/purveyors/:id', async (req, res) => {
   }
 });
 
-app.delete('/purveyors/:id', async (req, res) => {
+app.delete('/purveyors/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const purveyor = await Purveyor.findByIdAndDelete(req.params.id);
     if (!purveyor) return res.status(404).json({ error: 'Purveyor not found' });
@@ -231,7 +345,7 @@ app.delete('/purveyors/:id', async (req, res) => {
 });
 
 // Ingredients routes
-app.get('/ingredients', async (req, res) => {
+app.get('/ingredients', authenticateToken, requireUser, async (req, res) => {
   try {
     const ingredients = await Ingredient.find().populate('purveyor').sort({ name: 1 });
     res.json(ingredients);
@@ -241,7 +355,7 @@ app.get('/ingredients', async (req, res) => {
   }
 });
 
-app.post('/ingredients', async (req, res) => {
+app.post('/ingredients', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const ingredient = new Ingredient(req.body);
     await ingredient.save();
@@ -253,7 +367,7 @@ app.post('/ingredients', async (req, res) => {
   }
 });
 
-app.put('/ingredients/:id', async (req, res) => {
+app.put('/ingredients/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const ingredient = await Ingredient.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!ingredient) return res.status(404).json({ error: 'Ingredient not found' });
@@ -265,7 +379,7 @@ app.put('/ingredients/:id', async (req, res) => {
   }
 });
 
-app.delete('/ingredients/:id', async (req, res) => {
+app.delete('/ingredients/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const ingredient = await Ingredient.findByIdAndDelete(req.params.id);
     if (!ingredient) return res.status(404).json({ error: 'Ingredient not found' });
@@ -277,7 +391,7 @@ app.delete('/ingredients/:id', async (req, res) => {
 });
 
 // Recipes routes
-app.get('/recipes', async (req, res) => {
+app.get('/recipes', authenticateToken, requireUser, async (req, res) => {
   try {
     const { ingredient, active } = req.query;
     const query = {};
@@ -294,7 +408,7 @@ app.get('/recipes', async (req, res) => {
   }
 });
 
-app.get('/recipes/:id', async (req, res) => {
+app.get('/recipes/:id', authenticateToken, requireUser, async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id).populate({
       path: 'ingredients.ingredient',
@@ -308,7 +422,7 @@ app.get('/recipes/:id', async (req, res) => {
   }
 });
 
-app.post('/recipes', upload.single('image'), async (req, res) => {
+app.post('/recipes', uploadLimiter, authenticateToken, requireAdmin, upload.single('image'), validateFileUpload, async (req, res) => {
   try {
     const { name, steps, platingGuide, allergens, serviceTypes, active } = req.body;
     
@@ -340,7 +454,7 @@ app.post('/recipes', upload.single('image'), async (req, res) => {
   }
 });
 
-app.put('/recipes/:id', upload.single('image'), async (req, res) => {
+app.put('/recipes/:id', uploadLimiter, authenticateToken, requireAdmin, upload.single('image'), validateFileUpload, async (req, res) => {
   try {
     const { name, steps, platingGuide, allergens, serviceTypes, active, removeImage } = req.body;
     
@@ -374,7 +488,7 @@ app.put('/recipes/:id', upload.single('image'), async (req, res) => {
   }
 });
 
-app.delete('/recipes/:id', async (req, res) => {
+app.delete('/recipes/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const recipe = await Recipe.findByIdAndDelete(req.params.id);
     if (!recipe) return res.status(404).json({ error: 'Recipe not found' });
