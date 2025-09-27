@@ -42,6 +42,9 @@ router.get('/', authenticateToken, requireReadOnly, async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
     
+    // Debug logging
+    console.log('Retrieved change logs:', JSON.stringify(logs, null, 2));
+    
     const total = await ChangeLog.countDocuments(query);
     
     res.json({

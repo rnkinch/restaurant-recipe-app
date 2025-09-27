@@ -18,7 +18,7 @@ const {
   securityLogger 
 } = require('./middleware/security');
 const { authenticateToken, requireAdmin, requireUser, requireEditPermission, requireReadOnly } = require('./middleware/auth');
-const { logRecipeChange, logRecipeView, captureChanges, logRecipeUpdate, logUpdateResult } = require('./middleware/changelog');
+const { logRecipeChange, captureChanges, logRecipeUpdate, logUpdateResult } = require('./middleware/changelog');
 
 const app = express();
 // Secure CORS configuration
@@ -447,7 +447,7 @@ app.get('/recipes', authenticateToken, requireReadOnly, async (req, res) => {
   }
 });
 
-app.get('/recipes/:id', authenticateToken, requireReadOnly, logRecipeView, async (req, res) => {
+app.get('/recipes/:id', authenticateToken, requireReadOnly, async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id).populate({
       path: 'ingredients.ingredient',
@@ -520,6 +520,9 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission,
       path: 'ingredients.ingredient',
       populate: { path: 'purveyor' }
     });
+    
+    // Set the processed recipe data for change logging
+    req.processedRecipeData = recipeData;
     
     // Log the update after successful operation
     await logUpdateResult(req, res, () => {});

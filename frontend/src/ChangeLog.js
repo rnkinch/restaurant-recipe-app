@@ -70,7 +70,6 @@ const ChangeLog = () => {
       created: 'success',
       updated: 'warning',
       deleted: 'danger',
-      viewed: 'info',
       image_uploaded: 'primary',
       image_removed: 'secondary'
     };
@@ -82,42 +81,160 @@ const ChangeLog = () => {
       created: '➕',
       updated: '✏️',
       deleted: '🗑️',
-      viewed: '👁️',
       image_uploaded: '📷',
       image_removed: '🖼️'
     };
     return icons[action] || '📝';
   };
 
-  const renderValue = (value) => {
-    if (value === null || value === undefined) return 'null';
+  const renderValue = (value, fieldName = '') => {
+    // Debug logging
+    console.log('renderValue called with:', { value, fieldName, type: typeof value });
+    
+    if (value === null || value === undefined) return <span className="text-muted">(empty)</span>;
+    
     if (typeof value === 'object') {
       if (Array.isArray(value)) {
-        return `[${value.length} items]`;
+        // Handle different types of arrays based on field name
+        if (fieldName === 'ingredients' && value.length > 0) {
+          return (
+            <div>
+              <div className="small text-muted mb-1">Ingredients ({value.length} items):</div>
+              <ul className="list-unstyled small">
+                {value.map((ingredient, index) => {
+                  // Handle the resolved ingredient data structure
+                  const ingredientName = ingredient.ingredient?.name || 
+                                       ingredient.name || 
+                                       ingredient.ingredient || 
+                                       'Unknown ingredient';
+                  const quantity = ingredient.quantity || '0';
+                  const unit = ingredient.measure || ingredient.unit || 'units';
+                  
+                  return (
+                    <li key={index} className="mb-1">
+                      <strong>{ingredientName}</strong> - 
+                      <span className="text-muted"> {quantity} {unit}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        }
+        
+        if (fieldName === 'steps' && value.length > 0) {
+          return (
+            <div>
+              <div className="small text-muted mb-1">Steps ({value.length} items):</div>
+              <ol className="small">
+                {value.map((step, index) => (
+                  <li key={index} className="mb-1">{step}</li>
+                ))}
+              </ol>
+            </div>
+          );
+        }
+        
+        if ((fieldName === 'allergens' || fieldName === 'serviceTypes') && value.length > 0) {
+          return (
+            <div>
+              <div className="small text-muted mb-1">{fieldName === 'allergens' ? 'Allergens' : 'Service Types'} ({value.length} items):</div>
+              <div className="small">
+                {value.map((item, index) => (
+                  <span key={index} className="badge bg-secondary me-1 mb-1">{item}</span>
+                ))}
+              </div>
+            </div>
+          );
+        }
+        
+        // Generic array handling
+        if (value.length === 0) {
+          return <span className="text-muted">(empty list)</span>;
+        }
+        
+        return (
+          <div>
+            <div className="small text-muted mb-1">List ({value.length} items):</div>
+            <ul className="list-unstyled small">
+              {value.slice(0, 5).map((item, index) => (
+                <li key={index} className="mb-1">• {String(item)}</li>
+              ))}
+              {value.length > 5 && <li className="text-muted">• ... and {value.length - 5} more items</li>}
+            </ul>
+          </div>
+        );
       }
-      return '[Object]';
+      
+      // Handle objects
+      return (
+        <div>
+          <div className="small text-muted mb-1">Object with {Object.keys(value).length} properties:</div>
+          <div className="small">
+            {Object.entries(value).slice(0, 3).map(([key, val]) => (
+              <div key={key} className="mb-1">
+                <strong>{key}:</strong> {String(val).length > 50 ? String(val).substring(0, 50) + '...' : String(val)}
+              </div>
+            ))}
+            {Object.keys(value).length > 3 && (
+              <div className="text-muted">... and {Object.keys(value).length - 3} more properties</div>
+            )}
+          </div>
+        </div>
+      );
     }
-    if (typeof value === 'string' && value.length > 50) {
-      return `"${value.substring(0, 50)}..."`;
+    
+    if (typeof value === 'string') {
+      // Handle long strings better
+      if (value.length === 0) {
+        return <span className="text-muted">(empty)</span>;
+      }
+      
+      if (value.length > 200) {
+        return (
+          <div>
+            <div className="text-break small">{value}</div>
+            <div className="small text-muted">({value.length} characters)</div>
+          </div>
+        );
+      }
+      
+      return <div className="text-break small">{value}</div>;
     }
-    return `"${value}"`;
+    
+    if (typeof value === 'boolean') {
+      return <span className={`badge ${value ? 'bg-success' : 'bg-danger'}`}>{value ? 'Yes' : 'No'}</span>;
+    }
+    
+    return <span className="small">{String(value)}</span>;
   };
 
   const renderChanges = (changes) => {
     if (!changes) return null;
     
+    // Debug logging
+    console.log('renderChanges called with:', changes);
+    
     return (
       <div className="mt-2">
-        <small className="text-muted">Changes:</small>
-        <ul className="list-unstyled small">
+        <small className="text-muted fw-bold">Changes:</small>
+        <div className="mt-1">
           {Object.entries(changes).map(([field, change]) => (
-            <li key={field}>
-              <strong>{field}:</strong> 
-              <span className="text-muted"> {renderValue(change.from)}</span> → 
-              <span className="text-success"> {renderValue(change.to)}</span>
-            </li>
+            <div key={field} className="mb-2 p-2 border rounded bg-light">
+              <div className="fw-bold text-primary mb-1">{field}:</div>
+              <div className="row">
+                <div className="col-6">
+                  <small className="text-muted d-block">From:</small>
+                  <div className="small">{renderValue(change.from, field)}</div>
+                </div>
+                <div className="col-6">
+                  <small className="text-muted d-block">To:</small>
+                  <div className="small">{renderValue(change.to, field)}</div>
+                </div>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
     );
   };
@@ -170,7 +287,6 @@ const ChangeLog = () => {
                     <option value="created">Created</option>
                     <option value="updated">Updated</option>
                     <option value="deleted">Deleted</option>
-                    <option value="viewed">Viewed</option>
                     <option value="image_uploaded">Image Uploaded</option>
                     <option value="image_removed">Image Removed</option>
                   </select>
@@ -217,11 +333,11 @@ const ChangeLog = () => {
                   <table className="table table-hover">
                     <thead>
                       <tr>
-                        <th>Timestamp</th>
-                        <th>User</th>
-                        <th>Recipe</th>
-                        <th>Action</th>
-                        <th>Details</th>
+                        <th style={{ width: '15%' }}>Timestamp</th>
+                        <th style={{ width: '12%' }}>User</th>
+                        <th style={{ width: '15%' }}>Recipe</th>
+                        <th style={{ width: '12%' }}>Action</th>
+                        <th style={{ width: '46%' }}>Details</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -246,7 +362,7 @@ const ChangeLog = () => {
                           <td>
                             {renderChanges(log.changes)}
                             {log.ipAddress && (
-                              <small className="text-muted d-block">
+                              <small className="text-muted d-block mt-1">
                                 IP: {log.ipAddress}
                               </small>
                             )}

@@ -22,7 +22,7 @@ const ChangeLogSchema = new mongoose.Schema({
   action: {
     type: String,
     required: true,
-    enum: ['created', 'updated', 'deleted', 'viewed', 'image_uploaded', 'image_removed']
+    enum: ['created', 'updated', 'deleted', 'image_uploaded', 'image_removed']
   },
   changes: {
     type: mongoose.Schema.Types.Mixed,
