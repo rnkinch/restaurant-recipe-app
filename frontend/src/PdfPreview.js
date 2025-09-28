@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
     width: 792, // 11 inches at 72 DPI (landscape)
     height: 612, // 8.5 inches at 72 DPI
     position: 'relative',
-    backgroundColor: '#fefefe', // Elegant Culinary background
+    backgroundColor: '#fefefe', // White background
   },
   field: {
     position: 'absolute',
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   viewerContainer: {
     width: '808px', // 792px + 8px left border + 8px right border
     height: '628px', // 612px + 8px top border + 8px bottom border
-    border: '8px solid #8B1538', // Elegant Culinary burgundy border (reduced from 18px)
+    border: '8px solid #8B1538', // Elegant Culinary burgundy border
     boxSizing: 'border-box',
     marginTop: '1rem',
     borderRadius: '8px',
@@ -461,7 +461,7 @@ export const PdfPreview = () => {
                           }
                         : { ...styles.field, left: field.x, top: field.y, width: field.width || 400 }
                     ),
-                    zIndex: field.zIndex || (field.id === 'watermark' ? 5 : 10),
+                    zIndex: field.zIndex || (field.id === 'watermark' ? 5 : 20),
                   }}
                 >
                   {field.isImage ? (

@@ -39,8 +39,8 @@ const styles = {
   },
   canvas: {
     position: 'relative',
-    width: '700px', // Reduced from 842px to fit better
-    height: '495px', // Reduced from 595px to fit better
+    width: '792px', // Full landscape width (11 inches at 72 DPI)
+    height: '612px', // Full landscape height (8.5 inches at 72 DPI)
     border: '8px solid #8B1538', // Elegant Culinary burgundy border
     boxSizing: 'border-box',
     background: '#fefefe', // Elegant Culinary background
@@ -48,6 +48,24 @@ const styles = {
     overflow: 'hidden',
     borderRadius: '8px',
     boxShadow: '0 4px 6px rgba(139, 21, 56, 0.1)',
+  },
+  printableArea: {
+    position: 'absolute',
+    top: '18px', // 1/4" margin (18px at 72 DPI)
+    left: '18px', // 1/4" margin (18px at 72 DPI)
+    width: '756px', // 792px - 36px (18px margins on both sides)
+    height: '576px', // 612px - 36px (18px margins on top and bottom)
+    backgroundColor: '#fefefe', // White printable area
+    zIndex: 1,
+  },
+  marginArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '792px',
+    height: '612px',
+    backgroundColor: '#e5e7eb', // Light grey for non-printable margin area
+    zIndex: 0,
   },
 };
 
@@ -71,8 +89,8 @@ const Field = ({ field, index, setFields, selectedField, setSelectedField, selec
               const fieldToMove = newFields[fieldIndex];
               const maxWidth = fieldToMove.isImage ? (fieldToMove.width || 100) : fieldToMove.isLine ? (fieldToMove.orientation === 'horizontal' ? (fieldToMove.length || 100) : 1) : (fieldToMove.width || 400);
               const maxHeight = fieldToMove.isImage ? (fieldToMove.height || 100) : fieldToMove.isLine ? (fieldToMove.orientation === 'vertical' ? (fieldToMove.length || 100) : 1) : 20;
-              let newX = Math.max(0, Math.min(700 - maxWidth, fieldToMove.x + delta.x));
-              let newY = Math.max(0, Math.min(495 - maxHeight, fieldToMove.y + delta.y));
+              let newX = Math.max(18, Math.min(756 - maxWidth, fieldToMove.x + delta.x)); // 18px margin from left, printable area width
+              let newY = Math.max(18, Math.min(576 - maxHeight, fieldToMove.y + delta.y)); // 18px margin from top, printable area height
               
               // Apply snap to grid if enabled
               if (snapToGrid) {
@@ -649,8 +667,8 @@ const PdfEditor = ({ recipe }) => {
           {templateError}
         </div>
       )}
-      <Row style={{ height: '520px' }}>
-        <Col md={8} style={{ height: '100%', overflow: 'hidden' }}>
+      <Row style={{ height: '650px' }}>
+        <Col md={9} style={{ height: '100%', overflow: 'hidden' }}>
           <DndProvider backend={HTML5Backend}>
             <div
               key={canvasKey}
@@ -661,6 +679,12 @@ const PdfEditor = ({ recipe }) => {
                 console.log('Canvas clicked, deselected fields');
               }}
             >
+              {/* Margin area (grey background) */}
+              <div style={styles.marginArea} />
+              
+              {/* Printable area (white background) */}
+              <div style={styles.printableArea} />
+              
               {showGrid && <div style={styles.grid} />}
               {fields.map((field, index) => (
                 <Field
@@ -679,7 +703,7 @@ const PdfEditor = ({ recipe }) => {
             </div>
           </DndProvider>
         </Col>
-        <Col md={4} style={{ height: '100%', overflow: 'hidden', paddingLeft: '1rem' }}>
+        <Col md={3} style={{ height: '100%', overflow: 'hidden', paddingLeft: '1rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             {/* Tools Section */}
             <div style={{ marginBottom: '0.5rem' }}>
