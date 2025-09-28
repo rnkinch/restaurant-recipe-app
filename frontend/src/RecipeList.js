@@ -205,6 +205,7 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
             variant={showActiveOnly ? 'success' : 'outline-primary'}
             size="sm"
             onClick={toggleActiveFilter}
+            style={{ minWidth: '140px' }}
           >
             {showActiveOnly ? 'Show All' : 'Show Active Only'}
           </Button>

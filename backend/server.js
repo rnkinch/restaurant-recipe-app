@@ -518,24 +518,12 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission,
   try {
     const { name, steps, platingGuide, allergens, serviceTypes, active, removeImage } = req.body;
     
-    // Parse ingredients from JSON string
-    let ingredients;
-    try {
-      ingredients = JSON.parse(req.body.ingredients || '[]');
-    } catch (parseError) {
-      console.error('Error parsing ingredients:', parseError);
-      return res.status(400).json({ error: 'Invalid ingredients format' });
-    }
+    // Use ingredients (already parsed by validation middleware)
+    const ingredients = req.body.ingredients || [];
 
-    // Parse other JSON fields
-    let parsedAllergens, parsedServiceTypes;
-    try {
-      parsedAllergens = JSON.parse(allergens || '[]');
-      parsedServiceTypes = JSON.parse(serviceTypes || '[]');
-    } catch (parseError) {
-      console.error('Error parsing JSON fields:', parseError);
-      return res.status(400).json({ error: 'Invalid JSON format in allergens or service types' });
-    }
+    // Use allergens and serviceTypes (already parsed by validation middleware)
+    const parsedAllergens = req.body.allergens || [];
+    const parsedServiceTypes = req.body.serviceTypes || [];
 
     const recipeData = {
       name,

@@ -239,19 +239,10 @@ const validatePurveyorData = (purveyorData) => {
 // Middleware for recipe validation
 const validateRecipe = (req, res, next) => {
   try {
-    console.log('=== VALIDATION DEBUG ===');
-    console.log('Request body type:', typeof req.body);
-    console.log('Body keys:', Object.keys(req.body || {}));
-    
-    // Sanitize the request body
-    req.body = sanitizeObject(req.body);
-    console.log('Body sanitized');
-    
-    // Parse ingredients if it's a string
+    // Parse ingredients if it's a string BEFORE sanitizing
     if (req.body.ingredients && typeof req.body.ingredients === 'string') {
       try {
         req.body.ingredients = JSON.parse(req.body.ingredients);
-        console.log('Ingredients parsed from string');
       } catch (e) {
         console.error('Error parsing ingredients:', e);
         return res.status(400).json({ 
@@ -265,7 +256,6 @@ const validateRecipe = (req, res, next) => {
     if (req.body.allergens && typeof req.body.allergens === 'string') {
       try {
         req.body.allergens = JSON.parse(req.body.allergens);
-        console.log('Allergens parsed from string');
       } catch (e) {
         console.error('Error parsing allergens:', e);
         return res.status(400).json({ 
@@ -278,7 +268,6 @@ const validateRecipe = (req, res, next) => {
     if (req.body.serviceTypes && typeof req.body.serviceTypes === 'string') {
       try {
         req.body.serviceTypes = JSON.parse(req.body.serviceTypes);
-        console.log('Service types parsed from string');
       } catch (e) {
         console.error('Error parsing service types:', e);
         return res.status(400).json({ 
@@ -288,40 +277,17 @@ const validateRecipe = (req, res, next) => {
       }
     }
     
-    // Parse ingredients before validation if it's still a string
-    if (req.body.ingredients && typeof req.body.ingredients === 'string') {
-      try {
-        req.body.ingredients = JSON.parse(req.body.ingredients);
-        console.log('Ingredients parsed for validation');
-      } catch (e) {
-        console.error('Error parsing ingredients for validation:', e);
-        return res.status(400).json({ 
-          error: 'Invalid ingredients format',
-          details: 'Ingredients must be valid JSON'
-        });
-      }
-    }
+    // NOW sanitize the request body after parsing JSON fields
+    req.body = sanitizeObject(req.body);
     
     // Validate the recipe data
-    console.log('About to validate recipe data...');
     const validation = validateRecipeData(req.body);
-    console.log('Validation result:', validation.isValid);
     if (!validation.isValid) {
-      console.log('=== VALIDATION FAILED ===');
-      console.log('Validation result:', validation.isValid);
-      console.log('Validation errors:', validation.errors);
-      console.log('Request body sample:', {
-        name: req.body.name,
-        ingredients: req.body.ingredients,
-        steps: req.body.steps
-      });
       return res.status(400).json({
         error: 'Validation failed',
         details: validation.errors
       });
     }
-    
-    console.log('Validation passed, calling next()');
     next();
   } catch (err) {
     console.error('=== VALIDATION ERROR ===');

@@ -253,11 +253,13 @@ const RecipeForm = ({ refreshRecipes }) => {
       }
 
       // Send ingredients as JSON string
-      formDataToSend.append('ingredients', JSON.stringify(formData.ingredients.map(ing => ({
-        ingredient: ing.ingredient,
-        quantity: ing.quantity,
-        measure: ing.measure
-      }))));
+      const processedIngredients = formData.ingredients.map(ing => ({
+        ingredient: ing.ingredient || null,
+        quantity: ing.quantity || '',
+        measure: ing.measure || ''
+      }));
+      
+      formDataToSend.append('ingredients', JSON.stringify(processedIngredients));
 
       console.log('Submitting formData:', formData);
       let response;
@@ -271,8 +273,17 @@ const RecipeForm = ({ refreshRecipes }) => {
       if (refreshRecipes) refreshRecipes();
       navigate('/');
     } catch (err) {
-      console.error('Submit error:', err.message);
-      setError(`Failed to save recipe: ${err.message}`);
+      console.error('Submit error:', err);
+      console.error('Error response:', err.response?.data);
+      
+      // Extract validation errors if available
+      if (err.response?.data?.details) {
+        setValidationErrors(err.response.data.details);
+        setError('Please fix the validation errors below.');
+      } else {
+        const errorMessage = err.response?.data?.error || err.message;
+        setError(`Failed to save recipe: ${errorMessage}`);
+      }
     } finally {
       setLoading(false);
     }
