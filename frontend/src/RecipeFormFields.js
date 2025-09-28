@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Card, Button } from 'react-bootstrap';
+import { Form, Card, Button, Row, Col } from 'react-bootstrap';
 
 const RecipeFormFields = ({
   formData,
@@ -113,33 +113,38 @@ const RecipeFormFields = ({
             )}
           </Form.Group>
           <hr style={hrStyle} />
-          <Form.Group className="mb-3">
-            <Form.Label style={headerStyle}>Allergens</Form.Label>
-            {allergensOptions.map(option => (
-              <Form.Check
-                key={option}
-                type="checkbox"
-                label={option}
-                value={option}
-                checked={formData.allergens.includes(option)}
-                onChange={(e) => handleCheckboxChange(e, 'allergens')}
-              />
-            ))}
-          </Form.Group>
-          <hr style={hrStyle} />
-          <Form.Group className="mb-3">
-            <Form.Label style={headerStyle}>Service Types</Form.Label>
-            {serviceTypesOptions.map(option => (
-              <Form.Check
-                key={option}
-                type="checkbox"
-                label={option}
-                value={option}
-                checked={formData.serviceTypes.includes(option)}
-                onChange={(e) => handleCheckboxChange(e, 'serviceTypes')}
-              />
-            ))}
-          </Form.Group>
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label style={headerStyle}>Allergens</Form.Label>
+                {allergensOptions.map(option => (
+                  <Form.Check
+                    key={option}
+                    type="checkbox"
+                    label={option}
+                    value={option}
+                    checked={formData.allergens.includes(option)}
+                    onChange={(e) => handleCheckboxChange(e, 'allergens')}
+                  />
+                ))}
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label style={headerStyle}>Service Types</Form.Label>
+                {serviceTypesOptions.map(option => (
+                  <Form.Check
+                    key={option}
+                    type="checkbox"
+                    label={option}
+                    value={option}
+                    checked={formData.serviceTypes.includes(option)}
+                    onChange={(e) => handleCheckboxChange(e, 'serviceTypes')}
+                  />
+                ))}
+              </Form.Group>
+            </Col>
+          </Row>
         </>
       )}
     </>

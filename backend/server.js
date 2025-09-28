@@ -514,7 +514,7 @@ app.post('/recipes', uploadLimiter, authenticateToken, requireEditPermission, up
 });
 
 
-app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission, upload.single('image'), validateFileUpload, sanitizeInputs, validateRecipe, async (req, res) => {
+app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission, upload.single('image'), validateFileUpload, sanitizeInputs, validateRecipe, captureChanges, logRecipeUpdate, async (req, res) => {
   try {
     const { name, steps, platingGuide, allergens, serviceTypes, active, removeImage } = req.body;
     
@@ -541,6 +541,12 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission,
       recipeData.image = null;
     }
     
+    // Get the original recipe data BEFORE updating
+    const originalRecipe = await Recipe.findById(req.params.id);
+    if (!originalRecipe) {
+      return res.status(404).json({ error: 'Recipe not found' });
+    }
+    
     let recipe;
     try {
       recipe = await Recipe.findByIdAndUpdate(req.params.id, recipeData, { new: true });
@@ -564,6 +570,51 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission,
       return res.status(500).json({ error: 'Failed to populate recipe data' });
     }
     
+    // Store processed data for changelog
+    req.processedRecipeData = recipeData;
+    
+    // Check for image changes and log them separately
+    if (req.file) {
+      // Image was uploaded
+      console.log('Image upload detected:', { 
+        recipeId: req.params.id, 
+        recipeName: recipe.name,
+        from: originalRecipe.image,
+        to: recipeData.image 
+      });
+      await ChangeLog.create({
+        user: req.user.userId || req.user._id,
+        username: req.user.username,
+        recipe: req.params.id,
+        recipeName: recipe.name,
+        action: 'image_uploaded',
+        changes: { image: { from: originalRecipe.image || null, to: recipeData.image } },
+        ipAddress: req.ip || req.connection.remoteAddress,
+        userAgent: req.get('User-Agent')
+      });
+    } else if (removeImage === 'true' && originalRecipe.image) {
+      // Image was removed
+      console.log('Image removal detected:', { 
+        recipeId: req.params.id, 
+        recipeName: recipe.name,
+        from: originalRecipe.image,
+        to: null 
+      });
+      await ChangeLog.create({
+        user: req.user.userId || req.user._id,
+        username: req.user.username,
+        recipe: req.params.id,
+        recipeName: recipe.name,
+        action: 'image_removed',
+        changes: { image: { from: originalRecipe.image, to: null } },
+        ipAddress: req.ip || req.connection.remoteAddress,
+        userAgent: req.get('User-Agent')
+      });
+    }
+    
+    // Log the update result
+    await logUpdateResult(req, res, () => {});
+    
     res.json(populatedRecipe);
   } catch (err) {
     console.error('Recipe update error:', err.message);
@@ -571,7 +622,7 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission,
   }
 });
 
-app.delete('/recipes/:id', authenticateToken, requireEditPermission, async (req, res) => {
+app.delete('/recipes/:id', authenticateToken, requireEditPermission, logRecipeChange('deleted'), async (req, res) => {
   try {
     // First, get the recipe to capture its name before deletion
     const recipe = await Recipe.findById(req.params.id);

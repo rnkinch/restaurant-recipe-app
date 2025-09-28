@@ -147,12 +147,34 @@ const Purveyors = () => {
         showError('Ingredient name and purveyor are required');
         return;
       }
+      
+      // Get the current ingredient to find its old purveyor
+      const currentIngredient = ingredients.find(i => i._id === editIngredient.id);
+      const oldPurveyorId = currentIngredient?.purveyor?._id;
+      
       const updatedIngredient = await updateIngredient(editIngredient.id, editIngredient.name, editIngredient.purveyorId);
+      
+      // Update ingredients list
       setIngredients(ingredients.map(i => i._id === editIngredient.id ? { ...updatedIngredient, purveyor: { _id: editIngredient.purveyorId } } : i));
-      setPurveyors(purveyors.map(p => ({
-        ...p,
-        ingredients: p.ingredients.map(i => i._id === editIngredient.id ? updatedIngredient : i)
-      })));
+      
+      // Update purveyors - remove from old purveyor and add to new purveyor
+      setPurveyors(purveyors.map(p => {
+        if (p._id === oldPurveyorId) {
+          // Remove ingredient from old purveyor
+          return {
+            ...p,
+            ingredients: p.ingredients.filter(i => i._id !== editIngredient.id)
+          };
+        } else if (p._id === editIngredient.purveyorId) {
+          // Add ingredient to new purveyor
+          return {
+            ...p,
+            ingredients: [...p.ingredients, updatedIngredient]
+          };
+        }
+        return p;
+      }));
+      
       setEditIngredient({ id: '', name: '', purveyorId: '' });
       setShowEditIngredientModal(false);
       setError(null);

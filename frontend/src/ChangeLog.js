@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getChangeLogs } from './api';
 
 const ChangeLog = () => {
@@ -17,26 +17,34 @@ const ChangeLog = () => {
     total: 0,
     pages: 0
   });
+  
+  // Use refs to avoid dependency issues
+  const filtersRef = useRef(filters);
+  const paginationRef = useRef(pagination);
+  const debounceTimeoutRef = useRef(null);
+  
+  // Update refs when state changes
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
+  
+  useEffect(() => {
+    paginationRef.current = pagination;
+  }, [pagination]);
 
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: pagination.page,
-        limit: pagination.limit,
-        days: filters.days,
-        ...(filters.action && { action: filters.action }),
-        ...(filters.user && { user: filters.user }),
-        ...(filters.recipe && { recipe: filters.recipe })
-      });
-
+      const currentFilters = filtersRef.current;
+      const currentPagination = paginationRef.current;
+      
       const response = await getChangeLogs({
-        page: pagination.page,
-        limit: pagination.limit,
-        days: filters.days,
-        ...(filters.action && { action: filters.action }),
-        ...(filters.user && { user: filters.user }),
-        ...(filters.recipe && { recipe: filters.recipe })
+        page: currentPagination.page,
+        limit: currentPagination.limit,
+        days: currentFilters.days,
+        ...(currentFilters.action && { action: currentFilters.action }),
+        ...(currentFilters.user && { user: currentFilters.user }),
+        ...(currentFilters.recipe && { recipe: currentFilters.recipe })
       });
       setLogs(response.logs);
       setPagination(response.pagination);
@@ -48,17 +56,42 @@ const ChangeLog = () => {
     }
   };
 
+  // Initial load
   useEffect(() => {
     fetchLogs();
-  }, [pagination.page, filters]);
+  }, []); // Only run on mount
+
+  // Debounced search for filters
+  useEffect(() => {
+    // Clear existing timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    // Set new timeout
+    debounceTimeoutRef.current = setTimeout(() => {
+      fetchLogs();
+    }, 500); // 500ms debounce
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [filters]); // Only depend on filters
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    // Reset to page 1 when filters change
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
   const handlePageChange = (newPage) => {
     setPagination(prev => ({ ...prev, page: newPage }));
+    // Update the ref immediately
+    paginationRef.current = { ...paginationRef.current, page: newPage };
+    // Fetch immediately for page changes
+    fetchLogs();
   };
 
   const formatTimestamp = (timestamp) => {
@@ -216,20 +249,20 @@ const ChangeLog = () => {
     console.log('renderChanges called with:', changes);
     
     return (
-      <div className="mt-2">
-        <small className="text-muted fw-bold">Changes:</small>
+      <div className="mt-2" style={{ position: 'relative', zIndex: 1 }}>
+        <small className="text-muted fw-bold" style={{ fontSize: '0.75rem' }}>Changes:</small>
         <div className="mt-1">
           {Object.entries(changes).map(([field, change]) => (
-            <div key={field} className="mb-2 p-2 border rounded bg-light">
-              <div className="fw-bold text-primary mb-1">{field}:</div>
+            <div key={field} className="mb-2 p-2 border rounded bg-light" style={{ position: 'relative', zIndex: 1 }}>
+              <div className="fw-bold text-primary mb-1" style={{ fontSize: '0.875rem' }}>{field}:</div>
               <div className="row">
                 <div className="col-6">
-                  <small className="text-muted d-block">From:</small>
-                  <div className="small">{renderValue(change.from, field)}</div>
+                  <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>From:</small>
+                  <div className="small" style={{ fontSize: '0.75rem' }}>{renderValue(change.from, field)}</div>
                 </div>
                 <div className="col-6">
-                  <small className="text-muted d-block">To:</small>
-                  <div className="small">{renderValue(change.to, field)}</div>
+                  <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>To:</small>
+                  <div className="small" style={{ fontSize: '0.75rem' }}>{renderValue(change.to, field)}</div>
                 </div>
               </div>
             </div>
@@ -242,8 +275,8 @@ const ChangeLog = () => {
   if (loading) {
     return (
       <div className="d-flex justify-content-center p-4">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
+        <div className="spinner-border" role="status" style={{ width: '1.5rem', height: '1.5rem' }}>
+          <span className="visually-hidden" style={{ fontSize: '0.875rem' }}>Loading...</span>
         </div>
       </div>
     );
@@ -254,20 +287,21 @@ const ChangeLog = () => {
       <div className="row">
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2>📋 Change Log</h2>
-            <div className="text-muted">
+            <h3 style={{ fontSize: '1.5rem' }}>📋 Change Log</h3>
+            <div className="text-muted" style={{ fontSize: '0.875rem' }}>
               Showing last {filters.days} days
             </div>
           </div>
 
           {/* Filters */}
-          <div className="card mb-4">
+          <div className="card mb-4" style={{ position: 'relative', zIndex: 1000 }}>
             <div className="card-body">
               <div className="row g-3">
-                <div className="col-md-3">
-                  <label className="form-label">Days</label>
+                <div className="col-12 col-sm-6 col-md-3">
+                  <label className="form-label" style={{ fontSize: '0.875rem' }}>Days</label>
                   <select 
                     className="form-select"
+                    style={{ fontSize: '0.875rem' }}
                     value={filters.days}
                     onChange={(e) => handleFilterChange('days', e.target.value)}
                   >
@@ -276,10 +310,11 @@ const ChangeLog = () => {
                     <option value={30}>Last 30 days</option>
                   </select>
                 </div>
-                <div className="col-md-3">
-                  <label className="form-label">Action</label>
+                <div className="col-12 col-sm-6 col-md-3">
+                  <label className="form-label" style={{ fontSize: '0.875rem' }}>Action</label>
                   <select 
                     className="form-select"
+                    style={{ fontSize: '0.875rem' }}
                     value={filters.action}
                     onChange={(e) => handleFilterChange('action', e.target.value)}
                   >
@@ -291,21 +326,23 @@ const ChangeLog = () => {
                     <option value="image_removed">Image Removed</option>
                   </select>
                 </div>
-                <div className="col-md-3">
-                  <label className="form-label">User</label>
+                <div className="col-12 col-sm-6 col-md-3">
+                  <label className="form-label" style={{ fontSize: '0.875rem' }}>User</label>
                   <input 
                     type="text"
                     className="form-control"
+                    style={{ fontSize: '0.875rem' }}
                     placeholder="Filter by username"
                     value={filters.user}
                     onChange={(e) => handleFilterChange('user', e.target.value)}
                   />
                 </div>
-                <div className="col-md-3">
-                  <label className="form-label">Recipe</label>
+                <div className="col-12 col-sm-6 col-md-3">
+                  <label className="form-label" style={{ fontSize: '0.875rem' }}>Recipe</label>
                   <input 
                     type="text"
                     className="form-control"
+                    style={{ fontSize: '0.875rem' }}
                     placeholder="Filter by recipe name"
                     value={filters.recipe}
                     onChange={(e) => handleFilterChange('recipe', e.target.value)}
@@ -316,8 +353,8 @@ const ChangeLog = () => {
           </div>
 
           {/* Change Log Table */}
-          <div className="card">
-            <div className="card-body">
+          <div className="card" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="card-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
               {error && (
                 <div className="alert alert-danger" role="alert">
                   {error}
@@ -326,43 +363,43 @@ const ChangeLog = () => {
 
               {logs.length === 0 ? (
                 <div className="text-center py-4">
-                  <p className="text-muted">No change logs found for the selected criteria.</p>
+                  <p className="text-muted" style={{ fontSize: '0.875rem' }}>No change logs found for the selected criteria.</p>
                 </div>
               ) : (
-                <div className="table-responsive">
+                <div className="table-responsive" style={{ position: 'relative', zIndex: 1 }}>
                   <table className="table table-hover">
                     <thead>
                       <tr>
-                        <th style={{ width: '15%' }}>Timestamp</th>
-                        <th style={{ width: '12%' }}>User</th>
-                        <th style={{ width: '15%' }}>Recipe</th>
-                        <th style={{ width: '12%' }}>Action</th>
-                        <th style={{ width: '46%' }}>Details</th>
+                        <th style={{ width: '15%', fontSize: '0.875rem' }}>Timestamp</th>
+                        <th style={{ width: '12%', fontSize: '0.875rem' }}>User</th>
+                        <th style={{ width: '15%', fontSize: '0.875rem' }}>Recipe</th>
+                        <th style={{ width: '12%', fontSize: '0.875rem' }}>Action</th>
+                        <th style={{ width: '46%', fontSize: '0.875rem' }}>Details</th>
                       </tr>
                     </thead>
                     <tbody>
                       {logs.map((log) => (
                         <tr key={log._id}>
                           <td>
-                            <small className="text-muted">
+                            <small className="text-muted" style={{ fontSize: '0.75rem' }}>
                               {formatTimestamp(log.timestamp)}
                             </small>
                           </td>
                           <td>
-                            <strong>{log.username}</strong>
+                            <strong style={{ fontSize: '0.875rem' }}>{log.username}</strong>
                           </td>
                           <td>
-                            <span className="text-primary">{log.recipeName}</span>
+                            <span className="text-primary" style={{ fontSize: '0.875rem' }}>{log.recipeName}</span>
                           </td>
                           <td>
-                            <span className={`badge bg-${getActionColor(log.action)}`}>
+                            <span className={`badge bg-${getActionColor(log.action)}`} style={{ fontSize: '0.75rem' }}>
                               {getActionIcon(log.action)} {log.action}
                             </span>
                           </td>
                           <td>
                             {renderChanges(log.changes)}
                             {log.ipAddress && (
-                              <small className="text-muted d-block mt-1">
+                              <small className="text-muted d-block mt-1" style={{ fontSize: '0.7rem' }}>
                                 IP: {log.ipAddress}
                               </small>
                             )}
@@ -377,10 +414,11 @@ const ChangeLog = () => {
               {/* Pagination */}
               {pagination.pages > 1 && (
                 <nav aria-label="Change log pagination">
-                  <ul className="pagination justify-content-center">
+                  <ul className="pagination justify-content-center" style={{ fontSize: '0.875rem' }}>
                     <li className={`page-item ${pagination.page === 1 ? 'disabled' : ''}`}>
                       <button 
                         className="page-link"
+                        style={{ fontSize: '0.875rem' }}
                         onClick={() => handlePageChange(pagination.page - 1)}
                         disabled={pagination.page === 1}
                       >
@@ -394,6 +432,7 @@ const ChangeLog = () => {
                         <li key={pageNum} className={`page-item ${pagination.page === pageNum ? 'active' : ''}`}>
                           <button 
                             className="page-link"
+                            style={{ fontSize: '0.875rem' }}
                             onClick={() => handlePageChange(pageNum)}
                           >
                             {pageNum}
@@ -405,6 +444,7 @@ const ChangeLog = () => {
                     <li className={`page-item ${pagination.page === pagination.pages ? 'disabled' : ''}`}>
                       <button 
                         className="page-link"
+                        style={{ fontSize: '0.875rem' }}
                         onClick={() => handlePageChange(pagination.page + 1)}
                         disabled={pagination.page === pagination.pages}
                       >

@@ -22,16 +22,21 @@ router.get('/', authenticateToken, requireReadOnly, async (req, res) => {
     };
     
     if (user) {
-      query.user = user;
+      // Search by username instead of user ID, case-insensitive
+      query.username = { $regex: user, $options: 'i' };
     }
     
     if (recipe) {
-      query.recipe = recipe;
+      // Search by recipe name instead of recipe ID
+      query.recipeName = { $regex: recipe, $options: 'i' };
     }
     
     if (action) {
       query.action = action;
     }
+    
+    // Debug logging for query
+    console.log('Changelog query:', JSON.stringify(query, null, 2));
     
     // Get logs with pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -43,7 +48,8 @@ router.get('/', authenticateToken, requireReadOnly, async (req, res) => {
       .limit(parseInt(limit));
     
     // Debug logging
-    console.log('Retrieved change logs:', JSON.stringify(logs, null, 2));
+    console.log('Retrieved change logs count:', logs.length);
+    console.log('Actions found:', logs.map(log => log.action));
     
     const total = await ChangeLog.countDocuments(query);
     
@@ -203,6 +209,29 @@ router.delete('/cleanup', authenticateToken, requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error cleaning up change logs:', error);
     res.status(500).json({ error: 'Failed to cleanup change logs' });
+  }
+});
+
+/**
+ * GET /api/changelog/debug/actions
+ * Debug endpoint to see what actions exist in the database
+ */
+router.get('/debug/actions', authenticateToken, requireReadOnly, async (req, res) => {
+  try {
+    const actions = await ChangeLog.distinct('action');
+    const actionCounts = await ChangeLog.aggregate([
+      { $group: { _id: '$action', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+    
+    res.json({
+      distinctActions: actions,
+      actionCounts: actionCounts,
+      totalLogs: await ChangeLog.countDocuments()
+    });
+  } catch (error) {
+    console.error('Error fetching action debug info:', error);
+    res.status(500).json({ error: 'Failed to fetch action debug info' });
   }
 });
 
