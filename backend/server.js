@@ -397,12 +397,31 @@ app.get('/ingredients', authenticateToken, requireReadOnly, async (req, res) => 
 
 app.post('/ingredients', authenticateToken, requireEditPermission, sanitizeInputs, validateIngredient, async (req, res) => {
   try {
+    // Check if ingredient already exists
+    const existingIngredient = await Ingredient.findOne({ 
+      name: { $regex: new RegExp(`^${req.body.name}$`, 'i') } 
+    });
+    
+    if (existingIngredient) {
+      return res.status(400).json({ 
+        error: `Ingredient "${req.body.name}" already exists. Please choose a different name.`
+      });
+    }
+    
     const ingredient = new Ingredient(req.body);
     await ingredient.save();
     const populatedIngredient = await Ingredient.findById(ingredient._id).populate('purveyor');
     res.status(201).json(populatedIngredient);
   } catch (err) {
     console.error('Create ingredient error:', err.message);
+    
+    // Handle MongoDB duplicate key error
+    if (err.code === 11000) {
+      return res.status(400).json({ 
+        error: `Ingredient "${req.body.name}" already exists. Please choose a different name.`
+      });
+    }
+    
     res.status(500).json({ error: err.message });
   }
 });

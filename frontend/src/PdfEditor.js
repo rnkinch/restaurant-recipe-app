@@ -8,13 +8,14 @@ import { useNotification } from './NotificationContext';
 const styles = {
   field: {
     position: 'absolute',
+    color: '#0f172a', // Elegant Culinary dark text
   },
   image: {
     position: 'absolute',
   },
   line: {
     position: 'absolute',
-    backgroundColor: '#000',
+    backgroundColor: '#8B1538', // Elegant Culinary burgundy
   },
   grid: {
     position: 'absolute',
@@ -23,8 +24,8 @@ const styles = {
     width: '100%',
     height: '100%',
     backgroundImage: `
-      linear-gradient(to right, #ccc 1px, transparent 1px),
-      linear-gradient(to bottom, #ccc 1px, transparent 1px)
+      linear-gradient(to right, rgba(139, 21, 56, 0.2) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(139, 21, 56, 0.2) 1px, transparent 1px)
     `,
     backgroundSize: '10px 10px',
     pointerEvents: 'none',
@@ -40,11 +41,13 @@ const styles = {
     position: 'relative',
     width: '842px',
     height: '595px',
-    border: '18px solid #000', // 1/4" border (18px at 72 DPI)
+    border: '18px solid #8B1538', // Elegant Culinary burgundy border
     boxSizing: 'border-box',
-    background: '#fff',
+    background: '#fefefe', // Elegant Culinary background
     marginBottom: '1rem',
     overflow: 'hidden',
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px rgba(139, 21, 56, 0.1)',
   },
 };
 
@@ -390,16 +393,6 @@ const PdfEditor = ({ recipe }) => {
     setNewLineId((prev) => prev + 1);
   }, [newLineId]);
 
-  const deleteField = useCallback(() => {
-    if (selectedField && (selectedField.startsWith('customText') || selectedField.startsWith('line'))) {
-      setFields((prev) => {
-        const newFields = prev.filter((field) => field.id !== selectedField);
-        console.log('Deleted field:', selectedField);
-        return newFields;
-      });
-      setSelectedField(null);
-    }
-  }, [selectedField]);
 
   const handleFieldChange = useCallback((fieldId, key, value) => {
     setFields((prev) => {
@@ -630,15 +623,10 @@ const PdfEditor = ({ recipe }) => {
             <Button onClick={addLine} variant="secondary" size="sm">
               Add Line
             </Button>
-            {selectedField && (
-              <Button onClick={deleteField} variant="danger" size="sm">
-                Delete Field
-              </Button>
-            )}
             <Button onClick={toggleGrid} variant="outline-secondary" size="sm">
               {showGrid ? 'Hide Grid' : 'Show Grid'}
             </Button>
-            {selectedFields.size > 1 && (
+            {selectedFields.size > 0 && (
               <>
                 <Button 
                   onClick={() => setSelectedFields(new Set())} 

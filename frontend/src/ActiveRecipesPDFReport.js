@@ -8,27 +8,37 @@ const styles = StyleSheet.create({
     width: 792, // 11 inches at 72 DPI (landscape)
     height: 612, // 8.5 inches at 72 DPI
     position: 'relative',
+    backgroundColor: '#fefefe', // Elegant Culinary background
   },
   field: {
     position: 'absolute',
+    color: '#0f172a', // Dark text color
   },
   image: {
     position: 'absolute',
   },
   line: {
     position: 'absolute',
-    backgroundColor: '#000',
+    backgroundColor: '#8B1538', // Elegant Culinary burgundy
   },
   viewerContainer: {
     width: '828px', // 792px + 18px left border + 18px right border
     height: '648px', // 612px + 18px top border + 18px bottom border
-    border: '18px solid #000', // 1/4" border (18px at 72 DPI)
+    border: '18px solid #8B1538', // Elegant Culinary burgundy border
     boxSizing: 'border-box',
     marginTop: '1rem',
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px rgba(139, 21, 56, 0.1)',
   },
   downloadButton: {
     display: 'inline-block',
     marginRight: '10px',
+    backgroundColor: '#8B1538', // Elegant Culinary burgundy
+    color: '#fefefe',
+    border: 'none',
+    padding: '8px 16px',
+    borderRadius: '4px',
+    fontWeight: 'bold',
   },
   progressBar: {
     marginBottom: '1rem',
@@ -330,6 +340,8 @@ const ActiveRecipesPDFReport = () => {
                     style={{
                       fontSize: contentField.fontSize || 12,
                       fontWeight: contentField.isBold ? 'bold' : 'normal',
+                      color: '#0f172a', // Elegant Culinary dark text
+                      fontFamily: 'Helvetica-Bold'
                     }}
                   >
                     {contentField.content}

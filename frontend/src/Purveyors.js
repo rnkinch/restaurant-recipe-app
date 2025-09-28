@@ -134,8 +134,9 @@ const Purveyors = () => {
       setError(null);
       showSuccess('Ingredient added successfully!');
     } catch (err) {
-      console.error('Add ingredient error:', err.message);
-      showError('Failed to add ingredient: ' + err.message);
+      console.error('Add ingredient error:', err);
+      const errorMessage = err.response?.data?.error || err.message;
+      showError(errorMessage);
     }
   };
 

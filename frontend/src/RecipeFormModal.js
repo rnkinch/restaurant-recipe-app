@@ -51,7 +51,8 @@ const RecipeFormModal = ({
       setShow(false);
       setError(null);
     } catch (err) {
-      setError(`Failed to add ingredient: ${err.message}`);
+      const errorMessage = err.response?.data?.error || err.message;
+      setError(errorMessage);
     }
   };
 
