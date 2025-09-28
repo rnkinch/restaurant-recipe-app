@@ -22,9 +22,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B1538', // Elegant Culinary burgundy
   },
   viewerContainer: {
-    width: '828px', // 792px + 18px left border + 18px right border
-    height: '648px', // 612px + 18px top border + 18px bottom border
-    border: '18px solid #8B1538', // Elegant Culinary burgundy border
+    width: '808px', // 792px + 8px left border + 8px right border
+    height: '628px', // 612px + 8px top border + 8px bottom border
+    border: '8px solid #8B1538', // Elegant Culinary burgundy border (reduced from 18px)
     boxSizing: 'border-box',
     marginTop: '1rem',
     borderRadius: '8px',
@@ -336,16 +336,16 @@ const ActiveRecipesPDFReport = () => {
                     }}
                   />
                 ) : contentField.isLine ? null : (
-                  <Text
-                    style={{
-                      fontSize: contentField.fontSize || 12,
-                      fontWeight: contentField.isBold ? 'bold' : 'normal',
-                      color: '#0f172a', // Elegant Culinary dark text
-                      fontFamily: 'Helvetica-Bold'
-                    }}
-                  >
-                    {contentField.content}
-                  </Text>
+        <Text
+          style={{
+            fontSize: contentField.fontSize || 12,
+            fontWeight: contentField.isBold ? 'bold' : 'normal',
+            color: contentField.textColor || '#0f172a', // Use field color or default
+            fontFamily: contentField.fontFamily || 'Helvetica'
+          }}
+        >
+          {contentField.content}
+        </Text>
                 )}
               </View>
             );

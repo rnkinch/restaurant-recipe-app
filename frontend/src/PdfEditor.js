@@ -39,9 +39,9 @@ const styles = {
   },
   canvas: {
     position: 'relative',
-    width: '842px',
-    height: '595px',
-    border: '18px solid #8B1538', // Elegant Culinary burgundy border
+    width: '700px', // Reduced from 842px to fit better
+    height: '495px', // Reduced from 595px to fit better
+    border: '8px solid #8B1538', // Elegant Culinary burgundy border
     boxSizing: 'border-box',
     background: '#fefefe', // Elegant Culinary background
     marginBottom: '1rem',
@@ -51,7 +51,7 @@ const styles = {
   },
 };
 
-const Field = ({ field, index, setFields, selectedField, setSelectedField, selectedFields, setSelectedFields }) => {
+const Field = ({ field, index, setFields, selectedField, setSelectedField, selectedFields, setSelectedFields, snapToGrid, saveToHistory }) => {
   const [{ isDragging }, drag] = useDrag({
     type: 'field',
     item: { id: field.id, index, x: field.x, y: field.y },
@@ -71,16 +71,25 @@ const Field = ({ field, index, setFields, selectedField, setSelectedField, selec
               const fieldToMove = newFields[fieldIndex];
               const maxWidth = fieldToMove.isImage ? (fieldToMove.width || 100) : fieldToMove.isLine ? (fieldToMove.orientation === 'horizontal' ? (fieldToMove.length || 100) : 1) : (fieldToMove.width || 400);
               const maxHeight = fieldToMove.isImage ? (fieldToMove.height || 100) : fieldToMove.isLine ? (fieldToMove.orientation === 'vertical' ? (fieldToMove.length || 100) : 1) : 20;
-              const newX = Math.max(0, Math.min(842 - maxWidth, fieldToMove.x + delta.x));
-              const newY = Math.max(0, Math.min(595 - maxHeight, fieldToMove.y + delta.y));
+              let newX = Math.max(0, Math.min(700 - maxWidth, fieldToMove.x + delta.x));
+              let newY = Math.max(0, Math.min(495 - maxHeight, fieldToMove.y + delta.y));
+              
+              // Apply snap to grid if enabled
+              if (snapToGrid) {
+                newX = Math.round(newX / 10) * 10;
+                newY = Math.round(newY / 10) * 10;
+              }
+              
               newFields[fieldIndex] = {
                 ...newFields[fieldIndex],
-                x: Math.round(newX / 10) * 10,
-                y: Math.round(newY / 10) * 10,
+                x: newX,
+                y: newY,
               };
             }
           });
           console.log('Fields moved:', fieldsToMove);
+          // Save to history after drag operation
+          setTimeout(() => saveToHistory(newFields), 100);
           return newFields;
         });
       }
@@ -99,13 +108,15 @@ const Field = ({ field, index, setFields, selectedField, setSelectedField, selec
         padding: field.isLine ? 0 : 5,
         background: field.isLine ? '#000' : '#fff',
         cursor: 'move',
-        width: field.isImage ? (field.width || 100) : field.isLine ? (field.orientation === 'horizontal' ? (field.length || 100) : 1) : (field.width || 400),
-        height: field.isLine ? (field.orientation === 'vertical' ? (field.length || 100) : 1) : field.id === 'watermark' ? (field.height || 200) : undefined,
+        width: field.isImage ? (field.width || 100) : field.isLine ? (field.orientation === 'horizontal' ? (field.length || 100) : 1) : (field.width || 300),
+        height: field.isLine ? (field.orientation === 'vertical' ? (field.length || 100) : 1) : field.id === 'watermark' ? (field.height || 100) : undefined,
         minWidth: field.isLine ? (selectedField === field.id ? 10 : 1) : undefined,
         minHeight: field.isLine ? (selectedField === field.id ? 10 : 1) : undefined,
         zIndex: field.zIndex || (field.id === 'watermark' ? 5 : 10),
         fontSize: field.isLine || field.isImage ? undefined : (field.fontSize || 12),
         fontWeight: field.isLine || field.isImage ? undefined : (field.isBold ? 'bold' : 'normal'),
+        fontFamily: field.isLine || field.isImage ? undefined : (field.fontFamily || 'Helvetica'),
+        color: field.isLine || field.isImage ? undefined : (field.textColor || '#000000'),
       }}
       onClick={(e) => {
         e.stopPropagation();
@@ -155,10 +166,26 @@ const PdfEditor = ({ recipe }) => {
   const [imageError, setImageError] = useState(null);
   const [templateError, setTemplateError] = useState(null);
   const [showGrid, setShowGrid] = useState(false);
+  const [snapToGrid, setSnapToGrid] = useState(true);
+  const [fieldHistory, setFieldHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const [imageAspectRatios, setImageAspectRatios] = useState({});
   const [imageDataUrls, setImageDataUrls] = useState({});
   const navigate = useNavigate();
   const canvasKey = useMemo(() => Date.now(), [fields]);
+
+  // Save state to history - defined early so it can be used in drag operations
+  const saveToHistory = useCallback((newFields) => {
+    const newHistory = fieldHistory.slice(0, historyIndex + 1);
+    newHistory.push(JSON.parse(JSON.stringify(newFields)));
+    if (newHistory.length > 50) { // Limit history to 50 states
+      newHistory.shift();
+    }
+    setFieldHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  }, [fieldHistory, historyIndex]);
+
+  // Auto-save functionality will be added after handleSave is defined
 
   // Memoize recipe to prevent unnecessary re-renders
   const memoizedRecipe = useMemo(() => recipe, [recipe?._id]);
@@ -223,9 +250,9 @@ const PdfEditor = ({ recipe }) => {
       ]);
 
       const defaultFields = [
-        { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-        { id: 'title', content: memoizedRecipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-        { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
+        { id: 'title', content: memoizedRecipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
+        { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
         {
           id: 'ingredients',
           content: Array.isArray(memoizedRecipe?.ingredients) && memoizedRecipe.ingredients.length > 0
@@ -235,10 +262,10 @@ const PdfEditor = ({ recipe }) => {
           y: 80,
           fontSize: 12,
           isBold: false,
-          width: 500,
+          width: 300,
           zIndex: 10,
         },
-        { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
         {
           id: 'steps',
           content: memoizedRecipe?.steps || 'No steps',
@@ -246,10 +273,10 @@ const PdfEditor = ({ recipe }) => {
           y: 210,
           fontSize: 12,
           isBold: false,
-          width: 500,
+          width: 300,
           zIndex: 10,
         },
-        { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
         {
           id: 'platingGuide',
           content: memoizedRecipe?.platingGuide || 'No plating guide',
@@ -257,35 +284,35 @@ const PdfEditor = ({ recipe }) => {
           y: 340,
           fontSize: 12,
           isBold: false,
-          width: 500,
+          width: 300,
           zIndex: 10,
         },
-        { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'allergensLabel', content: 'Allergens:', x: 350, y: 10, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
         {
           id: 'allergens',
           content: Array.isArray(memoizedRecipe?.allergens) && memoizedRecipe.allergens.length > 0 ? memoizedRecipe.allergens.join(', ') : 'No allergens',
-          x: 450,
+          x: 350,
           y: 30,
           fontSize: 12,
           isBold: false,
-          width: 400,
+          width: 300,
           zIndex: 10,
         },
-        { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'serviceTypesLabel', content: 'Service Types:', x: 350, y: 60, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
         {
           id: 'serviceTypes',
           content: Array.isArray(memoizedRecipe?.serviceTypes) && memoizedRecipe.serviceTypes.length > 0 ? memoizedRecipe.serviceTypes.join(', ') : 'No service types',
-          x: 450,
+          x: 350,
           y: 80,
           fontSize: 12,
           isBold: false,
-          width: 400,
+          width: 300,
           zIndex: 10,
         },
         {
           id: 'image',
           content: imageUrl,
-          x: 450,
+          x: 350,
           y: 110,
           width: 100,
           height: 100 / (imageAspectRatios['recipeImage'] || 1),
@@ -296,10 +323,10 @@ const PdfEditor = ({ recipe }) => {
         {
           id: 'watermark',
           content: watermarkUrl,
-          x: 421,
-          y: 297.5,
-          width: 200,
-          height: 200 / (imageAspectRatios['watermark'] || 1),
+          x: 350,
+          y: 280,
+          width: 100,
+          height: 100 / (imageAspectRatios['watermark'] || 1),
           isImage: true,
           aspectRatio: imageAspectRatios['watermark'] || 1,
           zIndex: 5,
@@ -327,7 +354,7 @@ const PdfEditor = ({ recipe }) => {
                   return { ...field, content: imageUrl, aspectRatio: imageAspectRatios['recipeImage'] || 1, height: (field.width || 100) / (imageAspectRatios['recipeImage'] || 1) };
                 }
                 if (field.isImage && field.id === 'watermark') {
-                  return { ...field, content: watermarkUrl, aspectRatio: imageAspectRatios['watermark'] || 1, height: (field.width || 200) / (imageAspectRatios['watermark'] || 1) };
+                  return { ...field, content: watermarkUrl, aspectRatio: imageAspectRatios['watermark'] || 1, height: (field.width || 100) / (imageAspectRatios['watermark'] || 1) };
                 }
                 return field;
               });
@@ -364,7 +391,7 @@ const PdfEditor = ({ recipe }) => {
       y: 20 + newTextId * 20,
       fontSize: 12,
       isBold: false,
-      width: 400,
+      width: 300,
       zIndex: 10,
     };
     setFields((prev) => {
@@ -408,9 +435,33 @@ const PdfEditor = ({ recipe }) => {
           : field
       );
       console.log('Field updated:', { fieldId, key, value });
+      // Save to history after a short delay to avoid too many history entries
+      setTimeout(() => saveToHistory(newFields), 100);
       return newFields;
     });
-  }, []);
+  }, [saveToHistory]);
+
+  // Undo function
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setFields(JSON.parse(JSON.stringify(fieldHistory[newIndex])));
+      setSelectedFields(new Set());
+      setSelectedField(null);
+    }
+  }, [historyIndex, fieldHistory]);
+
+  // Redo function
+  const redo = useCallback(() => {
+    if (historyIndex < fieldHistory.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setFields(JSON.parse(JSON.stringify(fieldHistory[newIndex])));
+      setSelectedFields(new Set());
+      setSelectedField(null);
+    }
+  }, [historyIndex, fieldHistory]);
 
   const handleSave = useCallback(async () => {
     try {
@@ -453,9 +504,9 @@ const PdfEditor = ({ recipe }) => {
         : `${frontendUrl}/logo.png`;
       const watermarkUrl = `${apiUrl}/Uploads/logo.png`;
       const defaultFields = [
-        { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-        { id: 'title', content: memoizedRecipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
-        { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'titleLabel', content: 'Recipe Title:', x: 20, y: 10, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
+        { id: 'title', content: memoizedRecipe?.name || 'Recipe Title', x: 20, y: 30, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
+        { id: 'ingredientsLabel', content: 'Ingredients:', x: 20, y: 60, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
         {
           id: 'ingredients',
           content: Array.isArray(memoizedRecipe?.ingredients) && memoizedRecipe.ingredients.length > 0
@@ -465,10 +516,10 @@ const PdfEditor = ({ recipe }) => {
           y: 80,
           fontSize: 12,
           isBold: false,
-          width: 400,
+          width: 300,
           zIndex: 10,
         },
-        { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'stepsLabel', content: 'Steps:', x: 20, y: 190, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
         {
           id: 'steps',
           content: memoizedRecipe?.steps || 'No steps',
@@ -476,10 +527,10 @@ const PdfEditor = ({ recipe }) => {
           y: 210,
           fontSize: 12,
           isBold: false,
-          width: 400,
+          width: 300,
           zIndex: 10,
         },
-        { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'platingGuideLabel', content: 'Plating Guide:', x: 20, y: 320, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
         {
           id: 'platingGuide',
           content: memoizedRecipe?.platingGuide || 'No plating guide',
@@ -487,35 +538,35 @@ const PdfEditor = ({ recipe }) => {
           y: 340,
           fontSize: 12,
           isBold: false,
-          width: 400,
+          width: 300,
           zIndex: 10,
         },
-        { id: 'allergensLabel', content: 'Allergens:', x: 450, y: 10, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'allergensLabel', content: 'Allergens:', x: 350, y: 10, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
         {
           id: 'allergens',
           content: Array.isArray(memoizedRecipe?.allergens) && memoizedRecipe.allergens.length > 0 ? memoizedRecipe.allergens.join(', ') : 'No allergens',
-          x: 450,
+          x: 350,
           y: 30,
           fontSize: 12,
           isBold: false,
-          width: 400,
+          width: 300,
           zIndex: 10,
         },
-        { id: 'serviceTypesLabel', content: 'Service Types:', x: 450, y: 60, fontSize: 12, isBold: false, width: 400, zIndex: 10 },
+        { id: 'serviceTypesLabel', content: 'Service Types:', x: 350, y: 60, fontSize: 12, isBold: false, width: 300, zIndex: 10 },
         {
           id: 'serviceTypes',
           content: Array.isArray(memoizedRecipe?.serviceTypes) && memoizedRecipe.serviceTypes.length > 0 ? memoizedRecipe.serviceTypes.join(', ') : 'No service types',
-          x: 450,
+          x: 350,
           y: 80,
           fontSize: 12,
           isBold: false,
-          width: 400,
+          width: 300,
           zIndex: 10,
         },
         {
           id: 'image',
           content: imageUrl,
-          x: 450,
+          x: 350,
           y: 110,
           width: 100,
           height: 100 / (imageAspectRatios['recipeImage'] || 1),
@@ -526,10 +577,10 @@ const PdfEditor = ({ recipe }) => {
         {
           id: 'watermark',
           content: watermarkUrl,
-          x: 421,
-          y: 297.5,
-          width: 200,
-          height: 200 / (imageAspectRatios['watermark'] || 1),
+          x: 350,
+          y: 280,
+          width: 100,
+          height: 100 / (imageAspectRatios['watermark'] || 1),
           isImage: true,
           aspectRatio: imageAspectRatios['watermark'] || 1,
           zIndex: 5,
@@ -559,6 +610,17 @@ const PdfEditor = ({ recipe }) => {
     }
   }, [memoizedRecipe, apiUrl, frontendUrl, imageAspectRatios]);
 
+  // Auto-save functionality
+  useEffect(() => {
+    if (fields.length > 0) {
+      const autoSaveInterval = setInterval(() => {
+        handleSave().catch(err => console.error('Auto-save failed:', err));
+      }, 30000); // Auto-save every 30 seconds
+
+      return () => clearInterval(autoSaveInterval);
+    }
+  }, [fields, handleSave]);
+
   const isRecipeField = (fieldId) => {
     return ['title', 'ingredients', 'steps', 'platingGuide', 'allergens', 'serviceTypes'].includes(fieldId);
   };
@@ -569,7 +631,7 @@ const PdfEditor = ({ recipe }) => {
   };
 
   return (
-    <div style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ padding: '1rem', maxWidth: '1400px', margin: '0 auto' }}>
       <h2>Edit PDF Template</h2>
       <div style={{ marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '0.25rem' }}>
         <small>
@@ -587,8 +649,8 @@ const PdfEditor = ({ recipe }) => {
           {templateError}
         </div>
       )}
-      <Row>
-        <Col md={9}>
+      <Row style={{ height: '520px' }}>
+        <Col md={8} style={{ height: '100%', overflow: 'hidden' }}>
           <DndProvider backend={HTML5Backend}>
             <div
               key={canvasKey}
@@ -610,122 +672,272 @@ const PdfEditor = ({ recipe }) => {
                   setSelectedField={setSelectedField}
                   selectedFields={selectedFields}
                   setSelectedFields={setSelectedFields}
+                  snapToGrid={snapToGrid}
+                  saveToHistory={saveToHistory}
                 />
               ))}
             </div>
           </DndProvider>
         </Col>
-        <Col md={3}>
-          <div style={styles.buttonContainer}>
-            <Button onClick={addCustomTextField} variant="secondary" size="sm">
-              Add Text Field
-            </Button>
-            <Button onClick={addLine} variant="secondary" size="sm">
-              Add Line
-            </Button>
-            <Button onClick={toggleGrid} variant="outline-secondary" size="sm">
-              {showGrid ? 'Hide Grid' : 'Show Grid'}
-            </Button>
+        <Col md={4} style={{ height: '100%', overflow: 'hidden', paddingLeft: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* Tools Section */}
+            <div style={{ marginBottom: '0.5rem' }}>
+              <h6 style={{ marginBottom: '0.25rem', fontSize: '0.9rem' }}>Tools</h6>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', marginBottom: '0.25rem' }}>
+                <Button onClick={addCustomTextField} variant="secondary" size="sm" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                  Add Text
+                </Button>
+                <Button onClick={addLine} variant="secondary" size="sm" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                  Add Line
+                </Button>
+                <Button onClick={toggleGrid} variant="outline-secondary" size="sm" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                  {showGrid ? 'Grid' : 'Grid'}
+                </Button>
+                <Button 
+                  onClick={() => setSnapToGrid(!snapToGrid)} 
+                  variant={snapToGrid ? "info" : "outline-info"} 
+                  size="sm"
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                >
+                  {snapToGrid ? 'Snap' : 'Snap'}
+                </Button>
+                <Button 
+                  onClick={undo} 
+                  variant="outline-secondary" 
+                  size="sm"
+                  disabled={historyIndex <= 0}
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                >
+                  Undo
+                </Button>
+                <Button 
+                  onClick={redo} 
+                  variant="outline-secondary" 
+                  size="sm"
+                  disabled={historyIndex >= fieldHistory.length - 1}
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                >
+                  Redo
+                </Button>
+              </div>
+            </div>
+            {/* Selection Controls */}
             {selectedFields.size > 0 && (
-              <>
-                <Button 
-                  onClick={() => setSelectedFields(new Set())} 
-                  variant="outline-warning" 
-                  size="sm"
-                >
-                  Clear Selection ({selectedFields.size})
-                </Button>
-                <Button 
-                  onClick={() => {
-                    setFields(prev => prev.filter(field => !selectedFields.has(field.id)));
-                    setSelectedFields(new Set());
-                    setSelectedField(null);
-                  }} 
-                  variant="danger" 
-                  size="sm"
-                >
-                  Delete Selected ({selectedFields.size})
-                </Button>
-              </>
+              <div style={{ marginBottom: '0.5rem' }}>
+                <h6 style={{ marginBottom: '0.25rem', fontSize: '0.9rem' }}>Selection ({selectedFields.size})</h6>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', marginBottom: '0.25rem' }}>
+                  <Button 
+                    onClick={() => setSelectedFields(new Set())} 
+                    variant="outline-warning" 
+                    size="sm"
+                    style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                  >
+                    Clear
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setFields(prev => prev.filter(field => !selectedFields.has(field.id)));
+                      setSelectedFields(new Set());
+                      setSelectedField(null);
+                    }} 
+                    variant="danger" 
+                    size="sm"
+                    style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                  >
+                    Delete
+                  </Button>
+                </div>
+                {selectedFields.size > 1 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem' }}>
+                    <Button 
+                      onClick={() => {
+                        const selectedFieldsArray = Array.from(selectedFields);
+                        const leftMost = Math.min(...selectedFieldsArray.map(id => 
+                          fields.find(f => f.id === id)?.x || 0
+                        ));
+                        setFields(prev => prev.map(field => 
+                          selectedFields.has(field.id) 
+                            ? { ...field, x: leftMost }
+                            : field
+                        ));
+                      }}
+                      variant="outline-info" 
+                      size="sm"
+                      style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                    >
+                      Align L
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        const selectedFieldsArray = Array.from(selectedFields);
+                        const topMost = Math.min(...selectedFieldsArray.map(id => 
+                          fields.find(f => f.id === id)?.y || 0
+                        ));
+                        setFields(prev => prev.map(field => 
+                          selectedFields.has(field.id) 
+                            ? { ...field, y: topMost }
+                            : field
+                        ));
+                      }}
+                      variant="outline-info" 
+                      size="sm"
+                      style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                    >
+                      Align T
+                    </Button>
+                  </div>
+                )}
+              </div>
             )}
-            <Button onClick={handleSave} variant="primary" size="sm">
-              Save Template
-            </Button>
-            <Button onClick={handleResetToDefault} variant="primary" size="sm">
-              Reset to Default
-            </Button>
-            <Button
-              as={Link}
-              to={`/recipes/${memoizedRecipe?._id}/preview-pdf`}
-              variant="info"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                setTimeout(() => navigate(`/recipes/${memoizedRecipe?._id}/preview-pdf`), 500);
-              }}
-            >
-              Preview PDF
-            </Button>
-          </div>
-          {selectedFields.size > 1 && (
-            <div style={{ marginTop: '50px' }}>
-              <h4>Edit Multiple Fields ({selectedFields.size} selected)</h4>
-              <Form.Group className="mb-2">
-                <Form.Label>Font Size (px)</Form.Label>
-                <Form.Control
-                  type="number"
-                  placeholder="Set for all selected"
-                  onChange={(e) => {
-                    const value = Number(e.target.value);
-                    if (!isNaN(value)) {
+            
+            {/* Actions */}
+            <div style={{ marginBottom: '0.5rem' }}>
+              <h6 style={{ marginBottom: '0.25rem', fontSize: '0.9rem' }}>Actions</h6>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem' }}>
+                <Button onClick={handleSave} variant="primary" size="sm" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                  Save
+                </Button>
+                <Button onClick={handleResetToDefault} variant="outline-secondary" size="sm" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                  Reset
+                </Button>
+                <Button
+                  as={Link}
+                  to={`/recipes/${memoizedRecipe?._id}/preview-pdf`}
+                  variant="info"
+                  size="sm"
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setTimeout(() => navigate(`/recipes/${memoizedRecipe?._id}/preview-pdf`), 500);
+                  }}
+                >
+                  Preview
+                </Button>
+              </div>
+            </div>
+            {/* Multi-Select Editing */}
+            {selectedFields.size > 1 && (
+              <div style={{ marginBottom: '0.5rem', padding: '0.5rem', backgroundColor: '#f8f9fa', borderRadius: '0.25rem' }}>
+                <h6 style={{ marginBottom: '0.25rem', fontSize: '0.9rem' }}>Edit Multiple ({selectedFields.size})</h6>
+                <Row>
+                  <Col xs={6}>
+                    <Form.Group className="mb-1">
+                      <Form.Label style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Font</Form.Label>
+                      <Form.Select
+                        size="sm"
+                        style={{ fontSize: '0.75rem', padding: '0.25rem' }}
+                        onChange={(e) => {
+                          setFields(prev => prev.map(field => 
+                            selectedFields.has(field.id) && !field.isImage && !field.isLine
+                              ? { ...field, fontFamily: e.target.value }
+                              : field
+                          ));
+                        }}
+                      >
+                        <option value="">Set all</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Times-Roman">Times</option>
+                        <option value="Courier">Courier</option>
+                        <option value="Arial">Arial</option>
+                        <option value="Georgia">Georgia</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col xs={6}>
+                    <Form.Group className="mb-1">
+                      <Form.Label style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Size</Form.Label>
+                      <Form.Control
+                        type="number"
+                        size="sm"
+                        style={{ fontSize: '0.75rem', padding: '0.25rem' }}
+                        placeholder="Set all"
+                        onChange={(e) => {
+                          const value = Number(e.target.value);
+                          if (!isNaN(value)) {
+                            setFields(prev => prev.map(field => 
+                              selectedFields.has(field.id) && !field.isImage && !field.isLine
+                                ? { ...field, fontSize: value }
+                                : field
+                            ));
+                          }
+                        }}
+                        min="8"
+                        max="24"
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col xs={6}>
+                    <Form.Group className="mb-1">
+                      <Form.Label style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Color</Form.Label>
+                      <Form.Select
+                        size="sm"
+                        style={{ fontSize: '0.75rem', padding: '0.25rem' }}
+                        onChange={(e) => {
+                          setFields(prev => prev.map(field => 
+                            selectedFields.has(field.id) && !field.isImage && !field.isLine
+                              ? { ...field, textColor: e.target.value }
+                              : field
+                          ));
+                        }}
+                      >
+                        <option value="">Set all</option>
+                        <option value="#000000">Black</option>
+                        <option value="#8B1538">Burgundy</option>
+                        <option value="#D4AF37">Gold</option>
+                        <option value="#333333">Dark Gray</option>
+                        <option value="#666666">Gray</option>
+                        <option value="#FFFFFF">White</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col xs={6}>
+                    <Form.Group className="mb-1">
+                      <Form.Label style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Z-Index</Form.Label>
+                      <Form.Control
+                        type="number"
+                        size="sm"
+                        style={{ fontSize: '0.75rem', padding: '0.25rem' }}
+                        placeholder="Set all"
+                        onChange={(e) => {
+                          const value = Number(e.target.value);
+                          if (!isNaN(value)) {
+                            setFields(prev => prev.map(field => 
+                              selectedFields.has(field.id)
+                                ? { ...field, zIndex: value }
+                                : field
+                            ));
+                          }
+                        }}
+                        min="1"
+                        max="100"
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <Form.Group className="mb-1">
+                  <Form.Check
+                    type="checkbox"
+                    size="sm"
+                    style={{ fontSize: '0.75rem' }}
+                    label="Bold"
+                    onChange={(e) => {
                       setFields(prev => prev.map(field => 
                         selectedFields.has(field.id) && !field.isImage && !field.isLine
-                          ? { ...field, fontSize: value }
+                          ? { ...field, isBold: e.target.checked }
                           : field
                       ));
-                    }
-                  }}
-                  min="8"
-                  max="24"
-                />
-              </Form.Group>
-              <Form.Group className="mb-2">
-                <Form.Label>Z-Index</Form.Label>
-                <Form.Control
-                  type="number"
-                  placeholder="Set for all selected"
-                  onChange={(e) => {
-                    const value = Number(e.target.value);
-                    if (!isNaN(value)) {
-                      setFields(prev => prev.map(field => 
-                        selectedFields.has(field.id)
-                          ? { ...field, zIndex: value }
-                          : field
-                      ));
-                    }
-                  }}
-                  min="1"
-                  max="100"
-                />
-              </Form.Group>
-              <Form.Group className="mb-2">
-                <Form.Check
-                  type="checkbox"
-                  label="Bold (for text fields)"
-                  onChange={(e) => {
-                    setFields(prev => prev.map(field => 
-                      selectedFields.has(field.id) && !field.isImage && !field.isLine
-                        ? { ...field, isBold: e.target.checked }
-                        : field
-                    ));
-                  }}
-                />
-              </Form.Group>
-            </div>
-          )}
-          {selectedField && selectedFields.size <= 1 && (
-            <div style={{ marginTop: '50px' }}>
-              <h4>Edit {fields.find((f) => f.id === selectedField)?.id || 'Field'}</h4>
+                    }}
+                  />
+                </Form.Group>
+              </div>
+            )}
+            {/* Single Field Editing */}
+            {selectedField && selectedFields.size <= 1 && (
+              <div style={{ marginBottom: '0.5rem', padding: '0.5rem', backgroundColor: '#f8f9fa', borderRadius: '0.25rem' }}>
+                <h6 style={{ marginBottom: '0.25rem', fontSize: '0.9rem' }}>Edit: {fields.find((f) => f.id === selectedField)?.id || 'Field'}</h6>
               {fields.find((f) => f.id === selectedField)?.isImage ? (
                 <>
                   <Form.Group className="mb-2">
@@ -792,10 +1004,12 @@ const PdfEditor = ({ recipe }) => {
                 </>
               ) : (
                 <>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Content</Form.Label>
+                  <Form.Group className="mb-1">
+                    <Form.Label style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Content</Form.Label>
                     <Form.Control
                       type="text"
+                      size="sm"
+                      style={{ fontSize: '0.75rem', padding: '0.25rem' }}
                       value={fields.find((f) => f.id === selectedField)?.content || ''}
                       onChange={(e) => handleFieldChange(selectedField, 'content', e.target.value)}
                       readOnly={isRecipeField(selectedField)}
@@ -803,48 +1017,106 @@ const PdfEditor = ({ recipe }) => {
                       title={isRecipeField(selectedField) ? 'Recipe fields cannot be edited here; use the recipe form.' : ''}
                     />
                   </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Font Size (px)</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={fields.find((f) => f.id === selectedField)?.fontSize || 12}
-                      onChange={(e) => handleFieldChange(selectedField, 'fontSize', e.target.value)}
-                      min="8"
-                      max="24"
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Width (px)</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={fields.find((f) => f.id === selectedField)?.width || 400}
-                      onChange={(e) => handleFieldChange(selectedField, 'width', e.target.value)}
-                      min="100"
-                      max="600"
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Z-Index</Form.Label>
-                    <Form.Control
-                      type="number"
-                      value={fields.find((f) => f.id === selectedField)?.zIndex || 10}
-                      onChange={(e) => handleFieldChange(selectedField, 'zIndex', e.target.value)}
-                      min="1"
-                      max="100"
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Check
-                      type="checkbox"
-                      label="Bold"
-                      checked={fields.find((f) => f.id === selectedField)?.isBold || false}
-                      onChange={(e) => handleFieldChange(selectedField, 'isBold', e.target.checked)}
-                    />
-                  </Form.Group>
+                  <Row>
+                    <Col xs={6}>
+                      <Form.Group className="mb-1">
+                        <Form.Label style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Font</Form.Label>
+                        <Form.Select
+                          size="sm"
+                          style={{ fontSize: '0.75rem', padding: '0.25rem' }}
+                          value={fields.find((f) => f.id === selectedField)?.fontFamily || 'Helvetica'}
+                          onChange={(e) => handleFieldChange(selectedField, 'fontFamily', e.target.value)}
+                        >
+                          <option value="Helvetica">Helvetica</option>
+                          <option value="Times-Roman">Times</option>
+                          <option value="Courier">Courier</option>
+                          <option value="Arial">Arial</option>
+                          <option value="Georgia">Georgia</option>
+                        </Form.Select>
+                      </Form.Group>
+                    </Col>
+                    <Col xs={6}>
+                      <Form.Group className="mb-1">
+                        <Form.Label style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Size</Form.Label>
+                        <Form.Control
+                          type="number"
+                          size="sm"
+                          style={{ fontSize: '0.75rem', padding: '0.25rem' }}
+                          value={fields.find((f) => f.id === selectedField)?.fontSize || 12}
+                          onChange={(e) => handleFieldChange(selectedField, 'fontSize', e.target.value)}
+                          min="8"
+                          max="24"
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col xs={6}>
+                      <Form.Group className="mb-1">
+                        <Form.Label style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Color</Form.Label>
+                        <Form.Select
+                          size="sm"
+                          style={{ fontSize: '0.75rem', padding: '0.25rem' }}
+                          value={fields.find((f) => f.id === selectedField)?.textColor || '#000000'}
+                          onChange={(e) => handleFieldChange(selectedField, 'textColor', e.target.value)}
+                        >
+                          <option value="#000000">Black</option>
+                          <option value="#8B1538">Burgundy</option>
+                          <option value="#D4AF37">Gold</option>
+                          <option value="#333333">Dark Gray</option>
+                          <option value="#666666">Gray</option>
+                          <option value="#FFFFFF">White</option>
+                        </Form.Select>
+                      </Form.Group>
+                    </Col>
+                    <Col xs={6}>
+                      <Form.Group className="mb-1">
+                        <Form.Label style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Width</Form.Label>
+                        <Form.Control
+                          type="number"
+                          size="sm"
+                          style={{ fontSize: '0.75rem', padding: '0.25rem' }}
+                          value={fields.find((f) => f.id === selectedField)?.width || 400}
+                          onChange={(e) => handleFieldChange(selectedField, 'width', e.target.value)}
+                          min="50"
+                          max="600"
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col xs={6}>
+                      <Form.Group className="mb-1">
+                        <Form.Label style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>Z-Index</Form.Label>
+                        <Form.Control
+                          type="number"
+                          size="sm"
+                          style={{ fontSize: '0.75rem', padding: '0.25rem' }}
+                          value={fields.find((f) => f.id === selectedField)?.zIndex || 10}
+                          onChange={(e) => handleFieldChange(selectedField, 'zIndex', e.target.value)}
+                          min="1"
+                          max="100"
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col xs={6}>
+                      <Form.Group className="mb-1">
+                        <Form.Check
+                          type="checkbox"
+                          size="sm"
+                          style={{ fontSize: '0.75rem', marginTop: '1.25rem' }}
+                          label="Bold"
+                          checked={fields.find((f) => f.id === selectedField)?.isBold || false}
+                          onChange={(e) => handleFieldChange(selectedField, 'isBold', e.target.checked)}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
                 </>
               )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </Col>
       </Row>
     </div>
