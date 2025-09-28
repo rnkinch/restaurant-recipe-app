@@ -28,13 +28,13 @@ export const VALIDATION_RULES = {
     ingredient: {
       quantity: {
         required: true,
-        pattern: /^[0-9]+(\.[0-9]+)?$/,
-        message: 'Quantity must be a valid number (e.g., 1, 1.5, 2.25)'
+        pattern: /^(\d+|\d+\.\d+|1\/2|1\/3|1\/4|2\/3|3\/4|\d+\s+\d+\/\d+|\d+\/\d+)$/,
+        message: 'Quantity must be a valid number, decimal, or fraction (e.g., 1, 1.5, 1/2, 2 1/3)'
       },
       measure: {
         required: true,
-        pattern: /^[a-zA-Z\s]+$/,
-        message: 'Measure must contain only letters and spaces'
+        pattern: /^[a-zA-Z\s\/\-]+$/,
+        message: 'Measure must contain letters, spaces, slashes, and hyphens'
       }
     }
   },

@@ -24,13 +24,13 @@ const RecipeSchema = new mongoose.Schema({
       type: String, 
       required: [true, 'Quantity is required'],
       trim: true,
-      match: [/^[0-9]+(\.[0-9]+)?$/, 'Quantity must be a valid number']
+      match: [/^(\d+|\d+\.\d+|1\/2|1\/3|1\/4|2\/3|3\/4|\d+\s+\d+\/\d+|\d+\/\d+)$/, 'Quantity must be a valid number, decimal, or fraction']
     },
     measure: { 
       type: String, 
       required: [true, 'Measure is required'],
       trim: true,
-      match: [/^[a-zA-Z\s]+$/, 'Measure must contain only letters and spaces']
+      match: [/^[a-zA-Z\s\/\-]+$/, 'Measure must contain letters, spaces, slashes, and hyphens']
     }
   }],
   steps: { 

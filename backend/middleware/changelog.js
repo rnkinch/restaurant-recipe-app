@@ -71,7 +71,13 @@ const logRecipeChange = (action, options = {}) => {
  */
 const captureChanges = (req, res, next) => {
   if (req.method === 'PUT' || req.method === 'PATCH') {
-    req.originalBody = JSON.parse(JSON.stringify(req.body));
+    try {
+      req.originalBody = JSON.parse(JSON.stringify(req.body));
+    } catch (error) {
+      console.error('Error capturing changes:', error);
+      // If we can't capture changes, just continue without them
+      req.originalBody = null;
+    }
   }
   next();
 };
@@ -211,6 +217,7 @@ const logUpdateResult = async (req, res, next) => {
     }
   } catch (error) {
     console.error('Error logging recipe update:', error);
+    // Don't fail the request if logging fails
   }
   
   next();

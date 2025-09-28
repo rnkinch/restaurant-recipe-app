@@ -494,43 +494,72 @@ app.post('/recipes', uploadLimiter, authenticateToken, requireEditPermission, up
   }
 });
 
-app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission, upload.single('image'), validateFileUpload, sanitizeInputs, validateRecipe, captureChanges, logRecipeUpdate, async (req, res) => {
+
+app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission, upload.single('image'), validateFileUpload, sanitizeInputs, validateRecipe, async (req, res) => {
   try {
     const { name, steps, platingGuide, allergens, serviceTypes, active, removeImage } = req.body;
     
     // Parse ingredients from JSON string
-    const ingredients = JSON.parse(req.body.ingredients || '[]');
+    let ingredients;
+    try {
+      ingredients = JSON.parse(req.body.ingredients || '[]');
+    } catch (parseError) {
+      console.error('Error parsing ingredients:', parseError);
+      return res.status(400).json({ error: 'Invalid ingredients format' });
+    }
+
+    // Parse other JSON fields
+    let parsedAllergens, parsedServiceTypes;
+    try {
+      parsedAllergens = JSON.parse(allergens || '[]');
+      parsedServiceTypes = JSON.parse(serviceTypes || '[]');
+    } catch (parseError) {
+      console.error('Error parsing JSON fields:', parseError);
+      return res.status(400).json({ error: 'Invalid JSON format in allergens or service types' });
+    }
 
     const recipeData = {
       name,
       ingredients,
       steps,
       platingGuide,
-      allergens: JSON.parse(allergens || '[]'),
-      serviceTypes: JSON.parse(serviceTypes || '[]'),
+      allergens: parsedAllergens,
+      serviceTypes: parsedServiceTypes,
       active: active === 'true'
     };
+    
     if (req.file) {
       recipeData.image = `/uploads/${req.file.filename}`;
     } else if (removeImage === 'true') {
       recipeData.image = null;
     }
-    const recipe = await Recipe.findByIdAndUpdate(req.params.id, recipeData, { new: true });
-    if (!recipe) return res.status(404).json({ error: 'Recipe not found' });
-    const populatedRecipe = await Recipe.findById(recipe._id).populate({
-      path: 'ingredients.ingredient',
-      populate: { path: 'purveyor' }
-    });
     
-    // Set the processed recipe data for change logging
-    req.processedRecipeData = recipeData;
+    let recipe;
+    try {
+      recipe = await Recipe.findByIdAndUpdate(req.params.id, recipeData, { new: true });
+    } catch (dbError) {
+      console.error('Database update error:', dbError);
+      return res.status(500).json({ error: 'Database update failed' });
+    }
     
-    // Log the update after successful operation
-    await logUpdateResult(req, res, () => {});
+    if (!recipe) {
+      return res.status(404).json({ error: 'Recipe not found' });
+    }
+    
+    let populatedRecipe;
+    try {
+      populatedRecipe = await Recipe.findById(recipe._id).populate({
+        path: 'ingredients.ingredient',
+        populate: { path: 'purveyor' }
+      });
+    } catch (populateError) {
+      console.error('Population error:', populateError);
+      return res.status(500).json({ error: 'Failed to populate recipe data' });
+    }
     
     res.json(populatedRecipe);
   } catch (err) {
-    console.error('Update recipe error:', err.message);
+    console.error('Recipe update error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

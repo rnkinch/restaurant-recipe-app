@@ -1,9 +1,10 @@
 body {
-  font-family: 'Helvetica', serif;
-  background-color: #f5f1e9;
-  color: #333;
+  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  background: linear-gradient(135deg, #fefefe 0%, #f1f5f9 100%);
+  color: #0f172a;
   margin: 0;
   padding: 0;
+  line-height: 1.6;
 }
 
 .container {
@@ -13,25 +14,130 @@ body {
 }
 
 .navbar {
-  background-color: #fff;
-  border-bottom: 1px solid #ddd;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 10px 20px;
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%) !important;
+  border-bottom: 2px solid #fbbf24;
+  box-shadow: 0 4px 20px rgba(124, 45, 18, 0.15);
+  padding: 12px 20px;
+  backdrop-filter: blur(10px);
+}
+
+/* Override Bootstrap navbar classes */
+.navbar.bg-light {
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%) !important;
+}
+
+/* Specific override for React Bootstrap navbar with bg="light" */
+.navbar-light {
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%) !important;
+}
+
+.navbar-light .navbar-brand,
+.navbar-light .navbar-nav .nav-link {
+  color: #fefefe !important;
+}
+
+.navbar-light .navbar-toggler {
+  color: #fefefe !important;
+  border-color: #fefefe !important;
+}
+
+.navbar-light .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* MAXIMUM SPECIFICITY OVERRIDE - Force white text */
+.navbar.bg-light.light,
+.navbar.navbar-light,
+.navbar[class*="bg-light"],
+.navbar[class*="navbar-light"] {
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%) !important;
+}
+
+.navbar.bg-light.light *,
+.navbar.navbar-light *,
+.navbar[class*="bg-light"] *,
+.navbar[class*="navbar-light"] *,
+.navbar.bg-light.light .navbar-brand,
+.navbar.navbar-light .navbar-brand,
+.navbar[class*="bg-light"] .navbar-brand,
+.navbar[class*="navbar-light"] .navbar-brand,
+.navbar.bg-light.light .navbar-nav .nav-link,
+.navbar.navbar-light .navbar-nav .nav-link,
+.navbar[class*="bg-light"] .navbar-nav .nav-link,
+.navbar[class*="navbar-light"] .navbar-nav .nav-link {
+  color: #fefefe !important;
+}
+
+/* NUCLEAR OPTION - Target everything in navbar */
+.navbar,
+.navbar *,
+.navbar .navbar-brand,
+.navbar .navbar-nav,
+.navbar .navbar-nav *,
+.navbar .navbar-nav .nav-link,
+.navbar .dropdown,
+.navbar .dropdown *,
+.navbar .dropdown-toggle,
+.navbar .navbar-toggler,
+.navbar .navbar-toggler-icon {
+  color: #fefefe !important;
+}
+
+/* Force navbar background */
+.navbar,
+.navbar.bg-light,
+.navbar.navbar-light,
+.navbar[class*="bg-"],
+.navbar[class*="navbar-"] {
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%) !important;
 }
 
 .navbar-brand, .nav-link {
   font-size: 1.1rem;
-  font-weight: 500;
-  color: #555;
+  font-weight: 600;
+  color: #fefefe !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Force navbar text colors */
+.navbar .navbar-brand {
+  color: #fefefe !important;
+}
+
+.navbar .nav-link {
+  color: #fefefe !important;
+}
+
+.navbar .navbar-nav .nav-link {
+  color: #fefefe !important;
 }
 
 .nav-link {
-  color: #555;
+  color: #fefefe !important;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .nav-link:hover {
-  color: #000;
-  text-decoration: underline;
+  color: #fbbf24 !important;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 50%;
+  background: #fbbf24;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+  width: 100%;
 }
 
 .nav.recipe-nav .nav-link {
@@ -40,101 +146,656 @@ body {
 
 .card {
   border: none;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(124, 45, 18, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
+  border: 1px solid rgba(251, 191, 36, 0.1);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .card:hover,
 .card:active {
-  transform: translateY(-4px);
-  background-color: #f8f1e9;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(124, 45, 18, 0.15);
+  border-color: rgba(251, 191, 36, 0.3);
 }
 
 .card-img-top {
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
   width: 300px;
   height: 200px;
   object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.card:hover .card-img-top {
+  transform: scale(1.05);
 }
 
 .btn-primary {
-  background-color: #8a5a44;
-  border-color: #8a5a44;
-  transition: background-color 0.2s;
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%);
+  border: 2px solid #7c2d12;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(124, 45, 18, 0.3);
 }
 
 .btn-primary:hover {
-  background-color: #6f4a38;
-  border-color: #6f4a38;
+  background: linear-gradient(135deg, #991b1b 0%, #7c2d12 100%);
+  border-color: #991b1b;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(124, 45, 18, 0.4);
 }
 
 .btn-outline-primary {
-  color: #8a5a44;
-  border-color: #8a5a44;
-  transition: all 0.2s;
+  color: #7c2d12;
+  border: 2px solid #7c2d12;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
 }
 
 .btn-outline-primary:hover {
-  background-color: #8a5a44;
-  color: #fff;
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%);
+  color: #fefefe;
+  border-color: #7c2d12;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(124, 45, 18, 0.3);
 }
 
 .btn-outline-danger {
-  color: #d9534f;
-  border-color: #d9534f;
-  transition: all 0.2s;
+  color: #dc2626;
+  border: 2px solid #dc2626;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
 }
 
 .btn-outline-danger:hover {
-  background-color: #d9534f;
-  color: #fff;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: #fefefe;
+  border-color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  color: #4a2c20;
-  margin-bottom: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 20px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  letter-spacing: -0.025em;
+}
+
+h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #7c2d12 0%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+h2 {
+  font-size: 2rem;
+  color: #7c2d12;
+}
+
+h3 {
+  font-size: 1.5rem;
+  color: #475569;
 }
 
 .form-control, .form-select {
-  border-radius: 4px;
-  border-color: #ccc;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fefefe;
+  font-weight: 500;
+  padding: 12px 16px;
+  color: #0f172a;
+  font-size: 1rem;
 }
 
 .form-control:focus, .form-select:focus {
-  border-color: #8a5a44;
-  box-shadow: 0 0 5px rgba(138, 90, 68, 0.3);
+  border-color: #7c2d12;
+  box-shadow: 0 0 0 4px rgba(124, 45, 18, 0.1);
   outline: none;
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.form-control::placeholder {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Fix form select options visibility */
+.form-select option {
+  color: #0f172a;
+  background-color: #fefefe;
+  padding: 8px 12px;
+  font-weight: 500;
+}
+
+.form-select option:checked {
+  background-color: #7c2d12;
+  color: #fefefe;
+}
+
+/* Fix small form elements specifically */
+.form-select.form-select-sm,
+.form-control.form-control-sm {
+  font-size: 0.875rem !important;
+  padding: 8px 12px !important;
+  color: #0f172a !important;
+}
+
+.form-select.form-select-sm option {
+  font-size: 0.875rem;
+  color: #0f172a;
+  background-color: #fefefe;
 }
 
 .table {
-  background-color: #fff;
-  border-radius: 8px;
+  background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(124, 45, 18, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.1);
 }
 
 .table th {
-  background-color: #f8f1e9;
-  color: #4a2c20;
-  padding: 12px;
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%);
+  color: #fefefe;
+  padding: 16px 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.875rem;
+  border: none;
 }
 
 .table td {
-  padding: 10px;
+  padding: 16px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(251, 191, 36, 0.05);
+  transform: scale(1.01);
+  transition: all 0.2s ease;
 }
 
 .alert {
-  border-radius: 4px;
-  margin-bottom: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: none;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #fefefe;
+}
+
+.alert-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: #fefefe;
+}
+
+.alert-warning {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+  color: #fefefe;
+}
+
+.alert-info {
+  background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+  color: #fefefe;
+}
+
+/* Additional Elegant Styling */
+.bg-light {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-radius: 16px;
+  border: 1px solid rgba(251, 191, 36, 0.1);
+  color: #0f172a !important;
+}
+
+.bg-light h4,
+.bg-light h5,
+.bg-light h6,
+.bg-light p,
+.bg-light span,
+.bg-light div {
+  color: #0f172a !important;
+}
+
+.text-success {
+  color: #059669 !important;
+  font-weight: 600;
+}
+
+.text-danger {
+  color: #dc2626 !important;
+  font-weight: 600;
+}
+
+.text-warning {
+  color: #d97706 !important;
+  font-weight: 600;
+}
+
+.text-info {
+  color: #0ea5e9 !important;
+  font-weight: 600;
+}
+
+.text-primary {
+  color: #7c2d12 !important;
+  font-weight: 600;
+}
+
+/* Enhanced Card Body Styling */
+.card-body {
+  padding: 24px;
+}
+
+.card-title {
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+}
+
+.card-text {
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* Enhanced Button Sizes */
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Make card buttons even smaller */
+.card .btn-sm {
+  padding: 3px 6px;
+  font-size: 0.7rem;
+  margin: 1px;
+}
+
+/* Fix recipe form ingredient measure dropdown */
+.card .form-select {
+  font-size: 0.875rem !important;
+  color: #0f172a !important;
+  background-color: #fefefe !important;
+  min-height: 34px;
+  line-height: 1.4 !important;
+  vertical-align: middle !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 6px 12px !important;
+  border: 2px solid #e2e8f0 !important;
+}
+
+.card .form-select option {
+  color: #0f172a !important;
+  background-color: #fefefe !important;
+  font-size: 0.875rem !important;
+  padding: 8px 12px !important;
+  line-height: 1.4 !important;
+  font-weight: 500 !important;
+}
+
+.card .form-select:focus {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border-color: #7c2d12 !important;
+}
+
+/* Specific fix for measure dropdown alignment */
+.card .form-select[size="sm"],
+.card .form-select.form-select-sm {
+  font-size: 0.875rem !important;
+  padding: 8px 12px !important;
+  line-height: 1.4 !important;
+  vertical-align: middle !important;
+  display: inline-block !important;
+  color: #0f172a !important;
+  background-color: #fefefe !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 6px !important;
+}
+
+/* Ensure form controls in cards are visible */
+.card .form-control,
+.card .form-select {
+  color: #0f172a !important;
+  background-color: #fefefe !important;
+}
+
+/* Align all form elements in recipe cards */
+.card .row .form-control,
+.card .row .form-select {
+  height: 34px !important;
+  line-height: 1.4 !important;
+  vertical-align: middle !important;
+  display: inline-block !important;
+  font-size: 0.875rem !important;
+  padding: 6px 12px !important;
+  color: #0f172a !important;
+  background-color: #fefefe !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 6px !important;
+}
+
+/* Specific alignment for measure dropdown */
+.card .col-2 .form-select {
+  height: 34px !important;
+  line-height: 1.4 !important;
+  padding: 6px 12px !important;
+  font-size: 0.875rem !important;
+  color: #0f172a !important;
+  background-color: #fefefe !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 6px !important;
+  vertical-align: middle !important;
+}
+
+.card .col-2 .form-select option {
+  padding: 8px 12px !important;
+  line-height: 1.4 !important;
+  font-size: 0.875rem !important;
+  color: #0f172a !important;
+  background-color: #fefefe !important;
+}
+
+/* Enhanced Stats Cards */
+.stats-card {
+  background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(124, 45, 18, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(124, 45, 18, 0.12);
+}
+
+/* Enhanced Navigation Dropdown */
+.navbar .dropdown-menu {
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  box-shadow: 0 8px 32px rgba(124, 45, 18, 0.15);
+  background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
+  margin-top: 8px;
+  z-index: 9999 !important;
+}
+
+/* Fix navbar z-index */
+.navbar {
+  z-index: 1000 !important;
+  position: relative;
+}
+
+.navbar .dropdown {
+  position: relative;
+  z-index: 9999 !important;
+}
+
+.navbar .dropdown-item {
+  color: #475569 !important;
+  font-weight: 500;
+  padding: 12px 20px;
+  transition: all 0.2s ease;
+}
+
+.navbar .dropdown-item:hover {
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%);
+  color: #fefefe !important;
+  transform: translateX(4px);
+}
+
+.navbar .dropdown-item:focus {
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%);
+  color: #fefefe !important;
+}
+
+.navbar .dropdown-item.active {
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%);
+  color: #fefefe !important;
+}
+
+/* Enhanced Input Group */
+.input-group .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.input-group .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Fix text visibility issues - Force all navbar text to be white */
+.navbar-brand {
+  color: #fefefe !important;
+}
+
+.navbar .nav-link {
+  color: #fefefe !important;
+}
+
+.navbar .nav-link:hover {
+  color: #fbbf24 !important;
+}
+
+/* Override any Bootstrap navbar text color classes */
+.navbar-light .navbar-brand,
+.navbar-light .navbar-nav .nav-link {
+  color: #fefefe !important;
+}
+
+.navbar-dark .navbar-brand,
+.navbar-dark .navbar-nav .nav-link {
+  color: #fefefe !important;
+}
+
+/* Fix top navigation dropdown toggle */
+.navbar-toggler {
+  color: #fefefe !important;
+  border-color: #fefefe !important;
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* Force navbar dropdown toggle colors */
+.navbar .dropdown-toggle {
+  color: #fefefe !important;
+}
+
+.navbar .dropdown-toggle:hover {
+  color: #fbbf24 !important;
+}
+
+.navbar .dropdown-toggle:focus {
+  color: #fbbf24 !important;
+}
+
+/* Fix recipe navigation text */
+.nav.recipe-nav .nav-link {
+  color: #0f172a !important;
+  font-size: 0.84375rem;
+  font-weight: 500;
+}
+
+.nav.recipe-nav .nav-link:hover {
+  color: #7c2d12 !important;
+  background-color: rgba(124, 45, 18, 0.1);
+  border-radius: 8px;
+}
+
+/* Preserve bullet colors for active/inactive recipes */
+.nav.recipe-nav .nav-link .text-success {
+  color: #059669 !important;
+}
+
+.nav.recipe-nav .nav-link .text-danger {
+  color: #dc2626 !important;
+}
+
+/* Fix card text visibility */
+.card {
+  color: #0f172a;
+}
+
+.card .card-title {
+  color: #0f172a !important;
+}
+
+.card .card-text {
+  color: #64748b !important;
+}
+
+/* Fix form labels */
+.form-label {
+  color: #0f172a !important;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Fix small text elements */
+small {
+  color: #64748b !important;
+}
+
+.text-muted {
+  color: #64748b !important;
+}
+
+/* Fix stats text */
+.h5 {
+  color: #0f172a !important;
+}
+
+/* Fix any remaining white text issues */
+* {
+  color: inherit;
+}
+
+/* Ensure proper text colors for specific elements */
+p, span, div, label, small, .text-muted {
+  color: #0f172a;
+}
+
+/* Override Bootstrap's default text colors that might conflict */
+.text-white {
+  color: #fefefe !important;
+}
+
+.text-dark {
+  color: #0f172a !important;
+}
+
+/* Fix sidebar navigation text */
+.bg-light .nav.recipe-nav .nav-link {
+  color: #0f172a !important;
+  padding: 8px 12px;
+  margin: 2px 0;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.bg-light .nav.recipe-nav .nav-link:hover {
+  color: #7c2d12 !important;
+  background-color: rgba(124, 45, 18, 0.1);
+}
+
+/* Ensure bullet colors are preserved in sidebar */
+.bg-light .nav.recipe-nav .nav-link .text-success {
+  color: #059669 !important;
+}
+
+.bg-light .nav.recipe-nav .nav-link .text-danger {
+  color: #dc2626 !important;
+}
+
+.bg-light h4 {
+  color: #0f172a !important;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding: 0 12px;
+}
+
+/* Fix any remaining text color issues in containers */
+.container, .container-fluid {
+  color: #0f172a;
+}
+
+.container h1,
+.container h2,
+.container h3,
+.container h4,
+.container h5,
+.container h6 {
+  color: #0f172a;
+}
+
+/* Fix button text colors */
+.btn {
+  color: inherit;
+}
+
+.btn-primary {
+  color: #fefefe !important;
+}
+
+.btn-outline-primary {
+  color: #7c2d12 !important;
+}
+
+.btn-outline-primary:hover {
+  color: #fefefe !important;
+}
+
+.btn-outline-danger {
+  color: #dc2626 !important;
+}
+
+.btn-outline-danger:hover {
+  color: #fefefe !important;
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .container {
-    padding: 10px;
+    padding: 16px;
   }
 
   .navbar-brand, .nav-link {
@@ -142,7 +803,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .card {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
   }
 
   .col-md-6, .col-md-9, .col-md-3 {
@@ -153,4 +814,43 @@ h1, h2, h3, h4, h5, h6 {
   .nav.recipe-nav .nav-link {
     font-size: 0.84375rem;
   }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  .btn {
+    font-size: 0.875rem;
+    padding: 10px 16px;
+  }
+}
+
+/* FINAL OVERRIDE - Highest priority navbar fix */
+.navbar {
+  background: linear-gradient(135deg, #7c2d12 0%, #991b1b 100%) !important;
+}
+
+.navbar * {
+  color: #fefefe !important;
+}
+
+.navbar .navbar-brand {
+  color: #fefefe !important;
+}
+
+.navbar .nav-link {
+  color: #fefefe !important;
+}
+
+.navbar .dropdown-toggle {
+  color: #fefefe !important;
+}
+
+.navbar .navbar-toggler {
+  color: #fefefe !important;
+  border-color: #fefefe !important;
 }

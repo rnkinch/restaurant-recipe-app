@@ -1,9 +1,10 @@
 // RecipeFormIngredients.js (With fix for issue b: removed feedback text, kept red border)
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
+import { validateField, VALIDATION_RULES } from './utils/validation';
 
 const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeIngredient, showAddIngredientModal, setShowAddIngredientModal, validationErrors = {} }) => {
-  const measures = ['tsp', 'tbsp', 'cup', 'oz', 'fl oz', 'lb', 'g', 'kg', 'ml', 'l', 'pinch', 'dash', 'each', 'slice', 'whole'];
+  const measures = ['tsp', 'tbsp', 'cup', 'cups', 'oz', 'fl oz', 'lb', 'lbs', 'g', 'kg', 'ml', 'l', 'pinch', 'dash', 'each', 'slice', 'slices', 'whole', 'pieces', 'cloves', 'bunches', 'heads', 'cans', 'jars', 'packages'];
   const [localValidationErrors, setLocalValidationErrors] = useState(
     formData.ingredients.map(() => ({ quantity: '', measure: '' }))
   );
@@ -12,10 +13,15 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
     console.log('formData.ingredients:', formData.ingredients);
     console.log('validationErrors:', validationErrors);
     setLocalValidationErrors(prev =>
-      formData.ingredients.map((ing, index) => ({
-        quantity: typeof ing.quantity !== 'string' || !ing.quantity.trim() ? 'Quantity is required' : '',
-        measure: typeof ing.measure !== 'string' || !ing.measure.trim() ? 'Measure is required' : ''
-      }))
+      formData.ingredients.map((ing, index) => {
+        const quantityValidation = validateField(ing.quantity, VALIDATION_RULES.recipe.ingredient.quantity);
+        const measureValidation = validateField(ing.measure, VALIDATION_RULES.recipe.ingredient.measure);
+        
+        return {
+          quantity: quantityValidation.isValid ? '' : quantityValidation.error,
+          measure: measureValidation.isValid ? '' : measureValidation.error
+        };
+      })
     );
   }, [formData.ingredients]);
 
@@ -29,9 +35,12 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
 
     setLocalValidationErrors(prev => {
       const newErrors = [...prev];
+      const validationRule = field === 'quantity' ? VALIDATION_RULES.recipe.ingredient.quantity : VALIDATION_RULES.recipe.ingredient.measure;
+      const validation = validateField(safeValue, validationRule);
+      
       newErrors[index] = {
         ...newErrors[index],
-        [field]: typeof safeValue !== 'string' || !safeValue.trim() ? `${field.charAt(0).toUpperCase() + field.slice(1)} is required` : ''
+        [field]: validation.isValid ? '' : validation.error
       };
       return newErrors;
     });

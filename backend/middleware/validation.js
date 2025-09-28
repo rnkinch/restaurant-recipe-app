@@ -31,13 +31,13 @@ const VALIDATION_RULES = {
     ingredient: {
       quantity: {
         required: true,
-        pattern: /^[0-9]+(\.[0-9]+)?$/,
-        message: 'Quantity must be a valid number (e.g., 1, 1.5, 2.25)'
+        pattern: /^(\d+|\d+\.\d+|1\/2|1\/3|1\/4|2\/3|3\/4|\d+\s+\d+\/\d+|\d+\/\d+)$/,
+        message: 'Quantity must be a valid number, decimal, or fraction (e.g., 1, 1.5, 1/2, 2 1/3)'
       },
       measure: {
         required: true,
-        pattern: /^[a-zA-Z\s]+$/,
-        message: 'Measure must contain only letters and spaces'
+        pattern: /^[a-zA-Z\s\/\-]+$/,
+        message: 'Measure must contain letters, spaces, slashes, and hyphens'
       }
     }
   },
@@ -239,14 +239,21 @@ const validatePurveyorData = (purveyorData) => {
 // Middleware for recipe validation
 const validateRecipe = (req, res, next) => {
   try {
+    console.log('=== VALIDATION DEBUG ===');
+    console.log('Request body type:', typeof req.body);
+    console.log('Body keys:', Object.keys(req.body || {}));
+    
     // Sanitize the request body
     req.body = sanitizeObject(req.body);
+    console.log('Body sanitized');
     
     // Parse ingredients if it's a string
     if (req.body.ingredients && typeof req.body.ingredients === 'string') {
       try {
         req.body.ingredients = JSON.parse(req.body.ingredients);
+        console.log('Ingredients parsed from string');
       } catch (e) {
+        console.error('Error parsing ingredients:', e);
         return res.status(400).json({ 
           error: 'Invalid ingredients format',
           details: 'Ingredients must be valid JSON'
@@ -258,7 +265,9 @@ const validateRecipe = (req, res, next) => {
     if (req.body.allergens && typeof req.body.allergens === 'string') {
       try {
         req.body.allergens = JSON.parse(req.body.allergens);
+        console.log('Allergens parsed from string');
       } catch (e) {
+        console.error('Error parsing allergens:', e);
         return res.status(400).json({ 
           error: 'Invalid allergens format',
           details: 'Allergens must be valid JSON'
@@ -269,7 +278,9 @@ const validateRecipe = (req, res, next) => {
     if (req.body.serviceTypes && typeof req.body.serviceTypes === 'string') {
       try {
         req.body.serviceTypes = JSON.parse(req.body.serviceTypes);
+        console.log('Service types parsed from string');
       } catch (e) {
+        console.error('Error parsing service types:', e);
         return res.status(400).json({ 
           error: 'Invalid service types format',
           details: 'Service types must be valid JSON'
@@ -277,18 +288,45 @@ const validateRecipe = (req, res, next) => {
       }
     }
     
+    // Parse ingredients before validation if it's still a string
+    if (req.body.ingredients && typeof req.body.ingredients === 'string') {
+      try {
+        req.body.ingredients = JSON.parse(req.body.ingredients);
+        console.log('Ingredients parsed for validation');
+      } catch (e) {
+        console.error('Error parsing ingredients for validation:', e);
+        return res.status(400).json({ 
+          error: 'Invalid ingredients format',
+          details: 'Ingredients must be valid JSON'
+        });
+      }
+    }
+    
     // Validate the recipe data
+    console.log('About to validate recipe data...');
     const validation = validateRecipeData(req.body);
+    console.log('Validation result:', validation.isValid);
     if (!validation.isValid) {
+      console.log('=== VALIDATION FAILED ===');
+      console.log('Validation result:', validation.isValid);
+      console.log('Validation errors:', validation.errors);
+      console.log('Request body sample:', {
+        name: req.body.name,
+        ingredients: req.body.ingredients,
+        steps: req.body.steps
+      });
       return res.status(400).json({
         error: 'Validation failed',
         details: validation.errors
       });
     }
     
+    console.log('Validation passed, calling next()');
     next();
   } catch (err) {
+    console.error('=== VALIDATION ERROR ===');
     console.error('Recipe validation error:', err);
+    console.error('Error stack:', err.stack);
     res.status(500).json({ error: 'Validation error occurred' });
   }
 };
