@@ -166,7 +166,7 @@ export const sanitizeInput = (input) => {
   
   return input
     .trim()
-    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .replace(/[ \t]+/g, ' ') // Replace multiple spaces/tabs with single space (preserve line breaks)
     .replace(/[<>]/g, ''); // Remove potential HTML tags
 };
 

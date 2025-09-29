@@ -127,9 +127,8 @@ const RecipeForm = ({ refreshRecipes }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const sanitizedValue = sanitizeInput(value);
     
-    setFormData({ ...formData, [name]: sanitizedValue });
+    setFormData({ ...formData, [name]: value });
     
     // Clear validation error for this field
     if (validationErrors[name]) {

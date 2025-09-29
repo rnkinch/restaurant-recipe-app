@@ -18,8 +18,8 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
         const measureValidation = validateField(ing.measure, VALIDATION_RULES.recipe.ingredient.measure);
         
         return {
-          quantity: quantityValidation.isValid ? '' : quantityValidation.error,
-          measure: measureValidation.isValid ? '' : measureValidation.error
+          quantity: quantityValidation.length > 0 ? quantityValidation[0] : '',
+          measure: measureValidation.length > 0 ? measureValidation[0] : ''
         };
       })
     );
@@ -40,7 +40,7 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
       
       newErrors[index] = {
         ...newErrors[index],
-        [field]: validation.isValid ? '' : validation.error
+        [field]: validation.length > 0 ? validation[0] : ''
       };
       return newErrors;
     });
