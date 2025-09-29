@@ -44,7 +44,10 @@ services:
     environment:
       - MONGO_URI=mongodb://mongo-container:27017/recipeDB
       - PORT=8080
-      - NODE_ENV=production
+      - NODE_ENV=development
+      - JWT_SECRET=${JWT_SECRET:-test-jwt-secret-for-development-only-not-for-production}
+      - FRONTEND_URL=http://localhost:3000
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
     volumes:
       - uploads:/app/uploads
     networks:

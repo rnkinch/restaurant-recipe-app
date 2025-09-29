@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Container, Alert, Table, Button } from 'react-bootstrap';
 import { getUsers, getUserReport, createUser, updateUser, deleteUser } from './api';
 
 const UserManagement = () => {
@@ -96,72 +97,62 @@ const UserManagement = () => {
   };
 
   if (loading) {
-    return (
-      <div className="d-flex justify-content-center p-4">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
+    return <Container className="py-3"><p>Loading...</p></Container>;
   }
 
   return (
-    <div className="container-fluid">
-      <div className="row">
-        <div className="col-12">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2>👥 User Management</h2>
-            <button 
-              className="btn btn-primary"
-              onClick={() => setShowCreateForm(true)}
-            >
-              ➕ Add User
-            </button>
-          </div>
+    <Container className="py-3">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>👥 User Management</h2>
+        <Button 
+          variant="primary"
+          onClick={() => setShowCreateForm(true)}
+        >
+          ➕ Add User
+        </Button>
+      </div>
 
-          {/* Statistics Cards */}
-          <div className="row mb-4">
-            <div className="col-md-2">
-              <div className="card text-center">
-                <div className="card-body">
-                  <h5 className="card-title text-primary">{stats.totalUsers || 0}</h5>
-                  <p className="card-text">Total Users</p>
+      {/* Statistics Cards */}
+      <div className="row mb-3">
+        <div className="col-12">
+          <div className="card bg-light border-0">
+            <div className="card-body py-2">
+              <div className="row text-center">
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-primary mb-0">{stats.totalUsers || 0}</span>
+                    <small className="text-muted">Total Users</small>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="col-md-2">
-              <div className="card text-center">
-                <div className="card-body">
-                  <h5 className="card-title text-success">{stats.activeUsers || 0}</h5>
-                  <p className="card-text">Active Users</p>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-success mb-0">{stats.activeUsers || 0}</span>
+                    <small className="text-muted">Active Users</small>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="col-md-2">
-              <div className="card text-center">
-                <div className="card-body">
-                  <h5 className="card-title text-danger">{stats.adminUsers || 0}</h5>
-                  <p className="card-text">Admins</p>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-danger mb-0">{stats.adminUsers || 0}</span>
+                    <small className="text-muted">Admins</small>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="col-md-2">
-              <div className="card text-center">
-                <div className="card-body">
-                  <h5 className="card-title text-info">{stats.regularUsers || 0}</h5>
-                  <p className="card-text">Regular Users</p>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-info mb-0">{stats.regularUsers || 0}</span>
+                    <small className="text-muted">Regular Users</small>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="col-md-2">
-              <div className="card text-center">
-                <div className="card-body">
-                  <h5 className="card-title text-warning">{stats.recentUsers || 0}</h5>
-                  <p className="card-text">Recent (7 days)</p>
+                <div className="col-md-2">
+                  <div className="d-flex flex-column align-items-center">
+                    <span className="h5 text-warning mb-0">{stats.recentUsers || 0}</span>
+                    <small className="text-muted">Recent (7 days)</small>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
           {/* Create/Edit User Modal */}
           {(showCreateForm || editingUser) && (
@@ -172,15 +163,14 @@ const UserManagement = () => {
                     <h5 className="modal-title">
                       {editingUser ? 'Edit User' : 'Create New User'}
                     </h5>
-                    <button 
-                      type="button" 
-                      className="btn-close"
+                    <Button 
+                      variant="close"
                       onClick={() => {
                         setShowCreateForm(false);
                         setEditingUser(null);
                         setFormData({ username: '', password: '', role: 'user', isActive: true });
                       }}
-                    ></button>
+                    ></Button>
                   </div>
                   <form onSubmit={editingUser ? handleUpdateUser : handleCreateUser}>
                     <div className="modal-body">
@@ -230,16 +220,16 @@ const UserManagement = () => {
                       </div>
                     </div>
                     <div className="modal-footer">
-                      <button type="button" className="btn btn-secondary" onClick={() => {
+                      <Button variant="secondary" onClick={() => {
                         setShowCreateForm(false);
                         setEditingUser(null);
                         setFormData({ username: '', password: '', role: 'user', isActive: true });
                       }}>
                         Cancel
-                      </button>
-                      <button type="submit" className="btn btn-primary">
+                      </Button>
+                      <Button type="submit" variant="primary">
                         {editingUser ? 'Update User' : 'Create User'}
-                      </button>
+                      </Button>
                     </div>
                   </form>
                 </div>
@@ -247,85 +237,74 @@ const UserManagement = () => {
             </div>
           )}
 
-          {/* Error Message */}
-          {error && (
-            <div className="alert alert-danger" role="alert">
-              {error}
-              <button 
-                type="button" 
-                className="btn-close" 
-                onClick={() => setError(null)}
-              ></button>
-            </div>
-          )}
+      {/* Error Message */}
+      {error && (
+        <Alert variant="danger" dismissible onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
 
-          {/* Users Table */}
-          <div className="card">
-            <div className="card-body">
-              <div className="table-responsive">
-                <table className="table table-hover">
-                  <thead>
-                    <tr>
-                      <th>Username</th>
-                      <th>Role</th>
-                      <th>Status</th>
-                      <th>Created</th>
-                      <th>Last Login</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((user) => (
-                      <tr key={user._id}>
-                        <td>
-                          <strong>{user.username}</strong>
-                          {user.firstName && user.lastName && (
-                            <div className="text-muted small">
-                              {user.firstName} {user.lastName}
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          <span className={`badge bg-${getRoleBadge(user.role)}`}>
-                            {user.role}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`badge bg-${getStatusBadge(user.isActive)}`}>
-                            {user.isActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-                        <td>{formatDate(user.createdAt)}</td>
-                        <td>
-                          {user.lastLogin ? formatDate(user.lastLogin) : 'Never'}
-                        </td>
-                        <td>
-                          <div className="btn-group" role="group">
-                            <button
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() => handleEditUser(user)}
-                            >
-                              ✏️ Edit
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => handleDeleteUser(user._id)}
-                              disabled={user.role === 'admin' && stats.adminUsers <= 1}
-                            >
-                              🗑️ Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      {/* Users Table */}
+      <Table striped bordered hover size="sm">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Last Login</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user._id}>
+              <td>
+                <strong>{user.username}</strong>
+                {user.firstName && user.lastName && (
+                  <div className="text-muted small">
+                    {user.firstName} {user.lastName}
+                  </div>
+                )}
+              </td>
+              <td>
+                <span className={`badge bg-${getRoleBadge(user.role)}`}>
+                  {user.role}
+                </span>
+              </td>
+              <td>
+                <span className={`badge bg-${getStatusBadge(user.isActive)}`}>
+                  {user.isActive ? 'Active' : 'Inactive'}
+                </span>
+              </td>
+              <td>{formatDate(user.createdAt)}</td>
+              <td>
+                {user.lastLogin ? formatDate(user.lastLogin) : 'Never'}
+              </td>
+              <td>
+                <div className="btn-group" role="group">
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => handleEditUser(user)}
+                  >
+                    ✏️ Edit
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleDeleteUser(user._id)}
+                    disabled={user.role === 'admin' && stats.adminUsers <= 1}
+                  >
+                    🗑️ Delete
+                  </Button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </Container>
   );
 };
 

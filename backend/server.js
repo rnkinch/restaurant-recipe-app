@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config({ quiet: true });
 
+
 // Import security middleware
 const { 
   generalLimiter, 
@@ -24,14 +25,17 @@ const { logRecipeChange, captureChanges, logRecipeUpdate, logUpdateResult } = re
 const app = express();
 // Secure CORS configuration
 const allowedOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'http://192.168.68.129:3000', // Your Windows host IP
-  'http://172.30.184.138:3000', // Your WSL local IP
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  process.env.FRONTEND_URL || 'http://localhost:3000'
-];
+  // Development origins (only in development)
+  ...(process.env.NODE_ENV === 'development' ? [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://192.168.68.129:3000', // Your Windows host IP
+    'http://172.30.184.138:3000', // Your WSL local IP
+  ] : []),
+  // Production origins
+  process.env.FRONTEND_URL,
+  process.env.ALLOWED_ORIGINS?.split(',') || []
+].filter(Boolean); // Remove undefined values
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -149,7 +153,9 @@ app.use((req, res, next) => {
   next();
 });
 
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/recipeDB', {
+// MongoDB connection - use localhost for single-container deployment
+const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/recipeDB';
+mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -200,8 +206,15 @@ app.post('/auth/register', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Username and password required' });
     }
     
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    // Enhanced password validation
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    }
+    
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      return res.status(400).json({ 
+        error: 'Password must contain at least one lowercase letter, one uppercase letter, and one number' 
+      });
     }
     
     const existingUser = await User.findOne({ username });
@@ -241,9 +254,12 @@ app.post('/auth/login', authLimiter, async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
     
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET environment variable is required');
+    }
     const token = jwt.sign(
       { userId: user._id, username: user.username, role: user.role },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
     
@@ -485,16 +501,20 @@ app.post('/recipes', uploadLimiter, authenticateToken, requireEditPermission, up
   try {
     const { name, steps, platingGuide, allergens, serviceTypes, active } = req.body;
     
-    // Parse ingredients from JSON string
-    const ingredients = JSON.parse(req.body.ingredients || '[]');
+    // Use ingredients (already parsed by validation middleware)
+    const ingredients = req.body.ingredients || [];
+
+    // Use allergens and serviceTypes (already parsed by validation middleware)
+    const parsedAllergens = req.body.allergens || [];
+    const parsedServiceTypes = req.body.serviceTypes || [];
 
     const recipeData = {
       name,
       ingredients,
       steps,
       platingGuide,
-      allergens: JSON.parse(allergens || '[]'),
-      serviceTypes: JSON.parse(serviceTypes || '[]'),
+      allergens: parsedAllergens,
+      serviceTypes: parsedServiceTypes,
       active: active === 'true'
     };
     if (req.file) {
