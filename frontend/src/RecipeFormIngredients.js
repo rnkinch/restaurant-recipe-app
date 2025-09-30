@@ -81,6 +81,11 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
                   isInvalid={!!(localValidationErrors[index]?.quantity || validationErrors.ingredients?.[index]?.quantity)}
                   style={{ height: '34px', fontSize: '14px' }}
                 />
+                {(localValidationErrors[index]?.quantity || validationErrors.ingredients?.[index]?.quantity) && (
+                  <Form.Control.Feedback type="invalid" style={{ fontSize: '10px' }}>
+                    {localValidationErrors[index]?.quantity || validationErrors.ingredients?.[index]?.quantity}
+                  </Form.Control.Feedback>
+                )}
               </Col>
               <Col xs={2}>
                 <Form.Select
@@ -95,6 +100,11 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
                     <option key={measure} value={measure}>{measure}</option>
                   ))}
                 </Form.Select>
+                {(localValidationErrors[index]?.measure || validationErrors.ingredients?.[index]?.measure) && (
+                  <Form.Control.Feedback type="invalid" style={{ fontSize: '10px' }}>
+                    {localValidationErrors[index]?.measure || validationErrors.ingredients?.[index]?.measure}
+                  </Form.Control.Feedback>
+                )}
               </Col>
               <Col xs={2}>
                 <Button
