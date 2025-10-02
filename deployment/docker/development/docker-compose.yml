@@ -1,0 +1,83 @@
+services:
+  mongo-container:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - recipe-app-network
+    environment:
+      - MONGO_INITDB_DATABASE=recipeDB
+
+  init-backend:
+    image: node:20-alpine
+    user: "0:0"
+    command: >
+      sh -c "
+      mkdir -p /app/uploads &&
+      chown -R 1000:1000 /app/uploads &&
+      chmod 755 /app/uploads &&
+      echo 'Volume permissions set (node:node, dir 755)' &&
+      ls -la /app/uploads
+      "
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      - mongo-container
+    networks:
+      - recipe-app-network
+
+  backend-container:
+    build:
+      context: ../../..
+      dockerfile: deployment/docker/development/backend.Dockerfile
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      init-backend:
+        condition: service_completed_successfully
+      mongo-container:
+        condition: service_healthy
+    env_file:
+      - env.development
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - recipe-app-network
+
+  frontend-container:
+    build:
+      context: ../../..
+      dockerfile: deployment/docker/development/frontend.Dockerfile
+      args:
+        - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8080}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8080}
+      - BROWSER=none
+      - FAST_REFRESH=false
+      - WDS_SOCKET_HOST=localhost
+    depends_on:
+      - backend-container
+    # No volumes needed - rebuild container when code changes
+    networks:
+      - recipe-app-network
+
+networks:
+  recipe-app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    external: true
+    name: restaurant-recipe-app_mongo-data
+  uploads:
+    external: true
+    name: restaurant-recipe-app_uploads

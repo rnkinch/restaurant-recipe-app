@@ -1,0 +1,32 @@
+# Ignore backup files
+*.bak
+
+# Ignore node_modules (will be installed in container)
+node_modules/
+
+# Ignore git files
+.git/
+.gitignore
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
+npm-debug.log*
+
+# Ignore build artifacts
+build/
+dist/
+
+# Ignore environment files (use env.development instead)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

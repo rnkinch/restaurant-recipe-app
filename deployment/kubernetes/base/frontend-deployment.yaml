@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: restaurant-recipe-app
+    component: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: restaurant-recipe-app
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: restaurant-recipe-app
+        component: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: restaurant-recipe-frontend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: REACT_APP_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: api-url
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  labels:
+    app: restaurant-recipe-app
+    component: frontend
+spec:
+  selector:
+    app: restaurant-recipe-app
+    component: frontend
+  ports:
+  - port: 3000
+    targetPort: 3000
+  type: ClusterIP

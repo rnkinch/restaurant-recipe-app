@@ -1,0 +1,90 @@
+# TEMPLATE - NOT TESTED
+# This is a template Kubernetes configuration
+# Requires customization and testing in a K8s cluster before use
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: restaurant-recipe-app
+    component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: restaurant-recipe-app
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: restaurant-recipe-app
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: restaurant-recipe-backend:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "8080"
+        - name: MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: mongo-uri
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: jwt-secret
+        - name: FRONTEND_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: frontend-url
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: uploads
+          mountPath: /app/uploads
+      volumes:
+      - name: uploads
+        persistentVolumeClaim:
+          claimName: uploads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  labels:
+    app: restaurant-recipe-app
+    component: backend
+spec:
+  selector:
+    app: restaurant-recipe-app
+    component: backend
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP
