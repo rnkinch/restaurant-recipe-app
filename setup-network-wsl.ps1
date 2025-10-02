@@ -1,8 +1,10 @@
 # Restaurant Recipe App - WSL Network Setup Script for PowerShell
 # This script helps configure the application for local network access from WSL
+# Updated for new deployment structure
 
 Write-Host "🍽️  Restaurant Recipe App - WSL Network Setup" -ForegroundColor Green
 Write-Host "=============================================" -ForegroundColor Green
+Write-Host "📁 Using new deployment structure" -ForegroundColor Cyan
 
 # Function to get the Windows host IP
 function Get-WindowsIP {
@@ -30,22 +32,35 @@ if (-not $WINDOWS_IP) {
 
 Write-Host "📍 Windows Host IP: $WINDOWS_IP" -ForegroundColor Cyan
 
-# Update docker-compose.yml with the Windows IP
-Write-Host "🔧 Updating docker-compose.yml with IP: $WINDOWS_IP" -ForegroundColor Yellow
-(Get-Content docker-compose.yml) -replace '192\.168\.68\.129', $WINDOWS_IP | Set-Content docker-compose.yml
+# Update deployment configuration files
+Write-Host "🔧 Updating deployment configuration with IP: $WINDOWS_IP" -ForegroundColor Yellow
 
-# Update backend CORS configuration
-Write-Host "🔧 Updating backend CORS configuration with IP: $WINDOWS_IP" -ForegroundColor Yellow
-(Get-Content backend/server.js) -replace '192\.168\.68\.129:3000', "$WINDOWS_IP:3000" | Set-Content backend/server.js
+# Update development environment file
+$DEV_ENV_FILE = "deployment\docker\development\env.development"
+if (Test-Path $DEV_ENV_FILE) {
+    Write-Host "🔧 Updating $DEV_ENV_FILE" -ForegroundColor Yellow
+    (Get-Content $DEV_ENV_FILE) -replace 'REACT_APP_API_URL=.*', "REACT_APP_API_URL=http://$WINDOWS_IP:8080" | Set-Content $DEV_ENV_FILE
+    (Get-Content $DEV_ENV_FILE) -replace 'FRONTEND_URL=.*', "FRONTEND_URL=http://$WINDOWS_IP:3000" | Set-Content $DEV_ENV_FILE
+    (Get-Content $DEV_ENV_FILE) -replace 'ALLOWED_ORIGINS=.*', "ALLOWED_ORIGINS=http://$WINDOWS_IP:3000,http://127.0.0.1:3000,http://localhost:3000" | Set-Content $DEV_ENV_FILE
+} else {
+    Write-Host "❌ Development environment file not found: $DEV_ENV_FILE" -ForegroundColor Red
+}
 
-# Update frontend Dockerfile
-Write-Host "🔧 Updating frontend Dockerfile with IP: $WINDOWS_IP" -ForegroundColor Yellow
-(Get-Content frontend/Dockerfile) -replace '192\.168\.68\.129', $WINDOWS_IP | Set-Content frontend/Dockerfile
+# Update development docker-compose.yml
+$DEV_COMPOSE_FILE = "deployment\docker\development\docker-compose.yml"
+if (Test-Path $DEV_COMPOSE_FILE) {
+    Write-Host "🔧 Updating $DEV_COMPOSE_FILE" -ForegroundColor Yellow
+    (Get-Content $DEV_COMPOSE_FILE) -replace 'REACT_APP_API_URL=.*', "REACT_APP_API_URL=http://$WINDOWS_IP:8080" | Set-Content $DEV_COMPOSE_FILE
+    (Get-Content $DEV_COMPOSE_FILE) -replace '- REACT_APP_API_URL=.*', "- REACT_APP_API_URL=http://$WINDOWS_IP:8080" | Set-Content $DEV_COMPOSE_FILE
+} else {
+    Write-Host "❌ Development docker-compose file not found: $DEV_COMPOSE_FILE" -ForegroundColor Red
+}
 
-# Update all frontend source files
-Write-Host "🔧 Updating frontend source files with IP: $WINDOWS_IP" -ForegroundColor Yellow
-Get-ChildItem -Path "frontend/src" -Filter "*.js" -Recurse | ForEach-Object {
-    (Get-Content $_.FullName) -replace '192\.168\.68\.129', $WINDOWS_IP | Set-Content $_.FullName
+# Update legacy docker-compose.yml if it exists (for backward compatibility)
+if (Test-Path "docker-compose.yml") {
+    Write-Host "🔧 Updating legacy docker-compose.yml for backward compatibility" -ForegroundColor Yellow
+    (Get-Content docker-compose.yml) -replace '172\.30\.176\.1', $WINDOWS_IP | Set-Content docker-compose.yml
+    (Get-Content docker-compose.yml) -replace '192\.168\.68\.129', $WINDOWS_IP | Set-Content docker-compose.yml
 }
 
 Write-Host ""
@@ -61,16 +76,20 @@ Write-Host "   - From WSL: http://$WINDOWS_IP:3000" -ForegroundColor White
 Write-Host "   - From other devices: http://$WINDOWS_IP:3000" -ForegroundColor White
 Write-Host ""
 Write-Host "🔧 Files updated:" -ForegroundColor Yellow
-Write-Host "   - docker-compose.yml" -ForegroundColor White
-Write-Host "   - backend/server.js (CORS configuration)" -ForegroundColor White
-Write-Host "   - frontend/Dockerfile" -ForegroundColor White
-Write-Host "   - frontend/src/*.js files" -ForegroundColor White
+Write-Host "   - deployment\docker\development\env.development" -ForegroundColor White
+Write-Host "   - deployment\docker\development\docker-compose.yml" -ForegroundColor White
+Write-Host "   - docker-compose.yml (legacy, for backward compatibility)" -ForegroundColor White
 Write-Host ""
-Write-Host "🚀 To start the application:" -ForegroundColor Green
-Write-Host "   docker-compose up --build" -ForegroundColor White
+Write-Host "🚀 To start the application (new deployment structure):" -ForegroundColor Green
+Write-Host "   cd deployment\docker\development" -ForegroundColor White
+Write-Host "   docker-compose --env-file env.development up --build" -ForegroundColor White
+Write-Host ""
+Write-Host "🚀 Alternative (using deployment script):" -ForegroundColor Green
+Write-Host "   .\scripts\deploy.sh docker-dev --build" -ForegroundColor White
 Write-Host ""
 Write-Host "🛑 To stop the application:" -ForegroundColor Red
-Write-Host "   docker-compose down" -ForegroundColor White
+Write-Host "   cd deployment\docker\development" -ForegroundColor White
+Write-Host "   docker-compose --env-file env.development down" -ForegroundColor White
 Write-Host ""
 Write-Host "📝 Note: If your IP address changes, run this script again." -ForegroundColor Yellow
 Write-Host "💡 Tip: Use Windows Host IP for access from mobile devices and other computers." -ForegroundColor Cyan

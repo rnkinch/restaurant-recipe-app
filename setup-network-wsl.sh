@@ -2,9 +2,11 @@
 
 # Restaurant Recipe App - WSL Network Setup Script
 # This script helps configure the application for local network access from WSL
+# Updated for new deployment structure
 
 echo "🍽️  Restaurant Recipe App - WSL Network Setup"
 echo "============================================="
+echo "📁 Using new deployment structure"
 
 # Function to get the Windows host IP from WSL
 get_windows_ip() {
@@ -62,21 +64,36 @@ case $choice in
         ;;
 esac
 
-# Update docker-compose.yml with the selected IP
-echo "🔧 Updating docker-compose.yml with IP: $SELECTED_IP"
-sed -i.bak "s/192\.168\.68\.129/$SELECTED_IP/g" docker-compose.yml
+# Update deployment configuration files
+echo "🔧 Updating deployment configuration with IP: $SELECTED_IP"
 
-# Update backend CORS configuration
-echo "🔧 Updating backend CORS configuration with IP: $SELECTED_IP"
-sed -i.bak "s/192\.168\.68\.129:3000/$SELECTED_IP:3000/g" backend/server.js
+# Update development environment file
+DEV_ENV_FILE="deployment/docker/development/env.development"
+if [ -f "$DEV_ENV_FILE" ]; then
+    echo "🔧 Updating $DEV_ENV_FILE"
+    sed -i "s|REACT_APP_API_URL=.*|REACT_APP_API_URL=http://$SELECTED_IP:8080|g" "$DEV_ENV_FILE"
+    sed -i "s|FRONTEND_URL=.*|FRONTEND_URL=http://$SELECTED_IP:3000|g" "$DEV_ENV_FILE"
+    sed -i "s|ALLOWED_ORIGINS=.*|ALLOWED_ORIGINS=http://$SELECTED_IP:3000,http://127.0.0.1:3000,http://localhost:3000|g" "$DEV_ENV_FILE"
+else
+    echo "❌ Development environment file not found: $DEV_ENV_FILE"
+fi
 
-# Update frontend Dockerfile
-echo "🔧 Updating frontend Dockerfile with IP: $SELECTED_IP"
-sed -i.bak "s/192\.168\.68\.129/$SELECTED_IP/g" frontend/Dockerfile
+# Update development docker-compose.yml
+DEV_COMPOSE_FILE="deployment/docker/development/docker-compose.yml"
+if [ -f "$DEV_COMPOSE_FILE" ]; then
+    echo "🔧 Updating $DEV_COMPOSE_FILE"
+    sed -i "s|REACT_APP_API_URL=.*|REACT_APP_API_URL=http://$SELECTED_IP:8080|g" "$DEV_COMPOSE_FILE"
+    sed -i "s|- REACT_APP_API_URL=.*|- REACT_APP_API_URL=http://$SELECTED_IP:8080|g" "$DEV_COMPOSE_FILE"
+else
+    echo "❌ Development docker-compose file not found: $DEV_COMPOSE_FILE"
+fi
 
-# Update all frontend source files
-echo "🔧 Updating frontend source files with IP: $SELECTED_IP"
-find frontend/src -name "*.js" -exec sed -i.bak "s/192\.168\.68\.129/$SELECTED_IP/g" {} \;
+# Update legacy docker-compose.yml if it exists (for backward compatibility)
+if [ -f "docker-compose.yml" ]; then
+    echo "🔧 Updating legacy docker-compose.yml for backward compatibility"
+    sed -i "s/172\.30\.176\.1/$SELECTED_IP/g" docker-compose.yml
+    sed -i "s/192\.168\.68\.129/$SELECTED_IP/g" docker-compose.yml
+fi
 
 echo ""
 echo "✅ Configuration updated successfully!"
@@ -97,16 +114,20 @@ else
 fi
 echo ""
 echo "🔧 Files updated:"
-echo "   - docker-compose.yml"
-echo "   - backend/server.js (CORS configuration)"
-echo "   - frontend/Dockerfile"
-echo "   - frontend/src/*.js files"
+echo "   - deployment/docker/development/env.development"
+echo "   - deployment/docker/development/docker-compose.yml"
+echo "   - docker-compose.yml (legacy, for backward compatibility)"
 echo ""
-echo "🚀 To start the application:"
-echo "   docker-compose up --build"
+echo "🚀 To start the application (new deployment structure):"
+echo "   cd deployment/docker/development"
+echo "   docker-compose --env-file env.development up --build"
+echo ""
+echo "🚀 Alternative (using deployment script):"
+echo "   ./scripts/deploy.sh docker-dev --build"
 echo ""
 echo "🛑 To stop the application:"
-echo "   docker-compose down"
+echo "   cd deployment/docker/development"
+echo "   docker-compose --env-file env.development down"
 echo ""
 echo "📝 Note: If your IP address changes, run this script again."
 echo "💡 Tip: Use Windows Host IP for access from mobile devices and other computers."
