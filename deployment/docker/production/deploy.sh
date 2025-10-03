@@ -101,6 +101,10 @@ sed -i "s|https://yourdomain.com|https://$DOMAIN|g" env.production
 sed -i "s|CHANGE_THIS_TO_A_SECURE_RANDOM_STRING_IN_PRODUCTION|$JWT_SECRET|g" env.production
 sed -i "s|CHANGE_THIS_TO_A_SECURE_GRAFANA_PASSWORD|$GRAFANA_PASSWORD|g" env.production
 
+# Update docker-compose.yml with actual values
+sed -i "s|https://yourdomain.com/api|https://$DOMAIN/api|g" docker-compose.yml
+sed -i "s|GF_SECURITY_ADMIN_PASSWORD=admin123|GF_SECURITY_ADMIN_PASSWORD=$GRAFANA_PASSWORD|g" docker-compose.yml
+
 print_success "Environment configured"
 
 # Update nginx configuration
