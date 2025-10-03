@@ -1,5 +1,6 @@
 const winston = require('winston');
 const path = require('path');
+const fs = require('fs');
 
 // Create custom log format
 const logFormat = winston.format.combine(
@@ -7,6 +8,47 @@ const logFormat = winston.format.combine(
   winston.format.errors({ stack: true }),
   winston.format.json()
 );
+
+// Create transports array
+const transports = [
+  // Console transport (always available)
+  new winston.transports.Console({
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.simple()
+    )
+  })
+];
+
+// Try to add file transports if logs directory is writable
+try {
+  const logsDir = path.join(__dirname, '../logs');
+  
+  // Create logs directory if it doesn't exist
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+  }
+  
+  // Test write permissions
+  fs.accessSync(logsDir, fs.constants.W_OK);
+  
+  // Add file transports if we can write
+  transports.push(
+    new winston.transports.File({
+      filename: path.join(logsDir, 'error.log'),
+      level: 'error',
+      maxsize: 5242880, // 5MB
+      maxFiles: 5
+    }),
+    new winston.transports.File({
+      filename: path.join(logsDir, 'combined.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 5
+    })
+  );
+} catch (error) {
+  console.warn('Warning: Cannot create or write to logs directory. File logging disabled.');
+}
 
 // Create logger instance
 const logger = winston.createLogger({
@@ -16,30 +58,7 @@ const logger = winston.createLogger({
     service: 'recipe-app-backend',
     version: process.env.npm_package_version || '1.0.0'
   },
-  transports: [
-    // Console transport
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      )
-    }),
-    
-    // File transport for errors
-    new winston.transports.File({
-      filename: path.join(__dirname, '../logs/error.log'),
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5
-    }),
-    
-    // File transport for all logs
-    new winston.transports.File({
-      filename: path.join(__dirname, '../logs/combined.log'),
-      maxsize: 5242880, // 5MB
-      maxFiles: 5
-    })
-  ]
+  transports: transports
 });
 
 // Add request logging helper
