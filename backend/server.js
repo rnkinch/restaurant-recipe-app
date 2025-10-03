@@ -26,6 +26,10 @@ const { register } = require('./utils/metrics');
 const logger = require('./utils/logger');
 
 const app = express();
+
+// Trust proxy for rate limiting (required when behind nginx)
+app.set('trust proxy', true);
+
 // CORS configuration - environment aware
 const corsOptions = {
   origin: process.env.NODE_ENV === 'development' 
