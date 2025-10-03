@@ -89,7 +89,21 @@ apt update && apt upgrade -y
 apt install -y curl wget git unzip
 ```
 
-### 3.3 Create Non-Root User (Security Best Practice)
+### 3.3 Install Node.js (Required for JavaScript commands)
+```bash
+# Install Node.js 20.x (required for running JavaScript commands)
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Verify installation
+node --version
+npm --version
+
+# Install global packages that might be needed
+sudo npm install -g nodemon pm2
+```
+
+### 3.4 Create Non-Root User (Security Best Practice)
 ```bash
 # Create new user
 adduser deploy
@@ -155,34 +169,49 @@ echo "GRAFANA_PASSWORD: $GRAFANA_PASSWORD"
 # Save these for later use!
 ```
 
-### 5.3 Set Up SSL Certificate (Let's Encrypt)
+### 5.3 Set Up SSL Certificate
 
-#### Option A: With Domain Name
+**⚠️ IMPORTANT: SSL certificates are required for HTTPS. Choose one option:**
+
+#### Option A: With Domain Name (Recommended for Production)
 ```bash
 # Install Certbot
 sudo apt install -y certbot
 
-# Stop nginx temporarily (if running)
-sudo systemctl stop nginx
-
-# Get SSL certificate
+# Get SSL certificate (replace yourdomain.com with your actual domain)
 sudo certbot certonly --standalone -d yourdomain.com
 
-# Copy certificates to project directory
-sudo mkdir -p ssl
+# Create SSL directory and copy certificates
+mkdir -p ssl
 sudo cp /etc/letsencrypt/live/yourdomain.com/fullchain.pem ssl/cert.pem
 sudo cp /etc/letsencrypt/live/yourdomain.com/privkey.pem ssl/key.pem
 sudo chown $USER:$USER ssl/*
+
+# Set up automatic renewal
+sudo crontab -e
+# Add this line to renew certificates automatically:
+# 0 12 * * * /usr/bin/certbot renew --quiet
 ```
 
-#### Option B: Without Domain (Self-Signed)
+#### Option B: With IP Address (Self-Signed)
 ```bash
-# Create self-signed certificate (for testing only)
+# Create self-signed certificate for IP address
 mkdir -p ssl
+
+# Replace 167.71.247.15 with your actual droplet IP
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout ssl/key.pem \
   -out ssl/cert.pem \
-  -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
+  -subj "/C=US/ST=State/L=City/O=Organization/CN=167.71.247.15"
+
+# Note: Browsers will show security warnings with self-signed certificates
+# You can bypass these warnings by clicking "Advanced" → "Proceed"
+```
+
+#### Option C: Quick Test (HTTP Only - Not Recommended for Production)
+```bash
+# If you want to test without SSL first, you can temporarily use HTTP
+# This is only for initial testing - not secure for production use
 ```
 
 ### 5.4 Run Deployment Script
@@ -197,7 +226,39 @@ chmod +x deploy.sh
 # ./deploy.sh YOUR_DROPLET_IP "$JWT_SECRET" "$GRAFANA_PASSWORD"
 ```
 
-### 5.5 Verify Deployment
+### 5.5 Create Admin User
+
+**After the application is running, create an admin user:**
+
+```bash
+# Connect to MongoDB container
+docker exec -it production-mongo-container-1 mongosh
+
+# Switch to the recipe database
+use recipeDB
+
+# Create admin user (password is "password" - change this!)
+db.users.insertOne({
+  username: "admin",
+  email: "admin@example.com", 
+  password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
+  role: "admin",
+  isActive: true,
+  createdAt: new Date(),
+  updatedAt: new Date()
+})
+
+# Exit MongoDB
+exit
+```
+
+**Login credentials:**
+- Username: `admin`
+- Password: `password`
+
+**⚠️ IMPORTANT: Change the admin password immediately after first login!**
+
+### 5.6 Verify Deployment
 ```bash
 # Check if all containers are running
 docker-compose ps
