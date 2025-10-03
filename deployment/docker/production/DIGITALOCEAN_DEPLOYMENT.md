@@ -99,6 +99,16 @@ sudo apt-get install -y nodejs
 node --version
 npm --version
 
+# If npm is missing, install it separately:
+if ! command -v npm &> /dev/null; then
+    echo "npm not found, installing..."
+    sudo apt install -y npm
+fi
+
+# Verify both are working
+node --version
+npm --version
+
 # Install global packages that might be needed
 sudo npm install -g nodemon pm2
 
@@ -499,15 +509,22 @@ docker-compose restart backend-container
 
 #### 0.3 Sample Data Loading Issues
 **Problem**: Can't load sample data or "command not found" errors
-**Solution**: Ensure Node.js is installed and dependencies are available:
+**Solution**: Ensure Node.js and npm are installed and dependencies are available:
 ```bash
-# Check if Node.js is installed
+# Check if Node.js and npm are installed
 node --version
 npm --version
 
-# If not installed, install Node.js:
+# If Node.js is missing, install both:
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
+
+# If npm is missing but Node.js is installed:
+sudo apt install -y npm
+
+# Verify both are working
+node --version
+npm --version
 
 # Navigate to sample data directory and install dependencies
 cd /home/deploy/restaurant-recipe-app/frontend/src/sample_data
