@@ -26,36 +26,9 @@ const { register } = require('./utils/metrics');
 const logger = require('./utils/logger');
 
 const app = express();
-// Secure CORS configuration
-const allowedOrigins = [
-  // Development origins (only in development)
-  ...(process.env.NODE_ENV === 'development' ? [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://192.168.68.129:3000', // Your Windows host IP
-    'http://172.30.184.138:3000', // Your WSL local IP
-  ] : []),
-  // Production origins
-  process.env.FRONTEND_URL,
-  process.env.ALLOWED_ORIGINS?.split(',') || []
-].filter(Boolean); // Remove undefined values
-
-console.log('Allowed CORS origins:', allowedOrigins);
-
+// Simple CORS configuration for production
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    console.log('CORS check - origin:', origin, 'allowed:', allowedOrigins.indexOf(origin) !== -1);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn('CORS blocked request from origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Allow all origins in production
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma'],
   credentials: true, // Enable credentials for authentication
