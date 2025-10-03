@@ -228,6 +228,8 @@ chmod +x deploy.sh
 
 ### 5.5 Create Admin User
 
+**⚠️ CRITICAL: This step is required for login access!**
+
 **After the application is running, create an admin user:**
 
 ```bash
@@ -406,6 +408,76 @@ chmod +x alert.sh
 ## 🚨 Troubleshooting
 
 ### Common Issues:
+
+#### 0. Login Issues - "Invalid Credentials" or "Authentication Denied"
+**Problem**: Can't log in after deployment
+**Solution**: Create the admin user in the database:
+```bash
+# Connect to MongoDB container
+docker exec -it production-mongo-container-1 mongosh
+
+# Switch to the recipe database
+use recipeDB
+
+# Check if users exist
+db.users.find()
+
+# If no users exist, create admin user
+db.users.insertOne({
+  username: "admin",
+  email: "admin@example.com", 
+  password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
+  role: "admin",
+  isActive: true,
+  createdAt: new Date(),
+  updatedAt: new Date()
+})
+
+# Exit MongoDB
+exit
+```
+**Login with**: admin / password
+
+#### 0.1 CORS Errors
+**Problem**: "Access to XMLHttpRequest blocked by CORS policy"
+**Solution**: Ensure environment variables are set correctly:
+```bash
+# Check environment variables
+docker-compose exec backend-container env | grep -E "(FRONTEND_URL|ALLOWED_ORIGINS)"
+
+# Update env.production file with correct domain/IP
+nano env.production
+# Set: FRONTEND_URL=https://yourdomain.com
+# Set: ALLOWED_ORIGINS=https://yourdomain.com
+
+# Rebuild and restart
+docker-compose build --no-cache backend-container
+docker-compose restart backend-container
+```
+
+#### 0.2 Rate Limiting Errors
+**Problem**: "ERR_ERL_UNEXPECTED_X_FORWARDED_FOR" or similar rate limiting errors
+**Solution**: This is usually resolved by the trust proxy setting in server.js (already included in the codebase).
+
+#### 0.3 Docker Cleanup
+**Safe cleanup commands** (won't affect MongoDB data):
+```bash
+# Remove unused images and build cache
+docker image prune -a
+docker builder prune
+
+# Check what's taking up space
+docker system df
+```
+
+**Commands to AVOID** (could remove MongoDB data):
+```bash
+# DON'T run these:
+docker system prune -a --volumes
+docker volume prune
+```
+
+### Other Common Issues:
 
 #### 1. SSL Certificate Issues
 ```bash
