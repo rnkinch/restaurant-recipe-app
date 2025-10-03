@@ -111,6 +111,8 @@ services:
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
       - GF_SECURITY_DISABLE_GRAVATAR=true
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=https://167.71.247.15/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
     volumes:
       - grafana-data:/var/lib/grafana
       - ../../../monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
