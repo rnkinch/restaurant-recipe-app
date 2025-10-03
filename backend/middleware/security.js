@@ -14,17 +14,17 @@ const createRateLimit = (windowMs, max, message) => {
   });
 };
 
-// General API rate limiting
+// General API rate limiting - relaxed for development
 const generalLimiter = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  100, // limit each IP to 100 requests per windowMs
+  process.env.NODE_ENV === 'development' ? 1000 : 100, // 1000 requests in dev, 100 in production
   'Too many requests from this IP, please try again later.'
 );
 
-// Strict rate limiting for auth endpoints
+// Strict rate limiting for auth endpoints - relaxed for development
 const authLimiter = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  5, // limit each IP to 5 requests per windowMs
+  process.env.NODE_ENV === 'development' ? 50 : 5, // 50 requests in dev, 5 in production
   'Too many authentication attempts, please try again later.'
 );
 
@@ -139,21 +139,21 @@ const securityLogger = (req, res, next) => {
   
   res.on('finish', () => {
     const duration = Date.now() - start;
-    const logData = {
-      timestamp: new Date().toISOString(),
-      method: req.method,
-      url: req.url,
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      statusCode: res.statusCode,
-      duration: duration + 'ms'
-    };
+    const logger = require('../utils/logger');
     
-    // Log suspicious activities
+    // Use structured logging
+    logger.request(req, res, duration);
+    
+    // Log security events for suspicious activities
     if (res.statusCode >= 400) {
-      console.warn('Security Alert:', JSON.stringify(logData));
-    } else {
-      console.log('Request:', JSON.stringify(logData));
+      logger.security('HTTP_ERROR', {
+        method: req.method,
+        url: req.url,
+        statusCode: res.statusCode,
+        duration: `${duration}ms`,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      });
     }
   });
   

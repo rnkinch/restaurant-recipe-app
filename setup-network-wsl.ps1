@@ -9,15 +9,38 @@ Write-Host "📁 Using new deployment structure" -ForegroundColor Cyan
 # Function to get the Windows host IP
 function Get-WindowsIP {
     try {
-        $networkAdapters = Get-NetAdapter | Where-Object {$_.Status -eq "Up" -and $_.Name -notlike "*Loopback*"}
-        foreach ($adapter in $networkAdapters) {
-            $ipConfig = Get-NetIPAddress -InterfaceIndex $adapter.InterfaceIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue
-            if ($ipConfig -and $ipConfig.IPAddress -like "192.168.*" -or $ipConfig.IPAddress -like "10.*" -or $ipConfig.IPAddress -like "172.*") {
-                return $ipConfig.IPAddress
-            }
+        # Method 1: Get network adapter IP (excluding WSL, Loopback, and Virtual adapters)
+        $networkIPs = Get-NetIPAddress -AddressFamily IPv4 | Where-Object {
+            $_.InterfaceAlias -notlike "*Loopback*" -and 
+            $_.InterfaceAlias -notlike "*WSL*" -and 
+            $_.InterfaceAlias -notlike "*vEthernet*" -and
+            $_.InterfaceAlias -notlike "*Hyper-V*"
+        } | Where-Object {
+            $_.IPAddress -like "192.168.*" -or 
+            $_.IPAddress -like "10.*" -or 
+            ($_.IPAddress -like "172.*" -and $_.IPAddress -notlike "172.30.*")
+        } | Select-Object -First 1
+        
+        if ($networkIPs) {
+            Write-Host "🌐 Detected network IP: $($networkIPs.IPAddress) on $($networkIPs.InterfaceAlias)" -ForegroundColor Green
+            return $networkIPs.IPAddress
         }
+        
+        # Method 2: Fallback to ipconfig parsing
+        $ipConfigOutput = ipconfig | Select-String -Pattern "IPv4.*: (\d+\.\d+\.\d+\.\d+)" | Where-Object {
+            $_.Line -notlike "*127.0.0.1*" -and $_.Line -notlike "*172.30.*"
+        } | Select-Object -First 1
+        
+        if ($ipConfigOutput) {
+            $ip = $ipConfigOutput.Matches[0].Groups[1].Value
+            Write-Host "🌐 Detected network IP via ipconfig: $ip" -ForegroundColor Yellow
+            return $ip
+        }
+        
+        Write-Host "❌ Could not determine Windows network IP automatically" -ForegroundColor Red
+        return $null
     } catch {
-        Write-Host "❌ Could not determine Windows IP automatically" -ForegroundColor Red
+        Write-Host "❌ Error detecting Windows IP: $($_.Exception.Message)" -ForegroundColor Red
         return $null
     }
 }

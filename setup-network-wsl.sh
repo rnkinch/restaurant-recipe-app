@@ -10,14 +10,35 @@ echo "📁 Using new deployment structure"
 
 # Function to get the Windows host IP from WSL
 get_windows_ip() {
-    # Get the Windows host IP from WSL
-    if command -v ip >/dev/null 2>&1; then
-        # Get the default gateway which is usually the Windows host
-        ip route | grep default | awk '{print $3}' | head -1
-    else
-        echo "Could not determine Windows host IP automatically"
-        return 1
+    # Try multiple methods to get the actual Windows network IP
+    if command -v powershell.exe >/dev/null 2>&1; then
+        # Method 1: Use PowerShell to get the actual network adapter IP
+        local windows_ip=$(powershell.exe -Command "Get-NetIPAddress -AddressFamily IPv4 | Where-Object {\$_.InterfaceAlias -notlike '*Loopback*' -and \$_.InterfaceAlias -notlike '*WSL*' -and \$_.InterfaceAlias -notlike '*vEthernet*'} | Where-Object {\$_.IPAddress -like '192.168.*' -or \$_.IPAddress -like '10.*' -or (\$_.IPAddress -like '172.*' -and \$_.IPAddress -notlike '172.30.*')} | Select-Object -First 1 -ExpandProperty IPAddress" 2>/dev/null | tr -d '\r')
+        if [[ -n "$windows_ip" && "$windows_ip" != "" ]]; then
+            echo "$windows_ip"
+            return 0
+        fi
     fi
+    
+    # Method 2: Use cmd.exe with ipconfig (fallback)
+    if command -v cmd.exe >/dev/null 2>&1; then
+        local windows_ip=$(cmd.exe /c "ipconfig" 2>/dev/null | grep -A 1 "Ethernet\|Wi-Fi" | grep "IPv4" | head -1 | sed 's/.*: //' | tr -d '\r\n' | sed 's/[[:space:]]*$//')
+        if [[ -n "$windows_ip" && "$windows_ip" != "" ]]; then
+            echo "$windows_ip"
+            return 0
+        fi
+    fi
+    
+    # Method 3: WSL gateway as last resort (original method)
+    if command -v ip >/dev/null 2>&1; then
+        local gateway_ip=$(ip route | grep default | awk '{print $3}' | head -1)
+        echo "Warning: Using WSL gateway IP. This may not work for external devices." >&2
+        echo "$gateway_ip"
+        return 0
+    fi
+    
+    echo "Could not determine Windows host IP automatically"
+    return 1
 }
 
 # Function to get the WSL IP

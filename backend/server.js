@@ -21,6 +21,9 @@ const {
 const { authenticateToken, requireAdmin, requireUser, requireEditPermission, requireReadOnly } = require('./middleware/auth');
 const { validateRecipe, validateIngredient, validatePurveyor, sanitizeInputs } = require('./middleware/validation');
 const { logRecipeChange, captureChanges, logRecipeUpdate, logUpdateResult } = require('./middleware/changelog');
+const { metricsMiddleware } = require('./middleware/metrics');
+const { register } = require('./utils/metrics');
+const logger = require('./utils/logger');
 
 const app = express();
 // Secure CORS configuration
@@ -79,6 +82,9 @@ app.use(securityLogger);
 app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
 app.use(noSqlInjectionProtection);
 app.use(generalLimiter);
+
+// Apply metrics middleware to all routes
+app.use(metricsMiddleware);
 
 // No additional error handler needed - express.static handles this
 
@@ -159,8 +165,8 @@ mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch(err => console.error('MongoDB connection error:', err));
+  .then(() => logger.info('MongoDB connected successfully'))
+  .catch(err => logger.error('MongoDB connection error:', err));
 
 const purveyorSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true, trim: true }
@@ -263,6 +269,10 @@ app.post('/auth/login', authLimiter, async (req, res) => {
       { expiresIn: '24h' }
     );
     
+    // Record successful authentication
+    const { recordAuthenticationAttempt } = require('./utils/metrics');
+    recordAuthenticationAttempt(true);
+    
     res.json({ 
       token, 
       user: { 
@@ -273,7 +283,11 @@ app.post('/auth/login', authLimiter, async (req, res) => {
       } 
     });
   } catch (err) {
-    console.error('Login error:', err.message);
+    // Record failed authentication
+    const { recordAuthenticationAttempt } = require('./utils/metrics');
+    recordAuthenticationAttempt(false);
+    
+    logger.error('Login error:', err.message);
     res.status(500).json({ error: 'Login failed' });
   }
 });
@@ -324,6 +338,25 @@ app.post('/config/logo', uploadLimiter, authenticateToken, requireAdmin, upload.
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Backend is running', timestamp: new Date().toISOString() });
 });
+
+// Development endpoint to reset rate limits (only in development)
+if (process.env.NODE_ENV === 'development') {
+  app.post('/dev/reset-rate-limits', (req, res) => {
+    // Clear rate limit stores
+    generalLimiter.resetKey(req.ip);
+    authLimiter.resetKey(req.ip);
+    uploadLimiter.resetKey(req.ip);
+    res.json({ message: 'Rate limits reset for IP: ' + req.ip });
+  });
+}
+
+// Metrics endpoint for Prometheus
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
+
+// Apply metrics middleware to all routes (moved to top)
 
 // Test endpoint to check if uploads directory and files exist
 app.get('/test-uploads', (req, res) => {
