@@ -70,6 +70,7 @@ const RecipeFormModal = ({
             value={ingredientSearch}
             onChange={(e) => setIngredientSearch(e.target.value)}
             onFocus={() => setIngredientSearch('')}
+            className="editable-field"
           />
           {ingredientSearch && (
             <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #ccc', background: '#fff', zIndex: 1000, marginTop: '5px' }}>
@@ -116,11 +117,13 @@ const RecipeFormModal = ({
                 onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })}
                 placeholder="Enter ingredient name"
                 ref={nameInputRef}
+                className="editable-field"
               />
               <Form.Label className="mt-2">Purveyor</Form.Label>
               <Form.Select
                 value={newIngredient.purveyor}
                 onChange={(e) => setNewIngredient({ ...newIngredient, purveyor: e.target.value })}
+                className="editable-field"
               >
                 <option value="">Select Purveyor</option>
                 {purveyors.map(purveyor => (
