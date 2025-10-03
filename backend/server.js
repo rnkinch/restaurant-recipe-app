@@ -27,21 +27,37 @@ const logger = require('./utils/logger');
 
 const app = express();
 
-// Trust proxy for rate limiting (required when behind nginx)
-app.set('trust proxy', true);
+// Secure CORS configuration
+const allowedOrigins = [
+  // Development origins (only in development)
+  ...(process.env.NODE_ENV === 'development' ? [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://192.168.68.129:3000', // Your Windows host IP
+    'http://172.30.184.138:3000', // Your WSL local IP
+  ] : []),
+  // Production origins
+  process.env.FRONTEND_URL,
+  process.env.ALLOWED_ORIGINS?.split(',') || []
+].filter(Boolean); // Remove undefined values
 
-// CORS configuration - environment aware
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'development' 
-    ? true // Allow all origins in development
-    : process.env.FRONTEND_URL || true, // Use configured URL in production, fallback to all
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn('CORS blocked request from origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma'],
-  credentials: true,
+  credentials: true, // Enable credentials for authentication
   optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
+}));
 
 // Serve static files FIRST - before ANY other middleware
 app.use(express.static(path.join(__dirname, 'public')));
