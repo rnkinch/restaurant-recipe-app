@@ -87,6 +87,7 @@ services:
       - "9090:9090"
     volumes:
       - ../../../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../../monitoring/prometheus-web.yml:/etc/prometheus/web.yml:ro
       - prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -96,6 +97,7 @@ services:
       - '--web.enable-lifecycle'
       - '--web.enable-admin-api'
       - '--storage.tsdb.retention.time=30d'
+      - '--web.config.file=/etc/prometheus/web.yml'
     networks:
       - recipe-app-network
     depends_on:
@@ -111,11 +113,6 @@ services:
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
       - GF_SECURITY_DISABLE_GRAVATAR=true
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=https://167.71.247.15/grafana/
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
-      - GF_SERVER_DOMAIN=167.71.247.15
-      - GF_RENDERING_SERVER_URL=http://grafana:3001/render
-      - GF_RENDERING_CALLBACK_URL=https://167.71.247.15/grafana/render
     volumes:
       - grafana-data:/var/lib/grafana
       - ../../../monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
