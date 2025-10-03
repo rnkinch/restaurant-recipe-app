@@ -320,10 +320,6 @@ const RecipeForm = ({ refreshRecipes }) => {
     margin: '12.7mm'
   };
 
-  const editableFieldStyle = {
-    backgroundColor: '#fffacd', // Light yellow background
-    border: '1px solid #ddd'
-  };
 
   return (
     <Container className="py-3">
@@ -346,8 +342,7 @@ const RecipeForm = ({ refreshRecipes }) => {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="mb-2"
-                  style={editableFieldStyle}
+                  className="mb-2 editable-field"
                 />
               </div>
               <div className="ms-3">
@@ -371,7 +366,6 @@ const RecipeForm = ({ refreshRecipes }) => {
                 showAddIngredientModal={showAddIngredientModal}
                 setShowAddIngredientModal={setShowAddIngredientModal}
                 validationErrors={validationErrors}
-                editableFieldStyle={editableFieldStyle}
               />
             </Form.Group>
             <hr style={hrStyle} />
@@ -384,7 +378,7 @@ const RecipeForm = ({ refreshRecipes }) => {
                 value={formData.steps}
                 onChange={handleInputChange}
                 required
-                style={editableFieldStyle}
+                className="editable-field"
               />
             </Form.Group>
             <hr style={hrStyle} />
@@ -397,7 +391,7 @@ const RecipeForm = ({ refreshRecipes }) => {
                 value={formData.platingGuide}
                 onChange={handleInputChange}
                 required
-                style={editableFieldStyle}
+                className="editable-field"
               />
             </Form.Group>
             <hr style={hrStyle} />
@@ -435,7 +429,6 @@ const RecipeForm = ({ refreshRecipes }) => {
               validationErrors={validationErrors}
               headerStyle={headerStyle}
               hrStyle={hrStyle}
-              editableFieldStyle={editableFieldStyle}
             />
           </Col>
         </Row>
