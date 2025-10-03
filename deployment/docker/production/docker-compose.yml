@@ -113,6 +113,9 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SERVER_ROOT_URL=https://167.71.247.15/grafana/
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SERVER_DOMAIN=167.71.247.15
+      - GF_SERVER_CERT_FILE=/etc/nginx/ssl/cert.pem
+      - GF_SERVER_CERT_KEY=/etc/nginx/ssl/key.pem
     volumes:
       - grafana-data:/var/lib/grafana
       - ../../../monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
