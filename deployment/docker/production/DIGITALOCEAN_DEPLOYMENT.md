@@ -286,6 +286,9 @@ cd /home/deploy/restaurant-recipe-app/frontend/src/sample_data
 # Install dependencies for the sample data scripts
 npm install
 
+# Install dotenv if missing (required for environment variables)
+npm install dotenv
+
 # Load sample ingredients
 node loadIngredients.js
 
@@ -530,11 +533,18 @@ npm --version
 cd /home/deploy/restaurant-recipe-app/frontend/src/sample_data
 npm install
 
+# Install dotenv if missing (required for environment variables)
+npm install dotenv
+
 # Then load the data
 node loadIngredients.js
 node loadPurveyors.js
 node loadRecipes.js
 ```
+
+**Common dotenv errors:**
+- `Cannot find module 'dotenv'` - Install with: `npm install dotenv`
+- `Error: Cannot find module 'dotenv/config'` - Install with: `npm install dotenv`
 
 #### 0.4 Docker Cleanup
 **Safe cleanup commands** (won't affect MongoDB data):
