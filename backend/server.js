@@ -342,11 +342,22 @@ app.get('/health', (req, res) => {
 // Development endpoint to reset rate limits (only in development)
 if (process.env.NODE_ENV === 'development') {
   app.post('/dev/reset-rate-limits', (req, res) => {
-    // Clear rate limit stores
-    generalLimiter.resetKey(req.ip);
-    authLimiter.resetKey(req.ip);
-    uploadLimiter.resetKey(req.ip);
-    res.json({ message: 'Rate limits reset for IP: ' + req.ip });
+    try {
+      // Clear rate limit stores
+      generalLimiter.resetKey(req.ip);
+      authLimiter.resetKey(req.ip);
+      uploadLimiter.resetKey(req.ip);
+      res.json({ 
+        message: 'Rate limits reset for IP: ' + req.ip,
+        limits: {
+          general: '1000 requests per 15 minutes',
+          auth: '50 requests per 15 minutes', 
+          uploads: '100 uploads per 15 minutes'
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to reset rate limits: ' + error.message });
+    }
   });
 }
 

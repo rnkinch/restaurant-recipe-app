@@ -28,10 +28,10 @@ const authLimiter = createRateLimit(
   'Too many authentication attempts, please try again later.'
 );
 
-// File upload rate limiting
+// File upload rate limiting - relaxed for development
 const uploadLimiter = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  10, // limit each IP to 10 uploads per windowMs
+  process.env.NODE_ENV === 'development' ? 100 : 10, // 100 uploads in dev, 10 in production
   'Too many file uploads, please try again later.'
 );
 
