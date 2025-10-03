@@ -289,13 +289,13 @@ npm install
 # Install dotenv if missing (required for environment variables)
 npm install dotenv
 
-# Load sample ingredients
-node loadIngredients.js
-
-# Load sample purveyors
+# Load sample purveyors first (recipes depend on purveyors)
 node loadPurveyors.js
 
-# Load sample recipes
+# Load sample ingredients second (recipes depend on ingredients)
+node loadIngredients.js
+
+# Load sample recipes last (depends on purveyors and ingredients)
 node loadRecipes.js
 
 # Verify data was loaded
@@ -536,9 +536,9 @@ npm install
 # Install dotenv if missing (required for environment variables)
 npm install dotenv
 
-# Then load the data
-node loadIngredients.js
+# Then load the data (order matters - dependencies first)
 node loadPurveyors.js
+node loadIngredients.js
 node loadRecipes.js
 ```
 
