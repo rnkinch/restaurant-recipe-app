@@ -320,6 +320,11 @@ const RecipeForm = ({ refreshRecipes }) => {
     margin: '12.7mm'
   };
 
+  const editableFieldStyle = {
+    backgroundColor: '#fffacd', // Light yellow background
+    border: '1px solid #ddd'
+  };
+
   return (
     <Container className="py-3">
       <h1>{id ? (window.location.pathname.includes('/copy') ? 'Copy Recipe' : 'Edit Recipe') : 'Add Recipe'}</h1>
@@ -342,6 +347,7 @@ const RecipeForm = ({ refreshRecipes }) => {
                   onChange={handleInputChange}
                   required
                   className="mb-2"
+                  style={editableFieldStyle}
                 />
               </div>
               <div className="ms-3">
@@ -365,6 +371,7 @@ const RecipeForm = ({ refreshRecipes }) => {
                 showAddIngredientModal={showAddIngredientModal}
                 setShowAddIngredientModal={setShowAddIngredientModal}
                 validationErrors={validationErrors}
+                editableFieldStyle={editableFieldStyle}
               />
             </Form.Group>
             <hr style={hrStyle} />
@@ -377,6 +384,7 @@ const RecipeForm = ({ refreshRecipes }) => {
                 value={formData.steps}
                 onChange={handleInputChange}
                 required
+                style={editableFieldStyle}
               />
             </Form.Group>
             <hr style={hrStyle} />
@@ -389,6 +397,7 @@ const RecipeForm = ({ refreshRecipes }) => {
                 value={formData.platingGuide}
                 onChange={handleInputChange}
                 required
+                style={editableFieldStyle}
               />
             </Form.Group>
             <hr style={hrStyle} />
@@ -426,6 +435,7 @@ const RecipeForm = ({ refreshRecipes }) => {
               validationErrors={validationErrors}
               headerStyle={headerStyle}
               hrStyle={hrStyle}
+              editableFieldStyle={editableFieldStyle}
             />
           </Col>
         </Row>

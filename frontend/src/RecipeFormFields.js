@@ -16,7 +16,8 @@ const RecipeFormFields = ({
   headerStyle,
   hrStyle,
   isRightColumn = false,
-  validationErrors = {}
+  validationErrors = {},
+  editableFieldStyle = {}
 }) => {
   const allergensOptions = ['Gluten', 'Dairy', 'Nuts', 'Shellfish', 'Eggs', 'Soy', 'Fish'];
   const serviceTypesOptions = ['Brunch', 'Bar', 'Catering', 'Lunch', 'Dinner', 'Special'];
@@ -56,6 +57,7 @@ const RecipeFormFields = ({
               onChange={handleInputChange}
               isInvalid={!!validationErrors.steps}
               required
+              style={editableFieldStyle}
             />
             {validationErrors.steps && (
               <Form.Control.Feedback type="invalid">
@@ -74,6 +76,7 @@ const RecipeFormFields = ({
               onChange={handleInputChange}
               isInvalid={!!validationErrors.platingGuide}
               required
+              style={editableFieldStyle}
             />
             {validationErrors.platingGuide && (
               <Form.Control.Feedback type="invalid">

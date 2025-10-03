@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
 import { validateField, VALIDATION_RULES } from './utils/validation';
 
-const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeIngredient, showAddIngredientModal, setShowAddIngredientModal, validationErrors = {} }) => {
+const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeIngredient, showAddIngredientModal, setShowAddIngredientModal, validationErrors = {}, editableFieldStyle = {} }) => {
   const measures = ['tsp', 'tbsp', 'cup', 'cups', 'oz', 'fl oz', 'lb', 'lbs', 'g', 'kg', 'ml', 'l', 'pinch', 'dash', 'each', 'slice', 'slices', 'whole', 'pieces', 'cloves', 'bunches', 'heads', 'cans', 'jars', 'packages'];
   const [localValidationErrors, setLocalValidationErrors] = useState(
     formData.ingredients.map(() => ({ quantity: '', measure: '' }))
@@ -79,7 +79,7 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
                   value={ing.quantity || ''}
                   onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
                   isInvalid={!!(localValidationErrors[index]?.quantity || validationErrors.ingredients?.[index]?.quantity)}
-                  style={{ height: '34px', fontSize: '14px' }}
+                  style={{ height: '34px', fontSize: '14px', ...editableFieldStyle }}
                 />
                 {(localValidationErrors[index]?.quantity || validationErrors.ingredients?.[index]?.quantity) && (
                   <Form.Control.Feedback type="invalid" style={{ fontSize: '10px' }}>
@@ -93,7 +93,7 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
                   value={ing.measure || ''}
                   onChange={(e) => handleIngredientChange(index, 'measure', e.target.value)}
                   isInvalid={!!(localValidationErrors[index]?.measure || validationErrors.ingredients?.[index]?.measure)}
-                  style={{ height: '34px', fontSize: '14px' }}
+                  style={{ height: '34px', fontSize: '14px', ...editableFieldStyle }}
                 >
                   <option value="">Select Measure</option>
                   {measures.map(measure => (
