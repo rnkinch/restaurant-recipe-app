@@ -89,9 +89,9 @@ apt update && apt upgrade -y
 apt install -y curl wget git unzip
 ```
 
-### 3.3 Install Node.js (Required for JavaScript commands)
+### 3.3 Install Node.js (Required for loading test data)
 ```bash
-# Install Node.js 20.x (required for running JavaScript commands)
+# Install Node.js 20.x (required for running JavaScript commands and loading test data)
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
@@ -101,6 +101,11 @@ npm --version
 
 # Install global packages that might be needed
 sudo npm install -g nodemon pm2
+
+# Note: Node.js is required for:
+# - Loading sample data into the database
+# - Running JavaScript scripts for database management
+# - Development and maintenance tasks
 ```
 
 ### 3.4 Create Non-Root User (Security Best Practice)
@@ -260,7 +265,40 @@ exit
 
 **⚠️ IMPORTANT: Change the admin password immediately after first login!**
 
-### 5.6 Verify Deployment
+### 5.6 Load Sample Data (Optional)
+
+**To load sample recipes, ingredients, and purveyors for testing:**
+
+```bash
+# Navigate to the frontend sample data directory
+cd /home/deploy/restaurant-recipe-app/frontend/src/sample_data
+
+# Install dependencies for the sample data scripts
+npm install
+
+# Load sample ingredients
+node loadIngredients.js
+
+# Load sample purveyors
+node loadPurveyors.js
+
+# Load sample recipes
+node loadRecipes.js
+
+# Verify data was loaded
+docker exec -it production-mongo-container-1 mongosh
+```
+
+Then in MongoDB:
+```javascript
+use recipeDB
+db.ingredients.countDocuments()  // Should show > 0
+db.purveyors.countDocuments()    // Should show > 0
+db.recipes.countDocuments()      // Should show > 0
+exit
+```
+
+### 5.7 Verify Deployment
 ```bash
 # Check if all containers are running
 docker-compose ps
@@ -459,7 +497,29 @@ docker-compose restart backend-container
 **Problem**: "ERR_ERL_UNEXPECTED_X_FORWARDED_FOR" or similar rate limiting errors
 **Solution**: This is usually resolved by the trust proxy setting in server.js (already included in the codebase).
 
-#### 0.3 Docker Cleanup
+#### 0.3 Sample Data Loading Issues
+**Problem**: Can't load sample data or "command not found" errors
+**Solution**: Ensure Node.js is installed and dependencies are available:
+```bash
+# Check if Node.js is installed
+node --version
+npm --version
+
+# If not installed, install Node.js:
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Navigate to sample data directory and install dependencies
+cd /home/deploy/restaurant-recipe-app/frontend/src/sample_data
+npm install
+
+# Then load the data
+node loadIngredients.js
+node loadPurveyors.js
+node loadRecipes.js
+```
+
+#### 0.4 Docker Cleanup
 **Safe cleanup commands** (won't affect MongoDB data):
 ```bash
 # Remove unused images and build cache
