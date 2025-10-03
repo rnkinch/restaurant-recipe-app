@@ -26,14 +26,18 @@ const { register } = require('./utils/metrics');
 const logger = require('./utils/logger');
 
 const app = express();
-// Simple CORS configuration for production
-app.use(cors({
-  origin: true, // Allow all origins in production
+// CORS configuration - environment aware
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'development' 
+    ? true // Allow all origins in development
+    : process.env.FRONTEND_URL || true, // Use configured URL in production, fallback to all
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma'],
-  credentials: true, // Enable credentials for authentication
+  credentials: true,
   optionsSuccessStatus: 200
-}));
+};
+
+app.use(cors(corsOptions));
 
 // Serve static files FIRST - before ANY other middleware
 app.use(express.static(path.join(__dirname, 'public')));
