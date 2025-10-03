@@ -7,7 +7,7 @@ WORKDIR /app
 COPY backend/package*.json ./
 
 # Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --production && npm cache clean --force
 
 # Production stage
 FROM node:20-alpine
