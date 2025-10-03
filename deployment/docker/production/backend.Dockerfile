@@ -4,7 +4,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY backend/package*.json ./
 
 # Install only production dependencies
 RUN npm ci --only=production && npm cache clean --force
@@ -25,7 +25,7 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY --from=builder /app/node_modules ./node_modules
 
 # Copy source code
-COPY --chown=nodejs:nodejs . .
+COPY --chown=nodejs:nodejs backend/ .
 
 # Create uploads directory
 RUN mkdir -p uploads && chown -R nodejs:nodejs uploads

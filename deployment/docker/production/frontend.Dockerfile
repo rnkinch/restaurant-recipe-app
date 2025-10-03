@@ -5,13 +5,13 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY frontend/package*.json ./
 
 # Install dependencies
 RUN npm ci --only=production && npm cache clean --force
 
 # Copy source code
-COPY . .
+COPY frontend/ .
 
 # Build argument for API URL
 ARG REACT_APP_API_URL
