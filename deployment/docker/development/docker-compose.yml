@@ -112,10 +112,6 @@ networks:
 
 volumes:
   mongo-data:
-    external: true
-    name: restaurant-recipe-app_mongo-data
   uploads:
-    external: true
-    name: restaurant-recipe-app_uploads
   prometheus-data:
   grafana-data:
