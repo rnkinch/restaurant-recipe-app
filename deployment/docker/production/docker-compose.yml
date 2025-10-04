@@ -24,6 +24,8 @@ services:
   mongo-container:
     image: mongo:latest
     restart: unless-stopped
+    ports:
+      - "27017:27017"
     volumes:
       - mongo-data:/data/db
     healthcheck:
