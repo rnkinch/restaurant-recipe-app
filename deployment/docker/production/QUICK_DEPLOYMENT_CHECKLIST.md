@@ -105,7 +105,7 @@ sudo ufw enable
 
 ```bash
 # Connect to MongoDB
-docker exec -it production_mongo-container_1 mongosh
+docker exec -it production-mongo-container-1 mongosh
 
 # In MongoDB shell:
 use recipeDB

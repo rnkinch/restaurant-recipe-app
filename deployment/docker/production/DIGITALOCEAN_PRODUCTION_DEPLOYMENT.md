@@ -250,21 +250,46 @@ sudo ufw status
 
 ```bash
 # Connect to MongoDB container
-docker exec -it production_mongo-container_1 mongosh
+docker exec -it production-mongo-container-1 mongosh
 
 # In MongoDB shell:
 use recipeDB
 
-# Create admin user (password is "password" - change this!)
+# First, check if users already exist
+db.users.find()
+
+# If you get a duplicate key error, check for existing admin user:
+db.users.find({username: "admin"})
+db.users.find({email: "admin@example.com"})
+
+# If admin user exists, you can either:
+# 1. Update the existing user:
+db.users.updateOne(
+  {username: "admin"}, 
+  {$set: {
+    password: "$2b$10$yNootB9Bn3Gu78z9C7t13Oi.5tv55UCciJyO9xOUIsuefM29bXCD6",
+    role: "admin",
+    isActive: true,
+    updatedAt: new Date()
+  }}
+)
+
+# 2. Or create a different admin user:
 db.users.insertOne({
-  username: "admin",
-  email: "admin@example.com", 
-  password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
+  username: "admin2",
+  email: "admin2@example.com", 
+  password: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
   role: "admin",
   isActive: true,
   createdAt: new Date(),
   updatedAt: new Date()
 })
+
+# 3. Or delete existing user and recreate (if needed):
+# db.users.deleteOne({username: "admin"})
+
+# Verify users after creation/update:
+db.users.find()
 
 # Exit MongoDB
 exit
@@ -295,7 +320,7 @@ node loadIngredients.js
 node loadRecipes.js
 
 # Verify data was loaded
-docker exec -it production_mongo-container_1 mongosh
+docker exec -it production-mongo-container-1 mongosh
 ```
 
 In MongoDB shell:
@@ -421,9 +446,35 @@ docker-compose logs -f
 **Problem**: "Invalid credentials" error
 **Solution**: Ensure admin user was created in MongoDB:
 ```bash
-docker exec -it production_mongo-container_1 mongosh
+docker exec -it production-mongo-container-1 mongosh
 use recipeDB
 db.users.find()
+```
+
+#### 2.1 Duplicate Key Error When Creating User
+**Problem**: "duplicate key error collection: recipeDB.users"
+**Solution**: Check for existing users and handle appropriately:
+```bash
+# Connect to MongoDB
+docker exec -it production-mongo-container-1 mongosh
+use recipeDB
+
+# Check existing users
+db.users.find()
+
+# Check for specific admin user
+db.users.find({username: "admin"})
+
+# Update existing user instead of creating new one:
+db.users.updateOne(
+  {username: "admin"}, 
+  {$set: {
+    password: "$2b$10$yNootB9Bn3Gu78z9C7t13Oi.5tv55UCciJyO9xOUIsuefM29bXCD6",
+    role: "admin",
+    isActive: true,
+    updatedAt: new Date()
+  }}
+)
 ```
 
 #### 3. CORS Errors
