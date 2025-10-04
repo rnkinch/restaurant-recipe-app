@@ -118,5 +118,7 @@ networks:
 volumes:
   mongo-data:
   uploads:
+    external: true
+    name: dev-uploads
   prometheus-data:
   grafana-data:
