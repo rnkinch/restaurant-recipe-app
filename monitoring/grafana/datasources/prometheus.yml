@@ -9,4 +9,5 @@ datasources:
     editable: true
     basicAuth: true
     basicAuthUser: admin
-    basicAuthPassword: password
+    secureJsonData:
+      basicAuthPassword: password
