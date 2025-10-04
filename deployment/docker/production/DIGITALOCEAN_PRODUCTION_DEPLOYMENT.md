@@ -276,9 +276,9 @@ db.users.updateOne(
 
 # 2. Or create a different admin user:
 db.users.insertOne({
-  username: "admin2",
+  username: "admin",
   email: "admin2@example.com", 
-  password: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+  password: "$2b$10$yNootB9Bn3Gu78z9C7t13Oi.5tv55UCciJyO9xOUIsuefM29bXCD6",
   role: "admin",
   isActive: true,
   createdAt: new Date(),
