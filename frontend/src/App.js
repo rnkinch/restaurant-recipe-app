@@ -21,6 +21,7 @@ import { getRecipes, getConfig, isAuthenticated, getCurrentUser, logout } from '
 import { NotificationProvider } from './NotificationContext';
 import { RoleProvider } from './RoleContext';
 import Navigation from './Navigation';
+import EnvironmentBanner from './EnvironmentBanner';
 
 // Component that can use useNavigate hook
 function AppContent() {
@@ -133,6 +134,7 @@ function AppContent() {
     return (
       <NotificationProvider>
         <Login onLogin={handleLogin} />
+        <EnvironmentBanner />
       </NotificationProvider>
     );
   }
@@ -196,6 +198,7 @@ function AppContent() {
             </Col>
           </Row>
         </Container>
+        <EnvironmentBanner />
       </RoleProvider>
     </NotificationProvider>
   );

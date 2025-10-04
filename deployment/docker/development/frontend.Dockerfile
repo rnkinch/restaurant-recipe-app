@@ -1,5 +1,6 @@
 # Development Dockerfile for Frontend
-FROM node:20-alpine
+# ---- Build Stage ----
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
@@ -7,7 +8,7 @@ WORKDIR /app
 COPY frontend/package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install && npm cache clean --force
 
 # Copy source code
 COPY frontend/ .
@@ -16,12 +17,27 @@ COPY frontend/ .
 ARG REACT_APP_API_URL
 ARG WDS_SOCKET_HOST
 
-# Set environment variables
+# Set environment variables for build
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 ENV WDS_SOCKET_HOST=$WDS_SOCKET_HOST
+ENV NODE_ENV=development
 
-# Expose development server port
+# Build static files with development environment
+RUN npm run build
+
+# ---- Serve Stage ----
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install static file server
+RUN npm install -g serve
+
+# Copy built React app from build stage
+COPY --from=build /app/build ./build
+
+# Expose port
 EXPOSE 3000
 
-# Development: Start development server with hot reload
-CMD ["npm", "start"]
+# Serve static files
+CMD ["serve", "-s", "build", "-l", "3000"]
