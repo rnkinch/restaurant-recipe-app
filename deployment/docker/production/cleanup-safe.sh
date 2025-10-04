@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Production environment cleanup script
+# Safe production environment cleanup script
+# This script cleans up containers but preserves your data volumes
 # Run from: deployment/docker/production/
 
 set -e
@@ -28,8 +29,8 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-log_info "Production Environment Cleanup"
-log_info "=============================="
+log_info "Safe Production Environment Cleanup"
+log_info "==================================="
 
 # Check if we're in the right directory
 if [ ! -f "docker-compose.yml" ] || [ ! -f "env.production" ]; then
@@ -61,22 +62,11 @@ else
     log_info "No production containers found"
 fi
 
-# Note: Volumes are preserved to keep your data safe
-log_warning "Data volumes are preserved - your data is safe!"
-
-# Remove production images
-log_info "Removing production images..."
-if docker images | grep -E "(production-|prod-)" | awk '{print $3}' | grep -q .; then
-    docker rmi -f $(docker images | grep -E "(production-|prod-)" | awk '{print $3}') 2>/dev/null || true
-    log_success "Production images removed ✓"
-else
-    log_info "No production images found"
-fi
-
-# Clean up build cache
+# Clean up build cache (safe - doesn't affect data)
 log_info "Cleaning build cache..."
 docker builder prune -f
 log_success "Build cache cleaned ✓"
 
-log_success "Production cleanup completed!"
+log_warning "Data volumes preserved - your data is safe!"
+log_success "Safe cleanup completed!"
 log_info "You can now run 'docker-compose up --build' to start fresh."
