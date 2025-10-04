@@ -1,21 +1,21 @@
 services:
-  mongo-container:
+  development-mongo:
     image: mongo:latest
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/data/db
+      - development-mongo-data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - recipe-app-network
+      - development-recipe-app-network
     environment:
       - MONGO_INITDB_DATABASE=recipeDB
 
-  init-backend:
+  development-init-backend:
     image: node:20-alpine
     user: "0:0"
     command: >
@@ -27,91 +27,94 @@ services:
       ls -la /app/uploads
       "
     volumes:
-      - uploads:/app/uploads
-    depends_on:
-      - mongo-container
+      - development-uploads:/app/uploads
     networks:
-      - recipe-app-network
+      - development-recipe-app-network
 
-  backend-container:
+  development-backend:
     build:
       context: ../../..
       dockerfile: deployment/docker/development/backend.Dockerfile
     ports:
-      - "${BACKEND_PORT:-8080}:8080"
-    depends_on:
-      init-backend:
-        condition: service_completed_successfully
-      mongo-container:
-        condition: service_healthy
-    env_file:
-      - env.development
+      - "8080:8080"
     volumes:
-      - uploads:/app/uploads
+      - development-uploads:/app/uploads
     networks:
-      - recipe-app-network
+      - development-recipe-app-network
+    depends_on:
+      development-mongo:
+        condition: service_healthy
+      development-init-backend:
+        condition: service_completed_successfully
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://development-mongo:27017/recipeDB
+      - JWT_SECRET=dev-jwt-secret-change-in-production
+      - FRONTEND_URL=http://localhost:3000
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=1000
+      - MAX_FILE_SIZE=10485760
+      - UPLOAD_DIR=/app/uploads
+      - BROWSER=none
+      - FAST_REFRESH=false
+      - WDS_SOCKET_HOST=localhost
 
-  frontend-container:
+  development-frontend:
     build:
       context: ../../..
       dockerfile: deployment/docker/development/frontend.Dockerfile
       args:
-        - REACT_APP_API_URL=http://localhost:8080
+        - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8080}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     environment:
-      - REACT_APP_API_URL=http://localhost:8080
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8080}
       - BROWSER=none
       - FAST_REFRESH=false
-      - WDS_SOCKET_HOST=localhost
+      - WDS_SOCKET_HOST=${WDS_SOCKET_HOST:-localhost}
     depends_on:
-      - backend-container
-    # No volumes needed - rebuild container when code changes
+      - development-backend
     networks:
-      - recipe-app-network
+      - development-recipe-app-network
 
-  # Monitoring Services
-  prometheus:
+  development-prometheus:
     image: prom/prometheus:latest
     ports:
       - "9090:9090"
     volumes:
       - ../../../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
+      - development-prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
-      - '--web.enable-admin-api'
     networks:
-      - recipe-app-network
-    depends_on:
-      - backend-container
+      - development-recipe-app-network
 
-  grafana:
+  development-grafana:
     image: grafana/grafana:latest
     ports:
       - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ../../../monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - development-grafana-data:/var/lib/grafana
       - ../../../monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ../../../monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
     networks:
-      - recipe-app-network
-    depends_on:
-      - prometheus
+      - development-recipe-app-network
 
 networks:
-  recipe-app-network:
+  development-recipe-app-network:
     driver: bridge
 
 volumes:
-  mongo-data:
-  uploads:
-  prometheus-data:
-  grafana-data:
+  development-mongo-data:
+  development-uploads:
+  development-prometheus-data:
+  development-grafana-data:
