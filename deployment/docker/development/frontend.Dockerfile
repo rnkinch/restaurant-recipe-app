@@ -12,6 +12,14 @@ RUN npm install
 # Copy source code
 COPY frontend/ .
 
+# Accept build arguments
+ARG REACT_APP_API_URL
+ARG WDS_SOCKET_HOST
+
+# Set environment variables
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ENV WDS_SOCKET_HOST=$WDS_SOCKET_HOST
+
 # Expose development server port
 EXPOSE 3000
 
