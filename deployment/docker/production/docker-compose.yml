@@ -1,10 +1,26 @@
-# TEMPLATE - NOT TESTED
-# This is a template configuration for production deployment
-# Requires customization and testing before use
+# Production Docker Compose Configuration for Restaurant Recipe App
+# Optimized for DigitalOcean droplet deployment
 
 version: '3.8'
 
 services:
+  # Volume initialization for uploads directory
+  init-backend:
+    image: node:20-alpine
+    user: "0:0"
+    command: >
+      sh -c "
+      mkdir -p /app/uploads &&
+      chown -R 1001:1001 /app/uploads &&
+      chmod 755 /app/uploads &&
+      echo 'Uploads volume permissions set (nodejs:nodejs, dir 755)' &&
+      ls -la /app/uploads
+      "
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - recipe-app-network
+
   mongo-container:
     image: mongo:latest
     restart: unless-stopped
@@ -32,6 +48,8 @@ services:
     depends_on:
       mongo-container:
         condition: service_healthy
+      init-backend:
+        condition: service_completed_successfully
     env_file:
       - env.production
     volumes:
@@ -54,6 +72,7 @@ services:
       dockerfile: deployment/docker/production/frontend.Dockerfile
       args:
         - REACT_APP_API_URL=https://167.71.247.15/api
+        - REACT_APP_ENVIRONMENT=production
     restart: unless-stopped
     depends_on:
       - backend-container
@@ -62,6 +81,12 @@ services:
     # Production: Don't expose frontend port externally (use reverse proxy)
     expose:
       - "3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Production: Add Nginx reverse proxy
   nginx:

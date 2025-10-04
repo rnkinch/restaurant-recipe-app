@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Production Deployment Script for Restaurant Recipe App
-# Usage: ./deploy.sh [domain] [jwt_secret] [grafana_password]
+# DigitalOcean Droplet: 167.71.247.15
+# Usage: ./deploy.sh [jwt_secret] [grafana_password]
 
 set -e  # Exit on any error
 
@@ -35,18 +36,20 @@ if [[ $EUID -eq 0 ]]; then
    exit 1
 fi
 
-# Check if domain is provided
-if [ $# -lt 3 ]; then
-    print_error "Usage: $0 <domain> <jwt_secret> <grafana_password>"
-    print_error "Example: $0 mydomain.com mysecretjwtkey123 mygrafana123"
+# Check if required parameters are provided
+if [ $# -lt 2 ]; then
+    print_error "Usage: $0 <jwt_secret> <grafana_password>"
+    print_error "Example: $0 mysecretjwtkey123 mygrafana123"
+    print_error "Target IP: 167.71.247.15"
     exit 1
 fi
 
-DOMAIN=$1
-JWT_SECRET=$2
-GRAFANA_PASSWORD=$3
+# Set IP address
+IP_ADDRESS="167.71.247.15"
+JWT_SECRET=$1
+GRAFANA_PASSWORD=$2
 
-print_status "Starting production deployment for domain: $DOMAIN"
+print_status "Starting production deployment for IP: $IP_ADDRESS"
 
 # Check prerequisites
 print_status "Checking prerequisites..."
@@ -77,17 +80,23 @@ mkdir -p ssl
 # Check for SSL certificates
 if [ ! -f "ssl/cert.pem" ] || [ ! -f "ssl/key.pem" ]; then
     print_warning "SSL certificates not found in ssl/ directory"
-    print_warning "Please ensure you have SSL certificates before proceeding"
-    print_warning "You can use Let's Encrypt:"
-    print_warning "  sudo certbot certonly --standalone -d $DOMAIN"
-    print_warning "  sudo cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem ssl/cert.pem"
-    print_warning "  sudo cp /etc/letsencrypt/live/$DOMAIN/privkey.pem ssl/key.pem"
-    print_warning "  sudo chown \$USER:\$USER ssl/*"
-    read -p "Continue anyway? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
+    print_status "Creating self-signed certificate for IP: $IP_ADDRESS"
+    
+    # Create SSL directory if it doesn't exist
+    mkdir -p ssl
+    
+    # Generate self-signed certificate for IP address
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+      -keyout ssl/key.pem \
+      -out ssl/cert.pem \
+      -subj "/C=US/ST=State/L=City/O=Organization/CN=$IP_ADDRESS"
+    
+    # Set proper permissions
+    chmod 600 ssl/key.pem
+    chmod 644 ssl/cert.pem
+    
+    print_success "Self-signed SSL certificate created for IP: $IP_ADDRESS"
+    print_warning "Browsers will show security warnings - users can bypass by clicking 'Advanced' → 'Proceed'"
 fi
 
 # Update environment file
@@ -97,12 +106,10 @@ print_status "Configuring environment..."
 cp env.production env.production.backup
 
 # Update environment variables
-sed -i "s|https://yourdomain.com|https://$DOMAIN|g" env.production
 sed -i "s|CHANGE_THIS_TO_A_SECURE_RANDOM_STRING_IN_PRODUCTION|$JWT_SECRET|g" env.production
 sed -i "s|CHANGE_THIS_TO_A_SECURE_GRAFANA_PASSWORD|$GRAFANA_PASSWORD|g" env.production
 
-# Update docker-compose.yml with actual values
-sed -i "s|https://yourdomain.com/api|https://$DOMAIN/api|g" docker-compose.yml
+# Update docker-compose.yml with Grafana password
 sed -i "s|GF_SECURITY_ADMIN_PASSWORD=admin123|GF_SECURITY_ADMIN_PASSWORD=$GRAFANA_PASSWORD|g" docker-compose.yml
 
 print_success "Environment configured"
@@ -110,10 +117,8 @@ print_success "Environment configured"
 # Update nginx configuration
 print_status "Configuring Nginx..."
 
-# Update server name in nginx.conf
-sed -i "s|server_name _;|server_name $DOMAIN;|g" nginx.conf
-
-print_success "Nginx configured"
+# Nginx is already configured for IP address 167.71.247.15
+print_success "Nginx configured for IP: $IP_ADDRESS"
 
 # Build and start services
 print_status "Building and starting services..."
@@ -144,14 +149,14 @@ fi
 print_status "Testing endpoints..."
 
 # Test health endpoint
-if curl -f -k "https://$DOMAIN/health" > /dev/null 2>&1; then
+if curl -f -k "https://$IP_ADDRESS/health" > /dev/null 2>&1; then
     print_success "Health endpoint is responding"
 else
     print_warning "Health endpoint not responding (this might be normal if SSL is not configured yet)"
 fi
 
 # Test frontend
-if curl -f -k "https://$DOMAIN" > /dev/null 2>&1; then
+if curl -f -k "https://$IP_ADDRESS" > /dev/null 2>&1; then
     print_success "Frontend is accessible"
 else
     print_warning "Frontend not accessible (this might be normal if SSL is not configured yet)"
@@ -163,9 +168,9 @@ echo
 echo "=================================="
 echo "Service URLs:"
 echo "=================================="
-echo "Application:     https://$DOMAIN"
-echo "Grafana:         https://$DOMAIN:3001"
-echo "Prometheus:      https://$DOMAIN:9090"
+echo "Application:     https://$IP_ADDRESS"
+echo "Grafana:         https://$IP_ADDRESS:3001"
+echo "Prometheus:      https://$IP_ADDRESS:9090"
 echo
 echo "=================================="
 echo "Credentials:"
