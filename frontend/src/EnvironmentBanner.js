@@ -1,8 +1,8 @@
 import React from 'react';
 
 const EnvironmentBanner = () => {
-  // Get environment from process.env.NODE_ENV
-  const environment = process.env.NODE_ENV;
+  // Get environment from custom environment variable
+  const environment = process.env.REACT_APP_ENVIRONMENT || process.env.NODE_ENV;
   
   // Don't show banner in production
   if (environment === 'production') {

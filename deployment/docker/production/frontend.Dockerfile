@@ -15,10 +15,11 @@ COPY frontend/ .
 
 # Build argument for API URL
 ARG REACT_APP_API_URL
+ARG REACT_APP_ENVIRONMENT=production
 
 # Set environment variables for build
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
-ENV NODE_ENV=production
+ENV REACT_APP_ENVIRONMENT=$REACT_APP_ENVIRONMENT
 
 # Build static files with production environment
 RUN npm run build

@@ -16,11 +16,12 @@ COPY frontend/ .
 # Accept build arguments
 ARG REACT_APP_API_URL
 ARG WDS_SOCKET_HOST
+ARG REACT_APP_ENVIRONMENT=staging
 
 # Set environment variables for build
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 ENV WDS_SOCKET_HOST=$WDS_SOCKET_HOST
-ENV NODE_ENV=staging
+ENV REACT_APP_ENVIRONMENT=$REACT_APP_ENVIRONMENT
 
 # Build static files with staging environment
 RUN npm run build
