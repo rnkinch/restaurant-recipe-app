@@ -80,9 +80,9 @@ const Navigation = ({ user, onLogout, config }) => {
                     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
                     // Extract base URL and port, then construct monitoring URLs
                     if (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) {
-                      return 'http://localhost:9090/prometheus/';
+                      return 'http://localhost:9090/';
                     } else if (apiUrl.includes('192.168.68.129')) {
-                      return 'http://192.168.68.129:9090/prometheus/';
+                      return 'http://192.168.68.129:9090/';
                     } else {
                       // Production - use HTTPS and port 9090
                       const baseUrl = apiUrl.replace('http://', 'https://').replace(':8080', '');
