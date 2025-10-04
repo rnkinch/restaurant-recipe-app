@@ -13,7 +13,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - staging-recipe-app-network
+      - recipe-app-network
     environment:
       - MONGO_INITDB_DATABASE=recipeDB
 
@@ -31,7 +31,7 @@ services:
     volumes:
       - staging-uploads:/app/uploads
     networks:
-      - staging-recipe-app-network
+      - recipe-app-network
 
   backend:
     build:
@@ -42,7 +42,7 @@ services:
     volumes:
       - staging-uploads:/app/uploads
     networks:
-      - staging-recipe-app-network
+      - recipe-app-network
     depends_on:
       mongo:
         condition: service_healthy
@@ -78,7 +78,7 @@ services:
     depends_on:
       - backend
     networks:
-      - staging-recipe-app-network
+      - recipe-app-network
 
   prometheus:
     image: prom/prometheus:latest
@@ -95,7 +95,7 @@ services:
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
     networks:
-      - staging-recipe-app-network
+      - recipe-app-network
 
   grafana:
     image: grafana/grafana:latest
@@ -109,10 +109,10 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
     networks:
-      - staging-recipe-app-network
+      - recipe-app-network
 
 networks:
-  staging-recipe-app-network:
+  recipe-app-network:
     driver: bridge
 
 volumes:
