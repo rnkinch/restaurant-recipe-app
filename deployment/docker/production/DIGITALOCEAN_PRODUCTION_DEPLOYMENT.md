@@ -346,17 +346,17 @@ curl -k https://167.71.247.15/health
 curl -k https://167.71.247.15
 
 # Test monitoring services
-curl -k https://167.71.247.15:3001  # Grafana
-curl -k https://167.71.247.15:9090  # Prometheus
+curl -k http://167.71.247.15:3001  # Grafana
+curl -k http://167.71.247.15:9090  # Prometheus
 ```
 
 ### 8.2 Access Your Services
 
 - **Main Application**: https://167.71.247.15
-- **Grafana Dashboard**: https://167.71.247.15:3001
+- **Grafana Dashboard**: http://167.71.247.15:3001
   - Username: `admin`
   - Password: `[your_generated_password]`
-- **Prometheus**: https://167.71.247.15:9090
+- **Prometheus**: http://167.71.247.15:9090
 
 ---
 
@@ -414,7 +414,7 @@ crontab -l
 
 ### 10.1 Access Grafana
 
-1. Go to https://167.71.247.15:3001
+1. Go to http://167.71.247.15:3001
 2. Login with: `admin` / `[your_generated_password]`
 3. Verify "Recipe App Monitoring" dashboard is loaded
 4. Check that metrics are being collected
@@ -520,8 +520,8 @@ docker-compose exec mongo-container mongosh --eval "db.adminCommand('ping')"
 
 Your Restaurant Recipe App is now running on DigitalOcean at:
 - **Main App**: https://167.71.247.15
-- **Grafana**: https://167.71.247.15:3001
-- **Prometheus**: https://167.71.247.15:9090
+- **Grafana**: http://167.71.247.15:3001
+- **Prometheus**: http://167.71.247.15:9090
 
 ### Next Steps:
 1. ✅ Test all functionality

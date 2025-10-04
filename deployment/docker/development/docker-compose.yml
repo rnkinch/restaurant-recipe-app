@@ -68,8 +68,6 @@ services:
       dockerfile: deployment/docker/development/frontend.Dockerfile
       args:
         - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8080}
-        - REACT_APP_GRAFANA_URL=${REACT_APP_GRAFANA_URL:-http://localhost:3001}
-        - REACT_APP_PROMETHEUS_URL=${REACT_APP_PROMETHEUS_URL:-http://localhost:9090}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     environment: {}

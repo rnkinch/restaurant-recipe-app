@@ -53,49 +53,7 @@ const Navigation = ({ user, onLogout, config }) => {
               </NavDropdown>
             )}
             
-            {/* Monitoring - Admin only */}
-            {isAdmin && (
-              <NavDropdown title="📈 Monitoring" id="monitoring-dropdown">
-                <NavDropdown.Item 
-                  href={(() => {
-                    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-                    // Extract base URL and port, then construct monitoring URLs
-                    if (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) {
-                      return 'http://localhost:3001/grafana/';
-                    } else if (apiUrl.includes('192.168.68.129')) {
-                      return 'http://192.168.68.129:3001/grafana/';
-                    } else {
-                      // Production - use HTTPS and port 3001
-                      const baseUrl = apiUrl.replace('http://', 'https://').replace(':8080', '');
-                      return `${baseUrl}:3001/grafana/`;
-                    }
-                  })()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  📊 Grafana Dashboard
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  href={(() => {
-                    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-                    // Extract base URL and port, then construct monitoring URLs
-                    if (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) {
-                      return 'http://localhost:9090/';
-                    } else if (apiUrl.includes('192.168.68.129')) {
-                      return 'http://192.168.68.129:9090/';
-                    } else {
-                      // Production - use HTTPS and port 9090
-                      const baseUrl = apiUrl.replace('http://', 'https://').replace(':8080', '');
-                      return `${baseUrl}:9090/prometheus/`;
-                    }
-                  })()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  🔍 Prometheus Metrics
-                </NavDropdown.Item>
-              </NavDropdown>
-            )}
+            {/* Monitoring links removed - access directly via URLs for technical/admin use only */}
             
             {/* User dropdown */}
             <NavDropdown title={`👤 Welcome, ${user?.username || 'User'}`} id="user-dropdown">

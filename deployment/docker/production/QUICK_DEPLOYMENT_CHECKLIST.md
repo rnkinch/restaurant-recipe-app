@@ -128,8 +128,8 @@ exit
 ## ✅ Verify Deployment
 
 - [ ] App accessible: https://167.71.247.15
-- [ ] Grafana: https://167.71.247.15:3001
-- [ ] Prometheus: https://167.71.247.15:9090
+- [ ] Grafana: http://167.71.247.15:3001
+- [ ] Prometheus: http://167.71.247.15:9090
 - [ ] Health endpoint: https://167.71.247.15/health
 - [ ] Can login with admin/password
 
