@@ -38,9 +38,6 @@ services:
       - recipe-app-network
     environment:
       - MONGO_INITDB_DATABASE=recipeDB
-    # Production: Don't expose MongoDB port externally
-    expose:
-      - "27017"
 
   backend-container:
     build:
