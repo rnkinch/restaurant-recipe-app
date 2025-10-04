@@ -205,39 +205,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Authentication routes
-app.post('/auth/register', authLimiter, async (req, res) => {
-  try {
-    const { username, password, role = 'user' } = req.body;
-    
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password required' });
-    }
-    
-    // Enhanced password validation
-    if (password.length < 8) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters' });
-    }
-    
-    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      return res.status(400).json({ 
-        error: 'Password must contain at least one lowercase letter, one uppercase letter, and one number' 
-      });
-    }
-    
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Username already exists' });
-    }
-    
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = new User({ username, password: hashedPassword, role });
-    await user.save();
-    
-    res.status(201).json({ message: 'User created successfully' });
-  } catch (err) {
-    console.error('Registration error:', err.message);
-    res.status(500).json({ error: 'Registration failed' });
-  }
+// Registration disabled for security - users must be created by admin
+app.post('/auth/register', (req, res) => {
+  res.status(403).json({ error: 'Registration is disabled. Contact your administrator.' });
 });
 
 app.post('/auth/login', authLimiter, async (req, res) => {

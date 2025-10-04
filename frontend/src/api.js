@@ -46,10 +46,7 @@ export const login = async (username, password) => {
   return response.data;
 };
 
-export const register = async (username, password, role = 'user') => {
-  const response = await axios.post(`${apiUrl}/auth/register`, { username, password, role });
-  return response.data;
-};
+// Registration disabled for security - users must be created by admin
 
 export const logout = () => {
   localStorage.removeItem('authToken');

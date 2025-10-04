@@ -53,6 +53,26 @@ const Navigation = ({ user, onLogout, config }) => {
               </NavDropdown>
             )}
             
+            {/* Monitoring - Admin only */}
+            {isAdmin && (
+              <NavDropdown title="📈 Monitoring" id="monitoring-dropdown">
+                <NavDropdown.Item 
+                  href={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:3001'}/grafana/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  📊 Grafana Dashboard
+                </NavDropdown.Item>
+                <NavDropdown.Item 
+                  href={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:9090'}/prometheus/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  🔍 Prometheus Metrics
+                </NavDropdown.Item>
+              </NavDropdown>
+            )}
+            
             {/* User dropdown */}
             <NavDropdown title={`👤 Welcome, ${user?.username || 'User'}`} id="user-dropdown">
               {isReadOnly && (

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { login, register } from './api';
+import { login } from './api';
 
 const Login = ({ onLogin }) => {
-  const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,11 +13,7 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      if (isLogin) {
-        await login(username, password);
-      } else {
-        await register(username, password);
-      }
+      await login(username, password);
       onLogin();
     } catch (err) {
       setError(err.response?.data?.error || 'Authentication failed');
@@ -34,7 +29,7 @@ const Login = ({ onLogin }) => {
           <div className="card">
             <div className="card-header">
               <h3 className="text-center">
-                {isLogin ? 'Login' : 'Register'} - Recipe App
+                Login - Recipe App
               </h3>
             </div>
             <div className="card-body">
@@ -76,28 +71,11 @@ const Login = ({ onLogin }) => {
                     className="btn btn-primary"
                     disabled={loading}
                   >
-                    {loading ? 'Please wait...' : (isLogin ? 'Login' : 'Register')}
+                    {loading ? 'Please wait...' : 'Login'}
                   </button>
                 </div>
               </form>
               
-              <div className="text-center mt-3">
-                <button
-                  type="button"
-                  className="btn btn-link"
-                  onClick={() => setIsLogin(!isLogin)}
-                >
-                  {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
-                </button>
-              </div>
-              
-              <div className="mt-3">
-                <small className="text-muted">
-                  <strong>Demo Credentials:</strong><br/>
-                  Username: admin<br/>
-                  Password: SecurePassword123
-                </small>
-              </div>
             </div>
           </div>
         </div>
