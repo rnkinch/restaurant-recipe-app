@@ -9,7 +9,7 @@ This directory contains the tested Docker development configuration for the Rest
 cd deployment/docker/development
 
 # Start services
-docker-compose --env-file env.development up --build
+docker-compose up -d
 
 # Or use the test script from project root
 ./test-local-docker.sh
@@ -20,6 +20,8 @@ docker-compose --env-file env.development up --build
 - **MongoDB**: `localhost:27017`
 - **Backend API**: `localhost:8080`
 - **Frontend**: `localhost:3000`
+- **Prometheus**: `localhost:9090`
+- **Grafana**: `localhost:3001`
 
 ## Features
 
@@ -28,6 +30,9 @@ docker-compose --env-file env.development up --build
 - ✅ Environment variable configuration
 - ✅ Health checks for MongoDB
 - ✅ Proper service dependencies
+- ✅ Monitoring with Prometheus and Grafana
+- ✅ Clean container naming (dev-*)
+- ✅ Localhost-only access (no network exposure)
 
 ## Environment Variables
 
@@ -43,18 +48,29 @@ All configuration is in `env.development`:
 
 1. Make changes to your code in `backend/` or `frontend/`
 2. Changes are automatically reflected (hot reload)
-3. View logs: `docker-compose --env-file env.development logs -f`
-4. Stop services: `docker-compose --env-file env.development down`
+3. View logs: `docker-compose logs -f`
+4. Stop services: `docker-compose down`
+
+## Admin Account
+
+Create admin user for testing:
+```bash
+# Copy script to backend container
+docker cp ../../scripts/sample_data/createAdmin.js dev-backend-1:/app/
+docker exec dev-backend-1 node createAdmin.js
+```
+- **Username**: `admin`
+- **Password**: `SecurePassword123`
 
 ## Troubleshooting
 
 ### Services won't start
 ```bash
 # Check configuration
-docker-compose --env-file env.development config
+docker-compose config
 
 # View logs
-docker-compose --env-file env.development logs
+docker-compose logs
 ```
 
 ### Port conflicts
@@ -68,8 +84,8 @@ FRONTEND_PORT=3001
 ### Permission issues
 ```bash
 # Clean up and restart
-docker-compose --env-file env.development down -v
-docker-compose --env-file env.development up --build
+docker-compose down -v
+docker-compose up --build
 ```
 
 ## Testing Status

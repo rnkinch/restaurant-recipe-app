@@ -1,0 +1,122 @@
+name: stage
+
+services:
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - stage-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stage-recipe-app-network
+    environment:
+      - MONGO_INITDB_DATABASE=recipeDB
+
+  init-backend:
+    image: node:20-alpine
+    user: "0:0"
+    command: >
+      sh -c "
+      mkdir -p /app/uploads &&
+      chown -R 1000:1000 /app/uploads &&
+      chmod 755 /app/uploads &&
+      echo 'Volume permissions set (node:node, dir 755)' &&
+      ls -la /app/uploads
+      "
+    volumes:
+      - stage-uploads:/app/uploads
+    networks:
+      - stage-recipe-app-network
+
+  backend:
+    build:
+      context: ../../..
+      dockerfile: deployment/docker/stage/backend.Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - stage-uploads:/app/uploads
+    networks:
+      - stage-recipe-app-network
+    depends_on:
+      mongo:
+        condition: service_healthy
+      init-backend:
+        condition: service_completed_successfully
+    environment:
+      - NODE_ENV=staging
+      - MONGO_URI=mongodb://mongo:27017/recipeDB
+      - JWT_SECRET=stage-jwt-secret-change-in-production
+      - FRONTEND_URL=${FRONTEND_URL:-http://192.168.68.129:3000}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://192.168.68.129:3000,http://localhost:3000,http://127.0.0.1:3000}
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=1000
+      - MAX_FILE_SIZE=10485760
+      - UPLOAD_DIR=/app/uploads
+      - BROWSER=none
+      - FAST_REFRESH=false
+      - WDS_SOCKET_HOST=${WDS_SOCKET_HOST:-192.168.68.129}
+
+  frontend:
+    build:
+      context: ../../..
+      dockerfile: deployment/docker/stage/frontend.Dockerfile
+      args:
+        - REACT_APP_API_URL=${REACT_APP_API_URL:-http://192.168.68.129:8080}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://192.168.68.129:8080}
+      - BROWSER=none
+      - FAST_REFRESH=false
+      - WDS_SOCKET_HOST=${WDS_SOCKET_HOST:-192.168.68.129}
+    depends_on:
+      - backend
+    networks:
+      - stage-recipe-app-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../../../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - stage-prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - stage-recipe-app-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    volumes:
+      - stage-grafana-data:/var/lib/grafana
+      - ../../../monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ../../../monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - stage-recipe-app-network
+
+networks:
+  stage-recipe-app-network:
+    driver: bridge
+
+volumes:
+  stage-mongo-data:
+  stage-uploads:
+  stage-prometheus-data:
+  stage-grafana-data:

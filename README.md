@@ -16,94 +16,103 @@ Built with **React (frontend)** and **Node.js/Express + MongoDB (backend)**.
 
 ---
 
-## 🐳 Running with Docker (Current Setup)
+## 🐳 Running with Docker
 
-You can run the entire stack (frontend, backend, and MongoDB) using Docker Compose.
+The application supports multiple deployment configurations:
 
-### 1. Build & Start Services
+### Development (Localhost Only)
 ```bash
-docker-compose up --build
-```
-
-This will start:
-- **MongoDB** (`mongo-container`) on port `27017`
-- **Backend API** (`backend-container`) on port `5000`
-- **React frontend** (`frontend-container`) on port `3000`
-
-### 2. Access the App
-- Frontend: [http://localhost:3000](http://localhost:3000) (host browser)
-- Backend API: [http://192.168.68.129:5000](http://192.168.68.129:5000) (LAN access)
-
-⚠️ If your LAN IP changes, update `REACT_APP_API_URL` in `docker-compose.yml` and rebuild:
-```bash
-docker-compose build frontend-container
+cd deployment/docker/development
 docker-compose up -d
 ```
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **MongoDB**: localhost:27017
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3001
 
-### 3. Stopping Services
+### Staging (Network Accessible)
 ```bash
-docker-compose down
+cd deployment/docker/stage
+docker-compose up -d
 ```
+- **Frontend**: http://192.168.68.129:3000
+- **Backend API**: http://192.168.68.129:8080
+- **MongoDB**: 192.168.68.129:27017
+- **Prometheus**: http://192.168.68.129:9090
+- **Grafana**: http://192.168.68.129:3001
 
-### 4. Data Persistence
-- MongoDB data → `mongo-data` volume
-- Uploaded images → `uploads` volume
-
-Wipe everything:
+### Production
 ```bash
-docker-compose down -v
+cd deployment/docker/production
+docker-compose up -d
 ```
+- Full production setup with Nginx reverse proxy and SSL
+
+### Admin Account
+Create admin user:
+```bash
+# Copy script to backend container
+docker cp scripts/sample_data/createAdmin.js <container-name>:/app/
+docker exec <container-name> node createAdmin.js
+```
+- **Username**: `admin`
+- **Password**: `SecurePassword123`
 
 ---
 
 ## 🛠 Docker Tips & Troubleshooting
 
-### 🔄 Rebuild Only One Service
+### 🔄 Rebuild Services
 ```bash
-docker-compose build frontend-container
-docker-compose up -d frontend-container
+# Rebuild specific service
+docker-compose build frontend
+docker-compose up -d frontend
+
+# Rebuild all services
+docker-compose build
+docker-compose up -d
 ```
 
+### 🧹 Clean Up
 ```bash
-docker-compose build backend-container
-docker-compose up -d backend-container
-```
+# Stop and remove containers
+docker-compose down
 
-### 🧹 Clear Old Builds / Cache
-```bash
-docker-compose down --rmi all --volumes --remove-orphans
+# Remove volumes (WARNING: deletes data)
+docker-compose down -v
+
+# Remove images and rebuild
+docker-compose down --rmi all
 docker-compose up --build
 ```
 
 ### 🌐 Network Issues
-- If the frontend shows `ERR_NAME_NOT_RESOLVED`, make sure it’s pointing to your LAN IP (`192.168.68.129:5000`).
-- If MongoDB won’t connect, ensure backend uses:
-  ```yaml
-  MONGO_URI=mongodb://mongo-container:27017/recipeDB
-  ```
+- **Development**: Uses localhost only
+- **Staging**: Uses `192.168.68.129` for network access
+- **Frontend not loading**: Check if backend is running on correct port (8080)
+- **MongoDB connection**: Ensure `MONGO_URI=mongodb://mongo:27017/recipeDB`
 
-### 📦 Persistent Data
-- MongoDB → `mongo-data` volume
-- Images → `uploads` volume
+### 📦 Data Persistence
+- **MongoDB**: `stage-mongo-data` volume (staging) or `mongo-data` (development)
+- **Uploads**: `stage-uploads` volume (staging) or `uploads` (development)
+- **Monitoring**: `stage-prometheus-data` and `stage-grafana-data` (staging)
 
-Wipe volumes:
+### 🕵️ Debugging
 ```bash
-docker-compose down -v
-```
-
-### 🕵️ Debugging Logs
-All logs:
-```bash
+# View all logs
 docker-compose logs -f
-```
-Single service logs:
-```bash
-docker-compose logs -f backend-container
+
+# View specific service logs
+docker-compose logs -f backend
+docker-compose logs -f frontend
+docker-compose logs -f mongo
 ```
 
-### ⚡ Performance Tips
-- Keep your source code in WSL (`~/projects/...`), not `/mnt/c/...`, for speed.
-- Use `.dockerignore` to avoid copying unnecessary files.
+### 📊 Monitoring
+- **Prometheus**: Metrics collection and querying
+- **Grafana**: Dashboards and visualization
+- Access via respective ports (9090/3001)
 
 ---
 
@@ -158,11 +167,17 @@ console.log('Validation test:', result.isValid ? 'FAIL' : 'PASS');
 
 ### Project Structure
 ```
-├── frontend/          # React application
-├── backend/           # Node.js/Express API
-├── docker-compose.yml # Container orchestration
-├── test-validation.js # Automated test runner
-└── manual-validation-test.html # Interactive testing
+├── frontend/                    # React application
+├── backend/                     # Node.js/Express API
+├── scripts/                     # Utility scripts
+│   └── sample_data/            # Data loading scripts
+├── deployment/                  # Deployment configurations
+│   └── docker/
+│       ├── development/        # Localhost-only dev setup
+│       ├── stage/              # Network-accessible staging
+│       └── production/         # Production with Nginx
+├── monitoring/                  # Prometheus & Grafana configs
+└── test-validation.js          # Automated test runner
 ```
 
 ### Key Technologies

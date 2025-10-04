@@ -3,12 +3,19 @@
 ## What's Been Created
 
 ### ✅ TESTED - Ready to Use
-- **`deployment/docker/development/`** - Local Docker development setup
-  - `docker-compose.yml` - Service orchestration
+- **`deployment/docker/development/`** - Local Docker development setup (localhost only)
+  - `docker-compose.yml` - Service orchestration with clean naming
   - `env.development` - Environment variables
   - `backend.Dockerfile` - Backend container with hot reload
   - `frontend.Dockerfile` - Frontend container with hot reload
   - `README.md` - Usage instructions
+
+- **`deployment/docker/stage/`** - Network-accessible staging setup
+  - `docker-compose.yml` - Service orchestration for network access
+  - `env.stage` - Environment variables for staging
+  - `backend.Dockerfile` - Backend container
+  - `frontend.Dockerfile` - Frontend container
+  - Uses `192.168.68.129` for network accessibility
 
 ### 🔧 TEMPLATES - Require Customization
 - **`deployment/docker/production/`** - Production Docker setup with Nginx
@@ -26,19 +33,17 @@
 
 ### Option 2: Manual Testing
 ```bash
-# Navigate to development config
+# Development (localhost only)
 cd deployment/docker/development
+docker-compose up -d
 
-# Validate configuration
-docker-compose --env-file env.development config
-
-# Start services
-docker-compose --env-file env.development up --build
+# Staging (network accessible)
+cd deployment/docker/stage
+docker-compose up -d
 
 # Access your app
-# Frontend: http://localhost:3000
-# Backend: http://localhost:8080
-# MongoDB: localhost:27017
+# Development: http://localhost:3000 (frontend), http://localhost:8080 (backend)
+# Staging: http://192.168.68.129:3000 (frontend), http://192.168.68.129:8080 (backend)
 ```
 
 ## Key Benefits Achieved
@@ -68,12 +73,16 @@ restaurant-recipe-app/
 restaurant-recipe-app/
 ├── backend/                # Pure application code
 ├── frontend/               # Pure application code
+├── scripts/                # Utility scripts
+│   └── sample_data/        # Data loading scripts
 ├── deployment/             # All deployment configs
 │   ├── docker/
-│   │   ├── development/    # ✅ TESTED
-│   │   └── production/     # 🔧 TEMPLATE
+│   │   ├── development/    # ✅ TESTED (localhost only)
+│   │   ├── stage/          # ✅ TESTED (network accessible)
+│   │   └── production/     # 🔧 TEMPLATE (Nginx + SSL)
 │   ├── aws/                # 🔧 TEMPLATE
 │   └── kubernetes/         # 🔧 TEMPLATE
+├── monitoring/             # Prometheus & Grafana configs
 └── scripts/                # Deployment utilities
 ```
 
