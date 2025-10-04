@@ -4,3 +4,8 @@ build/
 dist/
 .env
 
+# Backup files
+backups/mongodb/backup/
+*.bson
+*.metadata.json
+prelude.json
