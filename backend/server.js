@@ -84,6 +84,12 @@ app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
 app.use(noSqlInjectionProtection);
 app.use(generalLimiter);
 
+// Metrics endpoint for Prometheus (must be BEFORE authentication middleware)
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
+
 // Apply metrics middleware to all routes
 app.use(metricsMiddleware);
 

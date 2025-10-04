@@ -1054,8 +1054,6 @@ const PdfEditor = ({ recipe }) => {
                           <option value="Helvetica">Helvetica</option>
                           <option value="Times-Roman">Times</option>
                           <option value="Courier">Courier</option>
-                          <option value="Arial">Arial</option>
-                          <option value="Georgia">Georgia</option>
                         </Form.Select>
                       </Form.Group>
                     </Col>
