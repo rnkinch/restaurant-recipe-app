@@ -82,7 +82,7 @@ const InlinePdfPreview = ({ recipeId, show, onHide }) => {
             } else if (field.id === 'ingredients-content') {
               shape.text = recipeData.ingredients && Array.isArray(recipeData.ingredients) 
                 ? recipeData.ingredients.map(ing => 
-                    `${ing.measure || ''} ${ing.ingredient?.name || ing.ingredient || ''}`
+                    `${ing.quantity || ''} ${ing.measure || ''} ${ing.ingredient?.name || ing.ingredient || ''}`
                   ).join('\n')
                 : 'No ingredients listed';
             } else if (field.id === 'steps-content') {
@@ -156,7 +156,7 @@ const InlinePdfPreview = ({ recipeId, show, onHide }) => {
         y: 100,
         text: recipeData.ingredients && Array.isArray(recipeData.ingredients) 
           ? recipeData.ingredients.map(ing => 
-              `${ing.measure || ''} ${ing.ingredient?.name || ing.ingredient || ''}`
+              `${ing.quantity || ''} ${ing.measure || ''} ${ing.ingredient?.name || ing.ingredient || ''}`
             ).join('\n')
           : 'No ingredients listed',
         fontSize: 12,
