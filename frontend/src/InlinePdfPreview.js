@@ -12,7 +12,7 @@ const InlinePdfPreview = ({ recipeId, show, onHide }) => {
   const CANVAS_WIDTH = 792;
   const CANVAS_HEIGHT = 612;
 
-  // Load recipe image with crossOrigin to avoid tainted canvas
+  // Load recipe image with crossOrigin to avoid tainted canvas (same as CanvasEditor)
   const [image] = useImage(
     recipe?.image 
       ? `${process.env.REACT_APP_API_URL}/Uploads/${recipe.image.split('/').pop()}`
@@ -35,10 +35,7 @@ const InlinePdfPreview = ({ recipeId, show, onHide }) => {
           const recipeData = await getRecipeById(recipeId);
           setRecipe(recipeData);
 
-          // Wait for images to load
-          await new Promise(resolve => setTimeout(resolve, 500));
-
-          // Load saved template and populate with recipe data
+          // Load saved template and populate with recipe data (images will trigger re-population)
           await populateWithRecipeData(recipeData);
 
           // Generate PDF after canvas is populated
@@ -265,8 +262,8 @@ const InlinePdfPreview = ({ recipeId, show, onHide }) => {
         fill: '#000000',
         fontFamily: 'Arial'
       },
-      // Recipe Image
-      {
+      // Recipe Image (only if image exists)
+      ...(image ? [{
         id: 'recipe-image',
         type: 'image',
         x: 450,
@@ -274,7 +271,7 @@ const InlinePdfPreview = ({ recipeId, show, onHide }) => {
         width: 150,
         height: 150,
         image: image
-      },
+      }] : []),
       // Watermark
       {
         id: 'watermark',
@@ -289,7 +286,14 @@ const InlinePdfPreview = ({ recipeId, show, onHide }) => {
     ];
 
     setShapes(recipeShapes);
-  }, [image, watermarkImage]);
+  }, [recipe, image, watermarkImage]);
+
+  // Re-populate when images load (same as CanvasEditor)
+  useEffect(() => {
+    if (recipe && shapes.length > 0) {
+      populateWithRecipeData(recipe);
+    }
+  }, [image, watermarkImage, populateWithRecipeData]);
 
   // Render shape
   const renderShape = (shape) => {

@@ -19,7 +19,7 @@ const RecipePdfPreview = () => {
   const CANVAS_WIDTH = 792;
   const CANVAS_HEIGHT = 612;
 
-  // Load recipe image with crossOrigin to avoid tainted canvas
+  // Load recipe image with crossOrigin to avoid tainted canvas (same as CanvasEditor)
   const [image] = useImage(
     recipe?.image 
       ? `${process.env.REACT_APP_API_URL}/Uploads/${recipe.image.split('/').pop()}`
@@ -32,6 +32,16 @@ const RecipePdfPreview = () => {
     `${process.env.REACT_APP_API_URL}/Uploads/logo.png`,
     'anonymous'
   );
+
+  // Debug logging for image loading
+  useEffect(() => {
+    console.log('RecipePdfPreview - Image states:', {
+      recipe: recipe?.name,
+      recipeImage: recipe?.image,
+      imageLoaded: image !== null,
+      watermarkLoaded: watermarkImage !== null
+    });
+  }, [recipe, image, watermarkImage]);
 
   // Load recipe data
   useEffect(() => {
@@ -258,8 +268,8 @@ const RecipePdfPreview = () => {
         fill: '#000000',
         fontFamily: 'Arial'
       },
-      // Recipe Image
-      {
+      // Recipe Image (only if image exists)
+      ...(image ? [{
         id: 'recipe-image',
         type: 'image',
         x: 450,
@@ -267,7 +277,7 @@ const RecipePdfPreview = () => {
         width: 150,
         height: 150,
         image: image
-      },
+      }] : []),
       // Watermark
       {
         id: 'watermark',
@@ -284,13 +294,13 @@ const RecipePdfPreview = () => {
     setShapes(recipeShapes);
   }, [recipe, image, watermarkImage]);
 
-  // Populate canvas when recipe and images are loaded
+  // Populate canvas when recipe and images are loaded (same as CanvasEditor)
   useEffect(() => {
-    if (recipe && image !== null && watermarkImage !== null) {
-      populateWithRecipeData().then(() => {
-        setLoading(false);
-      });
-    }
+    if (!recipe) return;
+    
+    populateWithRecipeData().then(() => {
+      setLoading(false);
+    });
   }, [recipe, image, watermarkImage, populateWithRecipeData]);
 
   // Render shape
@@ -485,7 +495,6 @@ const RecipePdfPreview = () => {
       setError(`PDF generation failed: ${error.message}`);
     }
   }, [recipe]);
-
 
   // Generate PDF when component loads
   useEffect(() => {

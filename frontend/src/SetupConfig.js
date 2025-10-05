@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Container, Alert, Spinner, Image } from 'react-bootstrap';
 import { getConfig, updateConfig, uploadLogo } from './api';
 import { useNotification } from './NotificationContext';
+import VersionInfo from './VersionInfo';
 
 const SetupConfig = ({ refreshConfig }) => {
   const { showError, showSuccess } = useNotification();
@@ -51,6 +52,10 @@ const SetupConfig = ({ refreshConfig }) => {
   return (
     <Container className="py-3">
       <h2>Configure Setups</h2>
+      
+      {/* Build Information */}
+      <VersionInfo />
+      
       <div>
         <Image
           src={logoUrl}
@@ -64,34 +69,72 @@ const SetupConfig = ({ refreshConfig }) => {
         />
       </div>
       <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>Application Name (Personalization)</Form.Label>
-          <Form.Control
-            type="text"
-            value={config.appName}
-            onChange={(e) => setConfig({ ...config, appName: e.target.value })}
-            placeholder="Enter custom name"
-            required
-          />
+        <Form.Group className="mb-4">
+          <div className="border rounded p-3 bg-light">
+            <h6 className="mb-3">
+              <i className="bi bi-gear me-2"></i>
+              Application Settings
+            </h6>
+            <Form.Label className="fw-bold">Application Name (Personalization)</Form.Label>
+            <Form.Control
+              type="text"
+              value={config.appName}
+              onChange={(e) => setConfig({ ...config, appName: e.target.value })}
+              placeholder="Enter custom name"
+              required
+            />
+            <Form.Text className="text-muted d-block mt-2">
+              <i className="bi bi-info-circle me-1"></i>
+              This name will appear in the application header and browser title.
+            </Form.Text>
+          </div>
         </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Check
-            type="checkbox"
-            label="Show Left Navigation Panel"
-            checked={config.showLeftNav}
-            onChange={(e) => setConfig({ ...config, showLeftNav: e.target.checked })}
-          />
+        <Form.Group className="mb-4">
+          <div className="border rounded p-3 bg-light">
+            <h6 className="mb-3">
+              <i className="bi bi-layout-sidebar me-2"></i>
+              Navigation Panel Settings
+            </h6>
+            <Form.Check
+              type="checkbox"
+              id="showLeftNav"
+              className="form-check-lg"
+            >
+              <Form.Check.Input
+                type="checkbox"
+                checked={config.showLeftNav}
+                onChange={(e) => setConfig({ ...config, showLeftNav: e.target.checked })}
+                className="form-check-input-lg"
+              />
+              <Form.Check.Label className="form-check-label fw-bold">
+                Show Left Navigation Panel
+              </Form.Check.Label>
+            </Form.Check>
+            <Form.Text className="text-muted d-block mt-2">
+              <i className="bi bi-info-circle me-1"></i>
+              Controls whether the left sidebar navigation is visible on all pages. 
+              When disabled, users will need to use the top navigation menu.
+            </Form.Text>
+          </div>
         </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Label>Upload Logo (Will be saved as logo.png and overwrite existing)</Form.Label>
-          <Form.Control
-            type="file"
-            accept="image/jpeg,image/png"
-            onChange={(e) => setFile(e.target.files[0])}
-          />
-          <Form.Text className="text-muted">
-            Used as default recipe image and PDF watermark. Max 5MB.
-          </Form.Text>
+        <Form.Group className="mb-4">
+          <div className="border rounded p-3 bg-light">
+            <h6 className="mb-3">
+              <i className="bi bi-image me-2"></i>
+              Logo Management
+            </h6>
+            <Form.Label className="fw-bold">Upload Logo</Form.Label>
+            <Form.Control
+              type="file"
+              accept="image/jpeg,image/png"
+              onChange={(e) => setFile(e.target.files[0])}
+              className="mb-2"
+            />
+            <Form.Text className="text-muted d-block">
+              <i className="bi bi-info-circle me-1"></i>
+              Will be saved as logo.png and overwrite existing. Used as default recipe image and PDF watermark. Max 5MB.
+            </Form.Text>
+          </div>
         </Form.Group>
         <Button variant="primary" type="submit">
           Save Changes
