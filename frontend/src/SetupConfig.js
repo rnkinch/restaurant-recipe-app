@@ -55,19 +55,6 @@ const SetupConfig = ({ refreshConfig }) => {
       
       {/* Build Information */}
       <VersionInfo />
-      
-      <div>
-        <Image
-          src={logoUrl}
-          alt="Current Logo"
-          style={{ width: '150px', marginBottom: '20px' }}
-          onError={(e) => {
-            console.error('Config page logo failed to load:', e.target.src);
-            e.target.style.display = 'none';
-          }}
-          onLoad={() => console.log('Config page logo loaded successfully:', logoUrl)}
-        />
-      </div>
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-4">
           <div className="border rounded p-3 bg-light">
@@ -123,7 +110,25 @@ const SetupConfig = ({ refreshConfig }) => {
               <i className="bi bi-image me-2"></i>
               Logo Management
             </h6>
-            <Form.Label className="fw-bold">Upload Logo</Form.Label>
+            
+            {/* Current Logo Display */}
+            <div className="mb-3">
+              <Form.Label className="fw-bold">Current Logo</Form.Label>
+              <div>
+                <Image
+                  src={logoUrl}
+                  alt="Current Logo"
+                  style={{ width: '150px', border: '1px solid #dee2e6', borderRadius: '4px' }}
+                  onError={(e) => {
+                    console.error('Config page logo failed to load:', e.target.src);
+                    e.target.style.display = 'none';
+                  }}
+                  onLoad={() => console.log('Config page logo loaded successfully:', logoUrl)}
+                />
+              </div>
+            </div>
+            
+            <Form.Label className="fw-bold">Upload New Logo</Form.Label>
             <Form.Control
               type="file"
               accept="image/jpeg,image/png"
