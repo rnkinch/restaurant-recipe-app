@@ -4,6 +4,7 @@ import { Button, Row, Col, Alert, Card, Container, Spinner } from 'react-bootstr
 import { getRecipeById, deleteRecipe } from './api';
 import { useNotification } from './NotificationContext';
 import { useRole } from './RoleContext';
+import InlinePdfPreview from './InlinePdfPreview';
 
 const RecipeDetail = ({ refreshRecipes }) => {
   const { id } = useParams();
@@ -13,6 +14,7 @@ const RecipeDetail = ({ refreshRecipes }) => {
   const [recipe, setRecipe] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
   const defaultImage = '/default_image.png';
 
@@ -100,14 +102,15 @@ const RecipeDetail = ({ refreshRecipes }) => {
   );
   const stepsList = recipe.steps ? (
     recipe.steps.split('\n').map((step, index) => (
-      step.trim() && <li key={index}>{step}</li>
+      step.trim() && <li key={index} style={{ whiteSpace: 'pre-wrap' }}>{step}</li>
     )).filter(Boolean)
   ) : (
     <li>No steps provided</li>
   );
+  
   const platingGuideList = recipe.platingGuide ? (
     recipe.platingGuide.split('\n').map((guide, index) => (
-      guide.trim() && <li key={index}>{guide}</li>
+      guide.trim() && <li key={index} style={{ whiteSpace: 'pre-wrap' }}>{guide}</li>
     )).filter(Boolean)
   ) : (
     <li>No plating guide provided</li>
@@ -168,19 +171,22 @@ const RecipeDetail = ({ refreshRecipes }) => {
             </Button>
           </>
         )}
-        <Button
-          variant="outline-primary"
-          size="sm"
-          as={Link}
-          to={`/recipes/${id}/preview-pdf`}
-          onClick={(e) => {
-            e.preventDefault();
-            setTimeout(() => navigate(`/recipes/${id}/preview-pdf`), 500);
-          }}
+        <Button 
+          variant="outline-success" 
+          size="sm" 
+          onClick={() => setShowPdfPreview(true)}
+          className="me-2"
         >
-          Preview PDF
+          📄 Preview PDF
         </Button>
       </div>
+
+      {/* PDF Preview Modal */}
+      <InlinePdfPreview
+        recipeId={id}
+        show={showPdfPreview}
+        onHide={() => setShowPdfPreview(false)}
+      />
     </Container>
   );
 };

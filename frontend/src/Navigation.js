@@ -34,7 +34,7 @@ const Navigation = ({ user, onLogout, config }) => {
               <NavDropdown.Item as={Link} to="/reports/active-ingredients">🥕 Active Ingredients</NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/reports/active-recipes">✅ Active Recipes</NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/reports/inactive-recipes">❌ Inactive Recipes</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/reports/active-recipes-pdf">📄 Active Recipes PDF</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/reports/batch-pdf">📚 Batch PDF Generator</NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item as={Link} to="/changelog">📋 Change Log</NavDropdown.Item>
               {isAdmin && (
@@ -46,7 +46,7 @@ const Navigation = ({ user, onLogout, config }) => {
             {isAdmin && (
               <NavDropdown title="⚙️ Setups" id="setups-dropdown">
                 <NavDropdown.Item as={Link} to="/config">🔧 Configuration</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/edit-pdf-template">📝 PDF Template</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/canvas-editor">🎨 PDF Template Editor</NavDropdown.Item>
                 <NavDropdown.Item as={Link} to="/bulk-upload">📤 Bulk Upload</NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item as={Link} to="/users">👥 User Management</NavDropdown.Item>

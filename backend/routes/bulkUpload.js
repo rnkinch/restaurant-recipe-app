@@ -29,9 +29,12 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['.csv', '.xlsx', '.xls'];
+    const excludedTypes = ['.json', '.xml'];
     const ext = path.extname(file.originalname).toLowerCase();
     
-    if (allowedTypes.includes(ext)) {
+    if (excludedTypes.includes(ext)) {
+      cb(new Error('JSON and XML files are not allowed. Templates must be handled independently from file uploads.'), false);
+    } else if (allowedTypes.includes(ext)) {
       cb(null, true);
     } else {
       cb(new Error('Invalid file type. Only CSV, XLSX, and XLS files are allowed.'), false);
@@ -256,7 +259,9 @@ router.get('/supported-formats', authenticateToken, (req, res) => {
   res.json({
     success: true,
     formats: bulkUpload.supportedFormats,
-    maxFileSize: '10MB'
+    excludedFormats: bulkUpload.excludedFormats,
+    maxFileSize: '10MB',
+    note: 'JSON and XML formats are not supported for bulk uploads. Templates must be handled independently.'
   });
 });
 

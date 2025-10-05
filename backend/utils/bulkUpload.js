@@ -3,13 +3,33 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const { google } = require('googleapis');
 const Recipe = require('../models/Recipe');
+const Ingredient = require('../models/Ingredient');
 const ChangeLog = require('../models/ChangeLog');
 
 class BulkUploadUtility {
   constructor() {
+    // Exclude JSON and XML from supported formats - templates must be handled independently
     this.supportedFormats = ['csv', 'xlsx', 'xls'];
+    this.excludedFormats = ['json', 'xml']; // Explicitly excluded formats
     this.requiredFields = ['name', 'description', 'steps'];
     this.optionalFields = ['active', 'platingGuide', 'allergens', 'serviceTypes', 'ingredients'];
+  }
+
+  /**
+   * Validate file format is supported and not excluded
+   */
+  validateFileFormat(format) {
+    const normalizedFormat = format.toLowerCase();
+    
+    if (this.excludedFormats.includes(normalizedFormat)) {
+      throw new Error(`File format '${format}' is not allowed. Templates must be handled independently from file uploads.`);
+    }
+    
+    if (!this.supportedFormats.includes(normalizedFormat)) {
+      throw new Error(`Unsupported file format: ${format}. Supported formats: ${this.supportedFormats.join(', ')}`);
+    }
+    
+    return true;
   }
 
   /**
@@ -17,6 +37,9 @@ class BulkUploadUtility {
    */
   async parseFile(filePath, format) {
     try {
+      // Validate format is supported and not excluded
+      this.validateFileFormat(format);
+      
       switch (format.toLowerCase()) {
         case 'csv':
           return await this.parseCSV(filePath);
@@ -122,15 +145,24 @@ class BulkUploadUtility {
     // Validate ingredients if present
     if (recipeData.ingredients) {
       try {
-        const ingredients = typeof recipeData.ingredients === 'string' 
-          ? JSON.parse(recipeData.ingredients) 
-          : recipeData.ingredients;
+        let ingredients;
+        if (typeof recipeData.ingredients === 'string') {
+          // Try to parse as JSON first, then fall back to comma-separated
+          try {
+            ingredients = JSON.parse(recipeData.ingredients);
+          } catch {
+            // If not JSON, treat as comma-separated string (template format)
+            ingredients = recipeData.ingredients.split(/[,\n;]/).map(ing => ing.trim()).filter(ing => ing);
+          }
+        } else {
+          ingredients = recipeData.ingredients;
+        }
         
         if (!Array.isArray(ingredients)) {
-          errors.push('Ingredients must be an array');
+          errors.push('Ingredients must be an array or comma-separated string');
         }
       } catch (e) {
-        errors.push('Invalid ingredients format. Expected JSON array');
+        errors.push('Invalid ingredients format. Expected JSON array or comma-separated string');
       }
     }
 
@@ -141,7 +173,7 @@ class BulkUploadUtility {
   }
 
   /**
-   * Process ingredients string into proper format
+   * Process ingredients string into proper format with database lookups
    */
   async processIngredients(ingredientsString) {
     if (!ingredientsString) return [];
@@ -164,24 +196,38 @@ class BulkUploadUtility {
 
       const processedIngredients = [];
       for (const ingredient of ingredients) {
+        let quantity = '';
+        let measure = '';
+        let ingredientName = '';
+
         if (typeof ingredient === 'string') {
           // Parse string format: "quantity measure ingredient" or just "ingredient"
           const parts = ingredient.trim().split(/\s+/);
           if (parts.length >= 3) {
-            processedIngredients.push({
-              quantity: parts[0],
-              measure: parts[1],
-              ingredient: parts.slice(2).join(' ')
-            });
+            quantity = parts[0];
+            measure = parts[1];
+            ingredientName = parts.slice(2).join(' ');
           } else {
-            processedIngredients.push({
-              quantity: '',
-              measure: '',
-              ingredient: ingredient
-            });
+            ingredientName = ingredient;
+            // Default values for required fields
+            quantity = '1';
+            measure = 'unit';
           }
         } else if (typeof ingredient === 'object') {
-          processedIngredients.push(ingredient);
+          quantity = ingredient.quantity || '1';
+          measure = ingredient.measure || 'unit';
+          ingredientName = ingredient.ingredient || ingredient.name || '';
+        }
+
+        if (ingredientName) {
+          // Look up or create ingredient in database
+          const ingredientDoc = await this.findOrCreateIngredient(ingredientName);
+          
+          processedIngredients.push({
+            quantity: quantity,
+            measure: measure,
+            ingredient: ingredientDoc._id
+          });
         }
       }
 
@@ -189,6 +235,44 @@ class BulkUploadUtility {
     } catch (error) {
       console.error('Error processing ingredients:', error);
       return [];
+    }
+  }
+
+  /**
+   * Find existing ingredient or create new one
+   */
+  async findOrCreateIngredient(ingredientName) {
+    try {
+      // Try to find existing ingredient
+      let ingredient = await Ingredient.findOne({ 
+        name: { $regex: new RegExp(`^${ingredientName.trim()}$`, 'i') } 
+      });
+
+      if (!ingredient) {
+        // Create new ingredient - we need a default purveyor
+        // First, try to find any active purveyor
+        const Purveyor = require('../models/Purveyor');
+        const defaultPurveyor = await Purveyor.findOne({ active: true });
+        
+        if (!defaultPurveyor) {
+          throw new Error(`No active purveyor found. Cannot create ingredient '${ingredientName}' without a purveyor.`);
+        }
+
+        // Create new ingredient
+        ingredient = new Ingredient({
+          name: ingredientName.trim(),
+          purveyor: defaultPurveyor._id,
+          active: true
+        });
+        
+        await ingredient.save();
+        console.log(`Created new ingredient: ${ingredientName}`);
+      }
+
+      return ingredient;
+    } catch (error) {
+      console.error(`Error finding/creating ingredient '${ingredientName}':`, error);
+      throw new Error(`Failed to process ingredient '${ingredientName}': ${error.message}`);
     }
   }
 
@@ -343,7 +427,7 @@ class BulkUploadUtility {
   }
 
   /**
-   * Get template for bulk upload
+   * Get template for bulk upload (non-JSON/XML formats only)
    */
   getTemplate() {
     return {
@@ -364,7 +448,7 @@ class BulkUploadUtility {
         steps: '1. Step one\n2. Step two\n3. Step three',
         platingGuide: 'Plate with garnish and sauce',
         active: 'true',
-        ingredients: '[{"quantity":"1","measure":"cup","ingredient":"flour"},{"quantity":"2","measure":"tbsp","ingredient":"sugar"}]',
+        ingredients: '1 cup flour, 2 tbsp sugar, 1 tsp salt, thyme',
         allergens: 'gluten,dairy',
         serviceTypes: 'dinner,lunch',
         image: 'optional-image-url.jpg'
@@ -374,11 +458,17 @@ class BulkUploadUtility {
         optional: ['platingGuide', 'active', 'ingredients', 'allergens', 'serviceTypes', 'image'],
         formats: {
           active: 'true/false, 1/0, yes/no',
-          ingredients: 'JSON array or comma-separated strings',
+          ingredients: 'Comma-separated strings (format: "quantity measure ingredient" or just "ingredient")',
           allergens: 'Comma-separated list',
           serviceTypes: 'Comma-separated list'
-        }
-      }
+        },
+        notes: {
+          ingredients: 'Ingredients will be automatically created in the database if they don\'t exist. Use format: "1 cup flour" or just "flour" for ingredients without specific quantities.'
+        },
+        note: 'JSON and XML formats are not supported for bulk uploads. Templates must be handled independently.'
+      },
+      supportedFormats: this.supportedFormats,
+      excludedFormats: this.excludedFormats
     };
   }
 }

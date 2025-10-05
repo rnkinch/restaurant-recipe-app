@@ -23,6 +23,7 @@ const BulkUpload = () => {
   const [success, setSuccess] = useState(null);
   const [skipDuplicates, setSkipDuplicates] = useState(true);
   const [supportedFormats, setSupportedFormats] = useState([]);
+  const [excludedFormats, setExcludedFormats] = useState([]);
   const [template, setTemplate] = useState(null);
   
   // Google Sheets state
@@ -46,6 +47,7 @@ const BulkUpload = () => {
       ]);
       
       setSupportedFormats(formatsResponse.formats);
+      setExcludedFormats(formatsResponse.excludedFormats || []);
       setTemplate(templateResponse.template);
     } catch (err) {
       setError('Failed to load upload configuration');
@@ -221,6 +223,11 @@ const BulkUpload = () => {
                         />
                         <Form.Text className="text-muted">
                           Supported formats: {supportedFormats.join(', ').toUpperCase()}
+                          {excludedFormats.length > 0 && (
+                            <span className="text-danger">
+                              <br />Excluded formats: {excludedFormats.join(', ').toUpperCase()} (templates must be handled independently)
+                            </span>
+                          )}
                         </Form.Text>
                       </Form.Group>
 
@@ -267,6 +274,11 @@ const BulkUpload = () => {
                             Download CSV Template
                           </Button>
                           <div className="small">
+                            {template?.instructions?.note && (
+                              <Alert variant="warning" className="small mb-3">
+                                {template.instructions.note}
+                              </Alert>
+                            )}
                             <strong>Required fields:</strong>
                             <ul className="mb-2">
                               {template?.instructions?.required?.map(field => (
@@ -274,11 +286,27 @@ const BulkUpload = () => {
                               ))}
                             </ul>
                             <strong>Optional fields:</strong>
-                            <ul>
+                            <ul className="mb-2">
                               {template?.instructions?.optional?.map(field => (
                                 <li key={field}>{field}</li>
                               ))}
                             </ul>
+                            <strong>Supported formats:</strong>
+                            <ul className="mb-2">
+                              {template?.supportedFormats?.map(format => (
+                                <li key={format}>{format.toUpperCase()}</li>
+                              ))}
+                            </ul>
+                            {template?.instructions?.notes && (
+                              <>
+                                <strong>Important Notes:</strong>
+                                <ul>
+                                  {Object.entries(template.instructions.notes).map(([key, note]) => (
+                                    <li key={key}><strong>{key}:</strong> {note}</li>
+                                  ))}
+                                </ul>
+                              </>
+                            )}
                           </div>
                         </Card.Body>
                       </Card>

@@ -95,6 +95,9 @@ const RecipeForm = ({ refreshRecipes }) => {
           if (window.location.pathname.includes('/copy')) {
             newName += ' (Copy)';
           }
+          console.log('Frontend loading steps:', JSON.stringify(recipeData.steps));
+          console.log('Frontend loading platingGuide:', JSON.stringify(recipeData.platingGuide));
+          
           setFormData({
             name: newName,
             ingredients: recipeData.ingredients?.map(ing => ({
@@ -238,6 +241,9 @@ const RecipeForm = ({ refreshRecipes }) => {
       }
 
       const formDataToSend = new FormData();
+      console.log('Frontend sending steps:', JSON.stringify(formData.steps));
+      console.log('Frontend sending platingGuide:', JSON.stringify(formData.platingGuide));
+      
       formDataToSend.append('name', formData.name);
       formDataToSend.append('steps', formData.steps);
       formDataToSend.append('platingGuide', formData.platingGuide);
@@ -373,12 +379,14 @@ const RecipeForm = ({ refreshRecipes }) => {
               <Form.Label style={headerStyle}>Preparation Steps</Form.Label>
               <Form.Control
                 as="textarea"
-                rows={4}
+                rows={6}
                 name="steps"
                 value={formData.steps}
                 onChange={handleInputChange}
                 required
                 className="editable-field"
+                style={{ whiteSpace: 'pre-wrap' }}
+                placeholder="Enter preparation steps with line breaks..."
               />
             </Form.Group>
             <hr style={hrStyle} />
@@ -386,12 +394,14 @@ const RecipeForm = ({ refreshRecipes }) => {
               <Form.Label style={headerStyle}>Plating Guide</Form.Label>
               <Form.Control
                 as="textarea"
-                rows={4}
+                rows={6}
                 name="platingGuide"
                 value={formData.platingGuide}
                 onChange={handleInputChange}
                 required
                 className="editable-field"
+                style={{ whiteSpace: 'pre-wrap' }}
+                placeholder="Enter plating guide with line breaks..."
               />
             </Form.Group>
             <hr style={hrStyle} />

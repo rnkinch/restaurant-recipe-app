@@ -90,15 +90,26 @@ const validateField = (value, rules) => {
 };
 
 // Sanitize input to prevent XSS and other attacks
-const sanitizeInput = (input) => {
+const sanitizeInput = (input, preserveLineBreaks = false) => {
   if (typeof input !== 'string') return input;
   
-  return input
-    .trim()
-    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+  let sanitized = input
     .replace(/[<>]/g, '') // Remove potential HTML tags
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/on\w+=/gi, ''); // Remove event handlers
+  
+  if (preserveLineBreaks) {
+    // Preserve ALL formatting exactly as typed - no changes to whitespace
+    // Only remove potential security threats
+    sanitized = sanitized; // Keep exactly as is
+  } else {
+    // Normal sanitization for other fields
+    sanitized = sanitized
+      .trim()
+      .replace(/\s+/g, ' '); // Replace multiple spaces with single space
+  }
+  
+  return sanitized;
 };
 
 // Sanitize object recursively
@@ -112,7 +123,13 @@ const sanitizeObject = (obj) => {
   if (typeof obj === 'object') {
     const sanitized = {};
     for (const [key, value] of Object.entries(obj)) {
-      sanitized[key] = sanitizeObject(value);
+      // Preserve line breaks for steps and platingGuide fields
+      const preserveLineBreaks = key === 'steps' || key === 'platingGuide';
+      if (typeof value === 'string') {
+        sanitized[key] = sanitizeInput(value, preserveLineBreaks);
+      } else {
+        sanitized[key] = sanitizeObject(value);
+      }
     }
     return sanitized;
   }

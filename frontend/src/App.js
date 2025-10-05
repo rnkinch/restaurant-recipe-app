@@ -5,13 +5,13 @@ import RecipeList from './RecipeList';
 import RecipeDetail from './RecipeDetail';
 import RecipeForm from './RecipeForm';
 import Purveyors from './Purveyors';
-import PdfEditorWrapper from './PdfEditorWrapper';
-import { PdfPreview } from './PdfPreview';
+import CanvasEditorWrapper from './CanvasEditorWrapper';
+import RecipePdfPreview from './RecipePdfPreview';
+import BatchPdfGenerator from './BatchPdfGenerator';
 import SetupConfig from './SetupConfig';
 import ActiveRecipesReport from './ActiveRecipesReport';
 import InactiveRecipesReport from './InactiveRecipesReport';
 import ActiveIngredientsReport from './ActiveIngredientsReport';
-import ActiveRecipesPDFReport from './ActiveRecipesPDFReport';
 import Login from './Login';
 import ChangeLog from './ChangeLog';
 import UserManagement from './UserManagement';
@@ -180,13 +180,13 @@ function AppContent() {
                   <Route path="/add" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
                   <Route path="/edit/:id" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
                   <Route path="/copy/:id" element={<RecipeForm refreshRecipes={refreshRecipes} />} />
-                  <Route path="/edit-pdf-template" element={<PdfEditorWrapper />} />
-                  <Route path="/recipes/:id/preview-pdf" element={<PdfPreview />} />
+                  <Route path="/canvas-editor" element={<CanvasEditorWrapper />} />
+                  <Route path="/recipes/:id/preview-pdf" element={<RecipePdfPreview />} />
                   <Route path="/recipe/:id" element={<RecipeDetail refreshRecipes={refreshRecipes} />} />
                   <Route path="/reports/active-ingredients" element={<ActiveIngredientsReport />} />
                   <Route path="/reports/active-recipes" element={<ActiveRecipesReport />} />
                   <Route path="/reports/inactive-recipes" element={<InactiveRecipesReport />} />
-                  <Route path="/reports/active-recipes-pdf" element={<ActiveRecipesPDFReport />} />
+                  <Route path="/reports/batch-pdf" element={<BatchPdfGenerator />} />
                   <Route path="/reports/users" element={<UserReport />} />
                   <Route path="/purveyors" element={<Purveyors />} />
                   <Route path="/changelog" element={<ChangeLog />} />

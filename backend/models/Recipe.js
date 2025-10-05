@@ -36,14 +36,12 @@ const RecipeSchema = new mongoose.Schema({
   steps: { 
     type: String, 
     required: [true, 'Preparation steps are required'],
-    trim: true,
     minlength: [10, 'Preparation steps must be at least 10 characters'],
     maxlength: [2000, 'Preparation steps cannot exceed 2000 characters']
   },
   platingGuide: { 
     type: String, 
     required: [true, 'Plating guide is required'],
-    trim: true,
     minlength: [5, 'Plating guide must be at least 5 characters'],
     maxlength: [1000, 'Plating guide cannot exceed 1000 characters']
   },
