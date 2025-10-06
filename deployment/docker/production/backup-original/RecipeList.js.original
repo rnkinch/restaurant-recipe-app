@@ -56,11 +56,9 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
       finalUrl = `${apiUrl}${imgPath}`;
     }
     
-    // Only add cache-busting for development environment
-    if (process.env.NODE_ENV === 'development') {
-      const cacheBuster = `?t=${Date.now()}`;
-      finalUrl += cacheBuster;
-    }
+    // Add cache-busting parameter to prevent browser caching issues
+    const cacheBuster = `?t=${Date.now()}`;
+    finalUrl += cacheBuster;
     
     console.log(`Recipe ${recipe._id}: original="${imgPath}" -> final="${finalUrl}"`);
     return finalUrl;
