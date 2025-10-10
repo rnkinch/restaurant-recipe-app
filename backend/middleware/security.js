@@ -14,24 +14,24 @@ const createRateLimit = (windowMs, max, message) => {
   });
 };
 
-// General API rate limiting - relaxed for development
+// General API rate limiting - relaxed for development and production
 const generalLimiter = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  process.env.NODE_ENV === 'development' ? 1000 : 100, // 1000 requests in dev, 100 in production
+  process.env.NODE_ENV === 'development' ? 1000 : 500, // 1000 requests in dev, 500 in production
   'Too many requests from this IP, please try again later.'
 );
 
-// Strict rate limiting for auth endpoints - relaxed for development
+// Strict rate limiting for auth endpoints - relaxed for development and production
 const authLimiter = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  process.env.NODE_ENV === 'development' ? 50 : 5, // 50 requests in dev, 5 in production
+  process.env.NODE_ENV === 'development' ? 50 : 20, // 50 requests in dev, 20 in production
   'Too many authentication attempts, please try again later.'
 );
 
-// File upload rate limiting - relaxed for development
+// File upload rate limiting - relaxed for development and production
 const uploadLimiter = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  process.env.NODE_ENV === 'development' ? 100 : 10, // 100 uploads in dev, 10 in production
+  process.env.NODE_ENV === 'development' ? 100 : 50, // 100 uploads in dev, 50 in production
   'Too many file uploads, please try again later.'
 );
 
