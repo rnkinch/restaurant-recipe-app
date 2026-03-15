@@ -11,7 +11,8 @@ require('dotenv').config({ quiet: true });
 const { 
   generalLimiter, 
   authLimiter, 
-  uploadLimiter, 
+  uploadLimiter,
+  aiAnalysisLimiter,
   securityHeaders, 
   sanitizeInput, 
   noSqlInjectionProtection,
@@ -24,6 +25,7 @@ const { logRecipeChange, captureChanges, logRecipeUpdate, logUpdateResult } = re
 const { metricsMiddleware } = require('./middleware/metrics');
 const { register } = require('./utils/metrics');
 const logger = require('./utils/logger');
+const ChangeLog = require('./models/ChangeLog');
 
 const app = express();
 
@@ -33,8 +35,6 @@ const allowedOrigins = [
   ...(process.env.NODE_ENV === 'development' ? [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    'http://192.168.68.129:3000', // Your Windows host IP
-    'http://172.30.184.138:3000', // Your WSL local IP
   ] : []),
   // Production origins
   process.env.FRONTEND_URL,
@@ -49,7 +49,7 @@ app.use(cors({
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      console.warn('CORS blocked request from origin:', origin);
+      logger.warn('CORS blocked request from origin: ' + origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -62,6 +62,10 @@ app.use(cors({
 // Serve static files FIRST - before ANY other middleware
 app.use(express.static(path.join(__dirname, 'public')));
 
+const uploadsDir = process.env.UPLOAD_DIR
+  ? path.resolve(process.env.UPLOAD_DIR)
+  : path.join(__dirname, 'uploads');
+
 // Serve uploads with CORS for allowed origins
 app.use('/uploads', (req, res, next) => {
   const origin = req.headers.origin;
@@ -72,10 +76,14 @@ app.use('/uploads', (req, res, next) => {
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Cache-Control', 'public, max-age=31536000');
-  console.log('Serving static file:', req.path, 'for origin:', origin);
+  // Don't cache logo.png so updates are reflected immediately
+  if (req.path === '/logo.png') {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  } else {
+    res.setHeader('Cache-Control', 'public, max-age=31536000');
+  }
   next();
-}, express.static('/app/uploads'));
+}, express.static(uploadsDir));
 
 // Apply security middleware to API routes only
 app.use(securityHeaders);
@@ -95,18 +103,17 @@ app.use(metricsMiddleware);
 
 // No additional error handler needed - express.static handles this
 
-const uploadsDir = '/app/uploads';
 try {
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
-    console.log('Created uploads directory:', uploadsDir);
+    logger.info('Created uploads directory: ' + uploadsDir);
   } else {
-    console.log('Uploads directory exists:', uploadsDir);
+    logger.info('Uploads directory exists: ' + uploadsDir);
   }
   fs.accessSync(uploadsDir, fs.constants.R_OK | fs.constants.W_OK);
-  console.log('Uploads directory readable/writable');
+  logger.info('Uploads directory readable/writable');
 } catch (err) {
-  console.error('Uploads directory setup failed:', err.message);
+  logger.error('Uploads directory setup failed: ' + err.message);
   process.exit(1);
 }
 
@@ -114,10 +121,9 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     try {
       fs.accessSync(uploadsDir, fs.constants.W_OK);
-      console.log('Multer destination accessible:', uploadsDir);
       cb(null, uploadsDir);
     } catch (err) {
-      console.error('Multer destination not writable:', err.message);
+      logger.error('Multer destination not writable: ' + err.message);
       cb(err);
     }
   },
@@ -126,7 +132,6 @@ const storage = multer.diskStorage({
       cb(null, 'logo.png'); // Force filename to logo.png for logo uploads
     } else {
       const filename = Date.now() + path.extname(file.originalname || '');
-      console.log('Saving file:', filename);
       cb(null, filename);
     }
   }
@@ -135,7 +140,7 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
   if (!['image/jpeg', 'image/png'].includes(file.mimetype)) {
     const err = new Error('Only JPEG/PNG allowed');
-    console.error(err.message);
+    logger.warn(err.message);
     cb(err, false);
   }
   cb(null, true);
@@ -154,56 +159,25 @@ const upload = multer({
 app.use((req, res, next) => {
   if (req.file) {
     const filePath = path.join(uploadsDir, req.file.filename);
-    console.log('Verifying file:', filePath);
     try {
       fs.accessSync(filePath, fs.constants.R_OK);
-      console.log('File saved and verified:', req.file.filename);
     } catch (err) {
-      console.error('Post-upload failure:', err.message);
+      logger.error('Post-upload failure: ' + err.message);
       req.fileError = err.message;
     }
   }
   next();
 });
 
-// MongoDB connection - use localhost for single-container deployment
+// MongoDB connection
 const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/recipeDB';
-mongoose.connect(mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(mongoUri)
   .then(() => logger.info('MongoDB connected successfully'))
   .catch(err => logger.error('MongoDB connection error:', err));
 
-const purveyorSchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true, trim: true }
-});
-purveyorSchema.index({ name: 'text' });
-const Purveyor = mongoose.model('Purveyor', purveyorSchema);
-
-const ingredientSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  purveyor: { type: mongoose.Schema.Types.ObjectId, ref: 'Purveyor', required: true }
-});
-ingredientSchema.index({ name: 'text' });
-ingredientSchema.index({ purveyor: 1 });
-const Ingredient = mongoose.model('Ingredient', ingredientSchema);
-
-const recipeSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  ingredients: [{
-    ingredient: { type: mongoose.Schema.Types.ObjectId, ref: 'Ingredient', required: true },
-    quantity: { type: String, required: true },
-    measure: { type: String, required: true }
-  }],
-  steps: { type: String, required: true, trim: true },
-  platingGuide: { type: String, required: true, trim: true },
-  allergens: [String],
-  serviceTypes: [String],
-  image: String,
-  active: { type: Boolean, default: true }
-});
-const Recipe = mongoose.model('Recipe', recipeSchema);
+const Purveyor = require('./models/Purveyor');
+const Ingredient = require('./models/Ingredient');
+const Recipe = require('./models/Recipe');
 
 const Config = require('./Config');
 const { User } = require('./middleware/auth');
@@ -273,29 +247,59 @@ app.post('/auth/login', authLimiter, async (req, res) => {
 app.get('/config', async (req, res) => {
   try {
     const config = await Config.findOrCreate();
-    res.json(config);
+    // Mask the API key — only expose whether one is set, not the value
+    const keyIsSet = !!(config.openaiApiKey && config.openaiApiKey.trim()) || !!process.env.OPENAI_API_KEY;
+    res.json({
+      appName: config.appName,
+      showLeftNav: config.showLeftNav,
+      logoUrl: config.logoUrl,
+      aiEnabled: config.aiEnabled,
+      hasApiKey: keyIsSet
+    });
   } catch (err) {
-    console.error('Get config error:', err.message);
+    logger.error('Get config error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
 app.put('/config', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { appName, showLeftNav } = req.body;
+    const { appName, showLeftNav, aiEnabled, openaiApiKey } = req.body;
     const config = await Config.findOne();
     if (!config) {
-      const newConfig = new Config({ appName, showLeftNav });
+      const newConfig = new Config({
+        appName,
+        showLeftNav,
+        aiEnabled: aiEnabled || false,
+        openaiApiKey: (openaiApiKey && openaiApiKey.trim()) ? openaiApiKey.trim() : null
+      });
       await newConfig.save();
-      res.json(newConfig);
-    } else {
-      config.appName = appName;
-      config.showLeftNav = showLeftNav;
-      await config.save();
-      res.json(config);
+      return res.json({
+        appName: newConfig.appName,
+        showLeftNav: newConfig.showLeftNav,
+        logoUrl: newConfig.logoUrl,
+        aiEnabled: newConfig.aiEnabled,
+        hasApiKey: !!(newConfig.openaiApiKey)
+      });
     }
+    config.appName = appName;
+    config.showLeftNav = showLeftNav;
+    config.aiEnabled = aiEnabled !== undefined ? aiEnabled : config.aiEnabled;
+    // Only update key if a new non-empty value was explicitly provided
+    if (openaiApiKey && openaiApiKey.trim()) {
+      config.openaiApiKey = openaiApiKey.trim();
+    }
+    // If openaiApiKey is absent from payload (undefined), leave existing key untouched
+    await config.save();
+    res.json({
+      appName: config.appName,
+      showLeftNav: config.showLeftNav,
+      logoUrl: config.logoUrl,
+      aiEnabled: config.aiEnabled,
+      hasApiKey: !!(config.openaiApiKey && config.openaiApiKey.trim())
+    });
   } catch (err) {
-    console.error('Update config error:', err.message);
+    logger.error('Update config error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -305,9 +309,18 @@ app.post('/config/logo', uploadLimiter, authenticateToken, requireAdmin, upload.
     if (!req.file) {
       return res.status(400).json({ error: 'No logo file provided' });
     }
-    res.status(201).json({ message: 'Logo uploaded successfully', filename: req.file.filename });
+    const logoUrl = `/uploads/${req.file.filename}`;
+    // Persist the logo path in the Config document
+    let config = await Config.findOne();
+    if (!config) {
+      config = new Config({ logoUrl });
+    } else {
+      config.logoUrl = logoUrl;
+    }
+    await config.save();
+    res.status(201).json({ message: 'Logo uploaded successfully', filename: req.file.filename, logoUrl });
   } catch (err) {
-    console.error('Upload logo error:', err.message);
+    logger.error('Upload logo error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -338,29 +351,23 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Metrics endpoint for Prometheus
-app.get('/metrics', async (req, res) => {
-  res.set('Content-Type', register.contentType);
-  res.end(await register.metrics());
-});
-
-// Apply metrics middleware to all routes (moved to top)
+// (metrics endpoint defined above, before auth middleware)
 
 // Test endpoint to check if uploads directory and files exist
 app.get('/test-uploads', (req, res) => {
   try {
-    const files = fs.readdirSync('/app/uploads');
+    const files = fs.readdirSync(uploadsDir);
     res.json({ 
       status: 'OK', 
-      uploadsDir: '/app/uploads',
-      files: files,
+      uploadsDir,
+      files,
       count: files.length 
     });
   } catch (err) {
     res.json({ 
       status: 'ERROR', 
       error: err.message,
-      uploadsDir: '/app/uploads'
+      uploadsDir
     });
   }
 });
@@ -383,7 +390,7 @@ app.get('/purveyors', authenticateToken, requireReadOnly, async (req, res) => {
     const purveyors = await Purveyor.find().sort({ name: 1 });
     res.json(purveyors);
   } catch (err) {
-    console.error('Get purveyors error:', err.message);
+    logger.error('Get purveyors error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -394,7 +401,7 @@ app.post('/purveyors', authenticateToken, requireEditPermission, sanitizeInputs,
     await purveyor.save();
     res.status(201).json(purveyor);
   } catch (err) {
-    console.error('Create purveyor error:', err.message);
+    logger.error('Create purveyor error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -405,7 +412,7 @@ app.put('/purveyors/:id', authenticateToken, requireEditPermission, sanitizeInpu
     if (!purveyor) return res.status(404).json({ error: 'Purveyor not found' });
     res.json(purveyor);
   } catch (err) {
-    console.error('Update purveyor error:', err.message);
+    logger.error('Update purveyor error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -416,7 +423,7 @@ app.delete('/purveyors/:id', authenticateToken, requireEditPermission, async (re
     if (!purveyor) return res.status(404).json({ error: 'Purveyor not found' });
     res.json({ message: 'Purveyor deleted' });
   } catch (err) {
-    console.error('Delete purveyor error:', err.message);
+    logger.error('Delete purveyor error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -427,7 +434,7 @@ app.get('/ingredients', authenticateToken, requireReadOnly, async (req, res) => 
     const ingredients = await Ingredient.find().populate('purveyor').sort({ name: 1 });
     res.json(ingredients);
   } catch (err) {
-    console.error('Get ingredients error:', err.message);
+    logger.error('Get ingredients error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -450,7 +457,7 @@ app.post('/ingredients', authenticateToken, requireEditPermission, sanitizeInput
     const populatedIngredient = await Ingredient.findById(ingredient._id).populate('purveyor');
     res.status(201).json(populatedIngredient);
   } catch (err) {
-    console.error('Create ingredient error:', err.message);
+    logger.error('Create ingredient error: ' + err.message);
     
     // Handle MongoDB duplicate key error
     if (err.code === 11000) {
@@ -470,7 +477,7 @@ app.put('/ingredients/:id', authenticateToken, requireEditPermission, sanitizeIn
     const populatedIngredient = await Ingredient.findById(ingredient._id).populate('purveyor');
     res.json(populatedIngredient);
   } catch (err) {
-    console.error('Update ingredient error:', err.message);
+    logger.error('Update ingredient error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -481,7 +488,7 @@ app.delete('/ingredients/:id', authenticateToken, requireEditPermission, async (
     if (!ingredient) return res.status(404).json({ error: 'Ingredient not found' });
     res.json({ message: 'Ingredient deleted' });
   } catch (err) {
-    console.error('Delete ingredient error:', err.message);
+    logger.error('Delete ingredient error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -499,7 +506,7 @@ app.get('/recipes', authenticateToken, requireReadOnly, async (req, res) => {
     }).sort({ name: 1 });
     res.json(recipes);
   } catch (err) {
-    console.error('Get recipes error:', err.message);
+    logger.error('Get recipes error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -513,7 +520,7 @@ app.get('/recipes/:id', authenticateToken, requireReadOnly, async (req, res) => 
     if (!recipe) return res.status(404).json({ error: 'Recipe not found' });
     res.json(recipe);
   } catch (err) {
-    console.error('Get recipe by ID error:', err.message);
+    logger.error('Get recipe by ID error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -549,7 +556,7 @@ app.post('/recipes', uploadLimiter, authenticateToken, requireEditPermission, up
     });
     res.status(201).json(populatedRecipe);
   } catch (err) {
-    console.error('Create recipe error:', err.message);
+    logger.error('Create recipe error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -592,7 +599,7 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission,
     try {
       recipe = await Recipe.findByIdAndUpdate(req.params.id, recipeData, { new: true });
     } catch (dbError) {
-      console.error('Database update error:', dbError);
+      logger.error('Database update error: ' + dbError);
       return res.status(500).json({ error: 'Database update failed' });
     }
     
@@ -607,7 +614,7 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission,
         populate: { path: 'purveyor' }
       });
     } catch (populateError) {
-      console.error('Population error:', populateError);
+      logger.error('Population error: ' + populateError);
       return res.status(500).json({ error: 'Failed to populate recipe data' });
     }
     
@@ -617,7 +624,7 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission,
     // Check for image changes and log them separately
     if (req.file) {
       // Image was uploaded
-      console.log('Image upload detected:', { 
+      logger.info('Image upload detected', { 
         recipeId: req.params.id, 
         recipeName: recipe.name,
         from: originalRecipe.image,
@@ -635,7 +642,7 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission,
       });
     } else if (removeImage === 'true' && originalRecipe.image) {
       // Image was removed
-      console.log('Image removal detected:', { 
+      logger.info('Image removal detected', { 
         recipeId: req.params.id, 
         recipeName: recipe.name,
         from: originalRecipe.image,
@@ -658,7 +665,7 @@ app.put('/recipes/:id', uploadLimiter, authenticateToken, requireEditPermission,
     
     res.json(populatedRecipe);
   } catch (err) {
-    console.error('Recipe update error:', err.message);
+    logger.error('Recipe update error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -670,7 +677,6 @@ app.delete('/recipes/:id', authenticateToken, requireEditPermission, logRecipeCh
     if (!recipe) return res.status(404).json({ error: 'Recipe not found' });
     
     // Log the deletion with the recipe name
-    const ChangeLog = require('./models/ChangeLog');
     await ChangeLog.create({
       user: req.user.userId || req.user._id,
       username: req.user.username,
@@ -687,12 +693,12 @@ app.delete('/recipes/:id', authenticateToken, requireEditPermission, logRecipeCh
     if (recipe.image) {
       const imagePath = path.join(uploadsDir, path.basename(recipe.image));
       fs.unlink(imagePath, (err) => {
-        if (err) console.error('Failed to delete image:', err.message);
+        if (err) logger.warn('Failed to delete image: ' + err.message);
       });
     }
     res.json({ message: 'Recipe deleted' });
   } catch (err) {
-    console.error('Delete recipe error:', err.message);
+    logger.error('Delete recipe error: ' + err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -712,24 +718,45 @@ app.use('/api/users', userRoutes);
 const bulkUploadRoutes = require('./routes/bulkUpload');
 app.use('/api/bulk-upload', bulkUploadRoutes);
 
+// Chat routes
+const chatRouter = require('./routes/chat');
+app.use('/', chatRouter);
+
+// Daily Special AI Chat routes
+const dailySpecialRouter = require('./routes/dailySpecial');
+app.use('/', dailySpecialRouter);
+
+// Allergen analysis route
+const { analyzeAllergens } = require('./controllers/allergenController');
+app.post('/api/recipes/:id/analyze-allergens', aiAnalysisLimiter, authenticateToken, analyzeAllergens);
+
+// Nutrition analysis route
+const { analyzeNutrition } = require('./controllers/nutritionController');
+app.post('/api/recipes/:id/analyze-nutrition', aiAnalysisLimiter, authenticateToken, analyzeNutrition);
+
+// Seasonal variations analysis route
+const { analyzeSeasonalVariations } = require('./controllers/seasonalController');
+app.post('/api/recipes/:id/analyze-seasonal', aiAnalysisLimiter, authenticateToken, analyzeSeasonalVariations);
+
 // Schedule cleanup of old change logs (runs daily at 2 AM)
 const schedule = require('node-schedule');
-const ChangeLog = require('./models/ChangeLog');
 
 // Clean up old change logs daily at 2 AM
 schedule.scheduleJob('0 2 * * *', async () => {
   try {
-    console.log('Running scheduled change log cleanup...');
+    logger.info('Running scheduled change log cleanup...');
     await ChangeLog.cleanupOldLogs();
   } catch (error) {
-    console.error('Error during scheduled cleanup:', error);
+    logger.error('Error during scheduled cleanup:', error);
   }
 });
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT} at ${new Date().toISOString()}`);
-  console.log(`Backend API available at: http://localhost:${PORT}`);
-  console.log(`Backend API available on network at: http://[YOUR_IP]:${PORT}`);
-  console.log('📋 Change log system initialized with 14-day retention policy');
-});
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    logger.info(`Server running on port ${PORT}`);
+    logger.info('Change log system initialized with 14-day retention policy');
+  });
+}
+
+module.exports = app;

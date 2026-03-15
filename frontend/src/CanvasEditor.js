@@ -60,7 +60,7 @@ const CanvasEditor = ({ recipe, onSave, onExport }) => {
   // Load saved canvas template
   const loadSavedTemplate = useCallback(async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.184.138:8080';
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
       const response = await fetch(`${apiUrl}/templates/canvas/default`, {
         method: 'GET',
         headers: {
@@ -712,7 +712,7 @@ const CanvasEditor = ({ recipe, onSave, onExport }) => {
   // Save template
   const handleSave = useCallback(async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.184.138:8080';
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
       
       
       // Create a completely isolated, serializable copy of shapes

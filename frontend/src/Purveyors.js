@@ -31,8 +31,6 @@ const Purveyors = () => {
           getPurveyors(),
           getIngredients()
         ]);
-        console.log('Loaded purveyors:', purveyorsData);
-        console.log('Loaded ingredients:', ingredientsData);
         const validPurveyors = purveyorsData.filter(p => p._id && typeof p._id === 'string' && p.name && typeof p.name === 'string');
         const purveyorsWithIngredients = validPurveyors.map(p => ({
           ...p,
@@ -107,7 +105,6 @@ const Purveyors = () => {
       setError(null);
       showSuccess('Purveyor deleted successfully!');
     } catch (err) {
-      console.error('Delete purveyor error:', err.message);
       showError(err.response?.data?.error || 'Failed to delete purveyor: ' + err.message);
     }
   };
@@ -119,9 +116,7 @@ const Purveyors = () => {
         showError('Ingredient name and purveyor are required');
         return;
       }
-      console.log('Adding ingredient:', newIngredient);
       const ingredient = await createIngredient(newIngredient.name, newIngredient.purveyorId);
-      console.log('Created ingredient:', ingredient);
       setIngredients([...ingredients, ingredient]);
       setPurveyors(purveyors.map(p => {
         if (p._id === newIngredient.purveyorId) {
@@ -134,7 +129,6 @@ const Purveyors = () => {
       setError(null);
       showSuccess('Ingredient added successfully!');
     } catch (err) {
-      console.error('Add ingredient error:', err);
       const errorMessage = err.response?.data?.error || err.message;
       showError(errorMessage);
     }
@@ -180,7 +174,6 @@ const Purveyors = () => {
       setError(null);
       showSuccess('Ingredient updated successfully!');
     } catch (err) {
-      console.error('Edit ingredient error:', err.message);
       showError('Failed to edit ingredient: ' + err.message);
     }
   };
@@ -202,7 +195,6 @@ const Purveyors = () => {
       setError(null);
       showSuccess('Ingredient deleted successfully!');
     } catch (err) {
-      console.error('Delete ingredient error:', err.message);
       showError('Failed to delete ingredient: ' + err.message);
     }
   };

@@ -33,16 +33,6 @@ const RecipePdfPreview = () => {
     'anonymous'
   );
 
-  // Debug logging for image loading
-  useEffect(() => {
-    console.log('RecipePdfPreview - Image states:', {
-      recipe: recipe?.name,
-      recipeImage: recipe?.image,
-      imageLoaded: image !== null,
-      watermarkLoaded: watermarkImage !== null
-    });
-  }, [recipe, image, watermarkImage]);
-
   // Load recipe data
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -50,7 +40,6 @@ const RecipePdfPreview = () => {
         const recipeData = await getRecipeById(id);
         setRecipe(recipeData);
       } catch (error) {
-        console.error('Failed to load recipe:', error);
         showError(`Failed to load recipe: ${error.message}`);
       }
     };
@@ -66,7 +55,7 @@ const RecipePdfPreview = () => {
 
     try {
       // Try to load saved template first
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.184.138:8080';
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
       const response = await fetch(`${apiUrl}/templates/canvas/default`);
       
       if (response.ok) {
@@ -117,10 +106,8 @@ const RecipePdfPreview = () => {
         }
       }
     } catch (error) {
-      console.log('Could not load saved template, using default layout:', error);
-    }
-
-    // Fallback to default layout if no saved template
+      // Could not load saved template, using default layout
+    }    // Fallback to default layout if no saved template
     const recipeShapes = [
       // Recipe Title
       {
@@ -378,13 +365,10 @@ const RecipePdfPreview = () => {
   // Export to PDF
   const handleExportToPDF = useCallback(async () => {
     if (!stageRef.current) {
-      console.error('Stage ref not available');
       return;
     }
 
     try {
-      console.log('Starting PDF export...');
-      
       // Wait a moment to ensure canvas is fully rendered
       await new Promise(resolve => setTimeout(resolve, 300));
       
@@ -428,9 +412,7 @@ const RecipePdfPreview = () => {
         URL.revokeObjectURL(pdfUrl);
       }, 10000);
 
-      console.log('PDF preview opened successfully');
     } catch (error) {
-      console.error('Export failed:', error);
       showError(`PDF export failed: ${error.message}`);
     }
   }, [recipe, showError]);
@@ -438,14 +420,11 @@ const RecipePdfPreview = () => {
   // Generate PDF and auto-open in new window (original working approach)
   const handleGeneratePDFForPreview = useCallback(async () => {
     if (!stageRef.current) {
-      console.error('Stage ref not available');
       setError('Canvas not ready');
       return;
     }
 
     try {
-      console.log('Starting PDF generation...');
-      
       // Wait a moment to ensure canvas is fully rendered
       await new Promise(resolve => setTimeout(resolve, 300));
       
@@ -489,9 +468,7 @@ const RecipePdfPreview = () => {
         URL.revokeObjectURL(pdfUrl);
       }, 10000);
 
-      console.log('PDF preview opened successfully');
     } catch (error) {
-      console.error('PDF generation failed:', error);
       setError(`PDF generation failed: ${error.message}`);
     }
   }, [recipe]);

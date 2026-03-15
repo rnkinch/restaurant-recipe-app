@@ -1,4 +1,5 @@
 const client = require('prom-client');
+const logger = require('./logger');
 
 // Create a Registry to register the metrics
 const register = new client.Registry();
@@ -104,6 +105,9 @@ const recordBulkUpload = (status) => {
 const updateDatabaseMetrics = async () => {
   try {
     const mongoose = require('mongoose');
+    // Skip if not connected
+    if (mongoose.connection.readyState !== 1) return;
+
     const Recipe = require('../models/Recipe');
     const Ingredient = require('../models/Ingredient');
     const Purveyor = require('../models/Purveyor');
@@ -126,12 +130,16 @@ const updateDatabaseMetrics = async () => {
     databaseConnections.set(connectionState === 1 ? 1 : 0);
     
   } catch (error) {
-    console.error('Error updating database metrics:', error);
+    // Silently ignore connection errors (e.g., during test teardown)
+    if (error.name !== 'MongoNotConnectedError' && error.name !== 'MongoServerClosedError') {
+      logger.error('Error updating database metrics:', error);
+    }
   }
 };
 
-// Update metrics every 30 seconds
-setInterval(updateDatabaseMetrics, 30000);
+// Update metrics every 30 seconds (unref so it doesn't block process exit)
+const metricsInterval = setInterval(updateDatabaseMetrics, 30000);
+if (metricsInterval.unref) metricsInterval.unref();
 
 module.exports = {
   register,

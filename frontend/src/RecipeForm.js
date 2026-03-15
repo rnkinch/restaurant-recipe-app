@@ -13,7 +13,7 @@ const RecipeForm = ({ refreshRecipes }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { confirm } = useNotification();
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.184.138:8080';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
   const [formData, setFormData] = useState({
     name: '',
     ingredients: [],
@@ -43,9 +43,9 @@ const RecipeForm = ({ refreshRecipes }) => {
     const checkImage = () => {
       return new Promise((resolve) => {
         const img = new Image();
-        img.onload = () => resolve(`http://172.30.184.138:3000${defaultImage}`);
+        img.onload = () => resolve(`http://localhost:3000${defaultImage}`);
         img.onerror = () => resolve(fallbackImage);
-        img.src = `http://172.30.184.138:3000${defaultImage}`;
+        img.src = `http://localhost:3000${defaultImage}`;
       });
     };
 
@@ -54,24 +54,21 @@ const RecipeForm = ({ refreshRecipes }) => {
       setPreviewImage(validDefaultImage);
     })();
 
-    console.log('RecipeForm useEffect triggered for ID:', id);
     const loadData = async () => {
       try {
         const [purveyorsPromise, ingredientsPromise, recipePromise] = await Promise.all([
-          getPurveyors().catch(err => { console.error('getPurveyors error:', err); throw err; }),
-          getIngredients().catch(err => { console.error('getIngredients error:', err); throw err; }),
-          id ? getRecipeById(id).catch(err => { console.error('getRecipeById error:', err); throw err; }) : Promise.resolve(null)
+          getPurveyors().catch(err => { throw err; }),
+          getIngredients().catch(err => { throw err; }),
+          id ? getRecipeById(id).catch(err => { throw err; }) : Promise.resolve(null)
         ]);
 
         const purveyorsData = Array.isArray(purveyorsPromise) ? purveyorsPromise : [];
-        console.log('Raw purveyors data:', purveyorsData);
         const validPurveyors = purveyorsData.map(p => {
           if (!p || typeof p !== 'object' || !p._id || typeof p._id !== 'string') {
             return null;
           }
           return { ...p, _id: p._id.toString() };
         }).filter(p => p !== null);
-        console.log('Processed purveyors:', validPurveyors);
         setPurveyors(validPurveyors);
 
         const ingredientsData = Array.isArray(ingredientsPromise) ? ingredientsPromise.map(i => ({
@@ -79,13 +76,11 @@ const RecipeForm = ({ refreshRecipes }) => {
           _id: i._id ? i._id.toString() : null
         })).filter(i => i._id) : [];
         setIngredientsList(ingredientsData);
-        console.log('Processed ingredientsList:', ingredientsData);
 
         if (id) {
           setLoading(true);
           setError(null);
           const recipeData = recipePromise;
-          console.log('Loaded recipe data:', recipeData);
           if (!recipeData || typeof recipeData !== 'object' || !recipeData._id) {
             setError('Recipe not found or invalid response from server');
             setLoading(false);
@@ -95,8 +90,6 @@ const RecipeForm = ({ refreshRecipes }) => {
           if (window.location.pathname.includes('/copy')) {
             newName += ' (Copy)';
           }
-          console.log('Frontend loading steps:', JSON.stringify(recipeData.steps));
-          console.log('Frontend loading platingGuide:', JSON.stringify(recipeData.platingGuide));
           
           setFormData({
             name: newName,
@@ -120,7 +113,6 @@ const RecipeForm = ({ refreshRecipes }) => {
           setLoading(false);
         }
       } catch (err) {
-        console.error('Load data error:', err.message);
         setError(`Failed to load data: ${err.message}`);
         setLoading(false);
       }
@@ -182,7 +174,6 @@ const RecipeForm = ({ refreshRecipes }) => {
   };
 
   const handleAddIngredient = (ingredient) => {
-    console.log('Adding ingredient to formData:', ingredient);
     setFormData(prev => ({
       ...prev,
       ingredients: [
@@ -219,7 +210,6 @@ const RecipeForm = ({ refreshRecipes }) => {
       }]);
       return createdIngredient;
     } catch (err) {
-      console.error('Error creating new ingredient:', err.message);
       throw err;
     }
   };
@@ -241,8 +231,6 @@ const RecipeForm = ({ refreshRecipes }) => {
       }
 
       const formDataToSend = new FormData();
-      console.log('Frontend sending steps:', JSON.stringify(formData.steps));
-      console.log('Frontend sending platingGuide:', JSON.stringify(formData.platingGuide));
       
       formDataToSend.append('name', formData.name);
       formDataToSend.append('steps', formData.steps);
@@ -266,21 +254,22 @@ const RecipeForm = ({ refreshRecipes }) => {
       
       formDataToSend.append('ingredients', JSON.stringify(processedIngredients));
 
-      console.log('Submitting formData:', formData);
       let response;
       if (id && !window.location.pathname.includes('/copy')) {
         response = await updateRecipe(id, formDataToSend);
       } else {
         response = await createRecipe(formDataToSend);
       }
-      console.log('Save response:', response);
-
-      if (refreshRecipes) refreshRecipes();
-      navigate('/');
-    } catch (err) {
-      console.error('Submit error:', err);
-      console.error('Error response:', err.response?.data);
       
+
+      if (refreshRecipes) refreshRecipes();      // Go back to the recipe detail if editing, otherwise go to recipe list
+      const isCopy = window.location.pathname.includes('/copy');
+      if (id && !isCopy) {
+        navigate(`/recipe/${id}`);
+      } else {
+        navigate(`/recipe/${response._id}`);
+      }
+    } catch (err) {
       // Extract validation errors if available
       if (err.response?.data?.details) {
         setValidationErrors(err.response.data.details);
@@ -301,7 +290,6 @@ const RecipeForm = ({ refreshRecipes }) => {
         if (refreshRecipes) refreshRecipes();
         navigate('/');
       } catch (err) {
-        console.error('Delete error:', err.message);
         setError(`Failed to delete recipe: ${err.message}`);
       }
     }

@@ -5,6 +5,7 @@ const { google } = require('googleapis');
 const Recipe = require('../models/Recipe');
 const Ingredient = require('../models/Ingredient');
 const ChangeLog = require('../models/ChangeLog');
+const logger = require('./logger');
 
 class BulkUploadUtility {
   constructor() {
@@ -50,7 +51,7 @@ class BulkUploadUtility {
           throw new Error(`Unsupported file format: ${format}`);
       }
     } catch (error) {
-      console.error('File parsing error:', error);
+      logger.error('File parsing error:', error);
       throw new Error(`Failed to parse file: ${error.message}`);
     }
   }
@@ -233,7 +234,7 @@ class BulkUploadUtility {
 
       return processedIngredients;
     } catch (error) {
-      console.error('Error processing ingredients:', error);
+      logger.error('Error processing ingredients:', error);
       return [];
     }
   }
@@ -266,12 +267,12 @@ class BulkUploadUtility {
         });
         
         await ingredient.save();
-        console.log(`Created new ingredient: ${ingredientName}`);
+        logger.info(`Created new ingredient: ${ingredientName}`);
       }
 
       return ingredient;
     } catch (error) {
-      console.error(`Error finding/creating ingredient '${ingredientName}':`, error);
+      logger.error(`Error finding/creating ingredient '${ingredientName}':`, error);
       throw new Error(`Failed to process ingredient '${ingredientName}': ${error.message}`);
     }
   }
@@ -401,7 +402,7 @@ class BulkUploadUtility {
               userAgent: options.userAgent || null
             });
           } catch (logError) {
-            console.error('Error logging bulk upload recipe creation:', logError);
+            logger.error('Error logging bulk upload recipe creation:', logError);
             // Don't fail the upload if logging fails
           }
         }

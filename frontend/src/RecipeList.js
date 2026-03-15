@@ -62,15 +62,10 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
       finalUrl += cacheBuster;
     }
     
-    console.log(`Recipe ${recipe._id}: original="${imgPath}" -> final="${finalUrl}"`);
     return finalUrl;
   };
 
-  const handleImageError = (e, recipeId) => {
-    console.error(`Failed to load image for recipe ${recipeId}:`, e.target.src);
-    
-    // For old images that don't exist, just show the default image
-    console.log(`Image not found for recipe ${recipeId}, showing default image`);
+  const handleImageError = (e) => {
     e.target.src = validDefaultImage;
   };
 
@@ -93,23 +88,17 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
       const updatedRecipes = await getRecipes();
       setRecipes(updatedRecipes);
     } catch (err) {
-      console.error('Error refreshing recipe list:', err.message);
+      // error handled silently; recipe list remains unchanged
     }
   };
 
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this recipe?')) {
-      console.log('Attempting to delete recipe with ID:', id);
-      console.log('Full recipe object:', recipes.find(r => r._id === id));
-      const requestUrl = `${apiUrl}/recipes/${id}`;
-      console.log('Sending DELETE request to:', requestUrl);
       deleteRecipe(id)
-        .then(response => {
-          console.log('Delete response:', response);
+        .then(() => {
           refreshRecipeList();
         })
         .catch(err => {
-          console.error('Error deleting recipe:', err.message, 'Status:', err.response?.status, 'Response data:', err.response?.data, 'Request URL:', requestUrl);
           showError('Failed to delete recipe: ' + err.message);
         });
     }
@@ -223,7 +212,7 @@ const RecipeList = ({ recipes, setRecipes, onSearch }) => {
                     variant="top" 
                     src={getImageSrc(recipe)} 
                     alt={recipe.name || 'No Image'} 
-                    onError={(e) => handleImageError(e, recipe._id)}
+                    onError={(e) => handleImageError(e)}
                     className="d-block mx-auto"
                     style={imageStyle}
                   />

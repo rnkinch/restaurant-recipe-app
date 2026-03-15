@@ -10,8 +10,6 @@ const RecipeFormIngredients = ({ formData, setFormData, ingredientsList, removeI
   );
 
   useEffect(() => {
-    console.log('formData.ingredients:', formData.ingredients);
-    console.log('validationErrors:', validationErrors);
     setLocalValidationErrors(prev =>
       formData.ingredients.map((ing, index) => {
         const quantityValidation = validateField(ing.quantity, VALIDATION_RULES.recipe.ingredient.quantity);

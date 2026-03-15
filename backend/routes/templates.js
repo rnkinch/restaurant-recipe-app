@@ -1,19 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const DefaultTemplate = require('../models/DefaultTemplate');
+const logger = require('../utils/logger');
 
 // Get default template
 router.get('/default', async (req, res) => {
   try {
     const defaultTpl = await DefaultTemplate.findOne({ name: 'recipe-default' });
     if (!defaultTpl) {
-      console.log('No default template found in database');
+      logger.info('No default template found in database');
       return res.json({ template: { fields: [] } });
     }
-    console.log('Serving default template:', JSON.stringify(defaultTpl, null, 2));
+    logger.info('Serving default template:', JSON.stringify(defaultTpl, null, 2));
     return res.json({ template: defaultTpl.template });
   } catch (err) {
-    console.error('Fetch default template error:', err.message, err.stack);
+    logger.error('Fetch default template error:', err.message, err.stack);
     res.status(500).json({ error: `Failed to fetch default template: ${err.message}` });
   }
 });
@@ -23,10 +24,10 @@ router.post('/default/save', async (req, res) => {
   try {
     const { template } = req.body;
     if (!template || !Array.isArray(template.fields)) {
-      console.error('Invalid template data:', JSON.stringify(req.body, null, 2));
+      logger.error('Invalid template data:', JSON.stringify(req.body, null, 2));
       return res.status(400).json({ error: 'Template data with fields array is required' });
     }
-    console.log('Saving default template:', JSON.stringify(template, null, 2));
+    logger.info('Saving default template:', JSON.stringify(template, null, 2));
     const updatedTemplate = await DefaultTemplate.findOneAndUpdate(
       { name: 'recipe-default' },
       { template },
@@ -34,7 +35,7 @@ router.post('/default/save', async (req, res) => {
     );
     res.json({ message: 'Default template saved', template: updatedTemplate.template });
   } catch (err) {
-    console.error('Save default template error:', err.message, err.stack);
+    logger.error('Save default template error:', err.message, err.stack);
     res.status(500).json({ error: `Failed to save default template: ${err.message}` });
   }
 });
@@ -68,7 +69,7 @@ router.get('/canvas', async (req, res) => {
     
     return res.json({ templates: templateList });
   } catch (err) {
-    console.error('Fetch canvas templates error:', err.message, err.stack);
+    logger.error('Fetch canvas templates error:', err.message, err.stack);
     res.status(500).json({ error: `Failed to fetch canvas templates: ${err.message}` });
   }
 });
@@ -84,10 +85,10 @@ router.get('/canvas/:templateId', async (req, res) => {
       return res.status(404).json({ error: 'Template not found' });
     }
     
-    console.log('Serving canvas template:', templateName);
+    logger.info('Serving canvas template:', templateName);
     return res.json({ template: template.template });
   } catch (err) {
-    console.error('Fetch canvas template error:', err.message, err.stack);
+    logger.error('Fetch canvas template error:', err.message, err.stack);
     res.status(500).json({ error: `Failed to fetch canvas template: ${err.message}` });
   }
 });
@@ -133,7 +134,7 @@ router.post('/canvas/create', async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('Create canvas template error:', err.message, err.stack);
+    logger.error('Create canvas template error:', err.message, err.stack);
     res.status(500).json({ error: `Failed to create canvas template: ${err.message}` });
   }
 });
@@ -171,7 +172,7 @@ router.post('/canvas/save', async (req, res) => {
       templateId: updatedTemplate.name.replace('canvas-', '')
     });
   } catch (err) {
-    console.error('Save canvas template error:', err.message, err.stack);
+    logger.error('Save canvas template error:', err.message, err.stack);
     res.status(500).json({ error: `Failed to save canvas template: ${err.message}` });
   }
 });
@@ -193,10 +194,10 @@ router.delete('/canvas/:templateId', async (req, res) => {
       return res.status(404).json({ error: 'Template not found' });
     }
     
-    console.log('Deleted canvas template:', templateName);
+    logger.info('Deleted canvas template:', templateName);
     res.json({ message: 'Template deleted successfully' });
   } catch (err) {
-    console.error('Delete canvas template error:', err.message, err.stack);
+    logger.error('Delete canvas template error:', err.message, err.stack);
     res.status(500).json({ error: `Failed to delete canvas template: ${err.message}` });
   }
 });
@@ -284,7 +285,7 @@ router.post('/canvas/batch-pdf', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Batch PDF generation error:', err.message, err.stack);
+    logger.error('Batch PDF generation error:', err.message, err.stack);
     res.status(500).json({ error: `Failed to generate batch PDF: ${err.message}` });
   }
 });

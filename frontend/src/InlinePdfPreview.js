@@ -60,7 +60,7 @@ const InlinePdfPreview = ({ recipeId, show, onHide }) => {
 
     try {
       // Try to load saved template first
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://172.30.184.138:8080';
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
       const response = await fetch(`${apiUrl}/templates/canvas/default`);
       
       if (response.ok) {

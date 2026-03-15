@@ -17,6 +17,7 @@ import ChangeLog from './ChangeLog';
 import UserManagement from './UserManagement';
 import UserReport from './UserReport';
 import BulkUpload from './BulkUpload';
+import DailySpecialChat from './DailySpecialChat';
 import { getRecipes, getConfig, isAuthenticated, getCurrentUser, logout } from './api';
 import { NotificationProvider } from './NotificationContext';
 import { RoleProvider } from './RoleContext';
@@ -30,17 +31,15 @@ function AppContent() {
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [config, setConfig] = useState({ appName: "XYZCompany Recipe and Plating Guide", showLeftNav: true });
+  const [config, setConfig] = useState({ appName: "XYZCompany Recipe and Plating Guide", showLeftNav: true, logoVersion: Date.now() });
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
 
   const refreshRecipes = useCallback(async (all = true) => {
     setLoading(true);
     setError(null);
-    console.log('Refreshing recipes');
     try {
       const data = await getRecipes(all);
-      console.log('Recipes fetched:', data);
       if (!data || !Array.isArray(data)) {
         setError('No recipes found');
         setRecipes([]);
@@ -52,7 +51,6 @@ function AppContent() {
       }
       setLoading(false);
     } catch (err) {
-      console.error('Fetch Error:', err.message);
       setError(`Failed to fetch recipes: ${err.message}`);
       setLoading(false);
     }
@@ -61,9 +59,8 @@ function AppContent() {
   const refreshConfig = useCallback(async () => {
     try {
       const data = await getConfig();
-      setConfig({ appName: data.appName, showLeftNav: data.showLeftNav });
+      setConfig({ appName: data.appName, showLeftNav: data.showLeftNav, logoVersion: Date.now() });
     } catch (err) {
-      console.error('Fetch Config Error:', err.message);
       setError(`Failed to fetch config: ${err.message}`);
     }
   }, []);
@@ -86,7 +83,6 @@ function AppContent() {
   }, [refreshRecipes, refreshConfig]);
 
   const handleLogin = () => {
-    console.log('Login successful, setting authenticated to true');
     setAuthenticated(true);
     setUser(getCurrentUser());
     refreshRecipes(true);
@@ -104,10 +100,8 @@ function AppContent() {
   };
 
   const handleSearch = useCallback((query) => {
-    console.log('Search triggered with query:', query);
     if (!query) {
       setFilteredRecipes(recipes);
-      console.log('No query, setting filteredRecipes to:', recipes);
       return;
     }
     const lowerQuery = query.toLowerCase();
@@ -124,13 +118,11 @@ function AppContent() {
       ((recipe.serviceTypes && Array.isArray(recipe.serviceTypes)) &&
         recipe.serviceTypes.some(type => type.toLowerCase().includes(lowerQuery)))
     );
-    console.log('Filtered recipes:', filtered);
     setFilteredRecipes(filtered);
   }, [recipes]);
 
   // Show login if not authenticated
   if (!authenticated) {
-    console.log('Not authenticated, showing login page');
     return (
       <NotificationProvider>
         <Login onLogin={handleLogin} />
@@ -138,8 +130,6 @@ function AppContent() {
       </NotificationProvider>
     );
   }
-
-  console.log('Authenticated, showing main app');
 
   return (
     <NotificationProvider>
@@ -193,6 +183,7 @@ function AppContent() {
                   <Route path="/users" element={<UserManagement />} />
                   <Route path="/config" element={<SetupConfig refreshConfig={refreshConfig} />} />
                   <Route path="/bulk-upload" element={<BulkUpload />} />
+                  <Route path="/daily-special" element={<DailySpecialChat />} />
                 </Routes>
               </Container>
             </Col>

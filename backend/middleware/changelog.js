@@ -1,4 +1,5 @@
 const ChangeLog = require('../models/ChangeLog');
+const logger = require('../utils/logger');
 
 /**
  * Middleware to log recipe changes
@@ -35,7 +36,7 @@ const logRecipeChange = (action, options = {}) => {
             targetRecipeName = recipe.name;
           }
         } catch (err) {
-          console.error('Error fetching recipe name for changelog:', err);
+          logger.error('Error fetching recipe name for changelog:', err);
         }
       }
 
@@ -54,10 +55,10 @@ const logRecipeChange = (action, options = {}) => {
       // Save the change log entry
       await ChangeLog.create(changeLogEntry);
       
-      console.log(`Change logged: ${action} by ${req.user.username} on recipe ${targetRecipeName}`);
+      logger.info(`Change logged: ${action} by ${req.user.username} on recipe ${targetRecipeName}`);
       
     } catch (error) {
-      console.error('Error logging recipe change:', error);
+      logger.error('Error logging recipe change:', error);
       // Don't fail the request if logging fails
     }
     
@@ -74,7 +75,7 @@ const captureChanges = (req, res, next) => {
     try {
       req.originalBody = JSON.parse(JSON.stringify(req.body));
     } catch (error) {
-      console.error('Error capturing changes:', error);
+      logger.error('Error capturing changes:', error);
       // If we can't capture changes, just continue without them
       req.originalBody = null;
     }
@@ -178,7 +179,7 @@ const logRecipeUpdate = async (req, res, next) => {
       req.originalRecipeData = originalRecipe.toObject();
     }
   } catch (error) {
-    console.error('Error capturing original recipe data:', error);
+    logger.error('Error capturing original recipe data:', error);
   }
   
   next();
@@ -216,7 +217,7 @@ const logUpdateResult = async (req, res, next) => {
       });
     }
   } catch (error) {
-    console.error('Error logging recipe update:', error);
+    logger.error('Error logging recipe update:', error);
     // Don't fail the request if logging fails
   }
   
@@ -284,7 +285,7 @@ const resolveIngredientNames = async (changes) => {
     
     return resolvedChanges;
   } catch (error) {
-    console.error('Error resolving ingredient names:', error);
+    logger.error('Error resolving ingredient names:', error);
     return changes; // Return original changes if resolution fails
   }
 };

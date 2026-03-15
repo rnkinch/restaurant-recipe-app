@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const logger = require('../utils/logger');
 const path = require('path');
 const fs = require('fs');
 const BulkUploadUtility = require('../utils/bulkUpload');
@@ -56,7 +57,7 @@ router.get('/template', authenticateToken, requireEditPermission, (req, res) => 
       template
     });
   } catch (error) {
-    console.error('Error getting template:', error);
+    logger.error('Error getting template:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get template',
@@ -110,7 +111,7 @@ router.post('/upload', authenticateToken, requireEditPermission, upload.single('
     });
 
   } catch (error) {
-    console.error('Bulk upload error:', error);
+    logger.error('Bulk upload error:', error);
     
     // Clean up temporary file if it exists
     if (req.file && fs.existsSync(req.file.path)) {
@@ -174,7 +175,7 @@ router.post('/google-sheets', authenticateToken, requireEditPermission, async (r
     });
 
   } catch (error) {
-    console.error('Google Sheets upload error:', error);
+    logger.error('Google Sheets upload error:', error);
     res.status(500).json({
       success: false,
       message: 'Google Sheets upload failed',
@@ -236,7 +237,7 @@ router.post('/preview', authenticateToken, requireEditPermission, upload.single(
     });
 
   } catch (error) {
-    console.error('Preview error:', error);
+    logger.error('Preview error:', error);
     
     // Clean up temporary file if it exists
     if (req.file && fs.existsSync(req.file.path)) {

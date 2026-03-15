@@ -37,14 +37,12 @@ const RecipeFormModal = ({
   const handleSubmitNewIngredient = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('handleSubmitNewIngredient triggered'); // Debug submission
     if (!newIngredient.name.trim() || !newIngredient.purveyor) {
       setError('Ingredient name and purveyor are required');
       return;
     }
     try {
       const newIng = await handleNewIngredientSubmit(newIngredient);
-      console.log('Calling handleAddIngredient for new ingredient:', newIng); // Debug add
       handleAddIngredient(newIng);
       setNewIngredient({ name: '', purveyor: '' });
       setIngredientSearch('');
@@ -73,31 +71,39 @@ const RecipeFormModal = ({
             className="editable-field"
           />
           {ingredientSearch && (
-            <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #ccc', background: '#fff', zIndex: 1000, marginTop: '5px' }}>
+            <div style={{
+              maxHeight: '150px', overflowY: 'auto', marginTop: '5px',
+              background: 'var(--bg-elevated)', border: '1px solid var(--border-color)',
+              borderRadius: '2px', zIndex: 1000
+            }}>
               {filteredIngredients.length > 0 ? (
                 filteredIngredients.map(ing => {
                   const purveyorName = purveyors.find(p => p._id === (ing.purveyor?._id?.toString() || ing.purveyor))?.name || 'Unknown';
                   return (
                     <div
                       key={ing._id}
-                      className="p-2 border-bottom"
-                      style={{ cursor: 'pointer', textAlign: 'left' }}
+                      style={{
+                        cursor: 'pointer', textAlign: 'left', padding: '8px 12px',
+                        color: 'var(--text-primary)', borderBottom: '1px solid rgba(255,255,255,0.05)',
+                        fontSize: '0.875rem'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.1)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       onClick={() => {
-                        console.log('Selected ingredient:', ing);
                         handleAddIngredient(ing);
                         setIngredientSearch('');
                         setShow(false);
                       }}
                     >
-                      {ing.name} ({purveyorName})
+                      {ing.name} <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>({purveyorName})</span>
                     </div>
                   );
                 })
               ) : (
-                <div className="p-2 text-muted">
+                <div style={{ padding: '8px 12px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
                   No ingredients found.{' '}
                   <span
-                    style={{ cursor: 'pointer', color: 'blue' }}
+                    style={{ cursor: 'pointer', color: 'var(--gold)', textDecoration: 'underline' }}
                     onClick={handleAddNewClick}
                   >
                     Add new?
